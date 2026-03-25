@@ -30,15 +30,14 @@ export default function ProfilePage() {
     setProfile(p);
     setNewName(p.name);
     
-    // USUÁRIO SOLICITOU: Forçar o estado para testar os componentes no Level 1500
-    const mCount = 1500;
+    // Voltando para o contador real de palavras
+    const cards = getCards();
+    const mCount = cards.filter(c => c.isLearned).length;
     setMasteredCount(mCount);
     
-    // Auto set theme when mounting based on current patente
+    // Auto set theme when mounting based on current real patente
     const pInfo = getUserPatente(mCount);
-    if (activeThemeName === 'Semente ITR') {
-      setThemeByName(pInfo.current.name);
-    }
+    setThemeByName(pInfo.current.name);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = () => {
@@ -49,13 +48,14 @@ export default function ProfilePage() {
   };
 
   const patenteInfo = getUserPatente(masteredCount);
-  // Usa o ícone do tema ativo para brincar, ou a patente real
-  const PatenteIcon = ICON_MAP[activeThemeName === 'Semente ITR' ? 'Sprout' : activeThemeName === 'Broto de Fluência' ? 'Leaf' : activeThemeName === 'Raiz Forte' ? 'Activity' : activeThemeName === 'Arbusto de Diálogo' ? 'Shrub' : 'Trees'] || Trophy;
+  // Usa o ícone da patente real
+  const realPatenteName = patenteInfo.current.name;
+  const PatenteIcon = ICON_MAP[realPatenteName === 'Semente ITR' ? 'Sprout' : realPatenteName === 'Broto de Fluência' ? 'Leaf' : realPatenteName === 'Raiz Forte' ? 'Activity' : realPatenteName === 'Arbusto de Diálogo' ? 'Shrub' : 'Trees'] || Trophy;
 
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       
-      {/* 1. SEÇÃO DE PERFIL COM ROADMAP HORIZONTAL INTEGRADO */}
+      {/* 1. SEÇÃO DE PERFIL COM JORNADA DE MAESTRIA INTEGRADA */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -75,7 +75,7 @@ export default function ProfilePage() {
               <PatenteIcon size={64} className="transition-transform duration-500 group-hover:scale-110" style={{ color: 'var(--itr-primary)' }} strokeWidth={1.5} />
             </div>
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg border whitespace-nowrap z-20" style={{ backgroundColor: 'var(--itr-primary)', borderColor: 'var(--itr-glow)' }}>
-              {activeThemeName}
+              {realPatenteName}
             </div>
           </div>
 
@@ -139,11 +139,11 @@ export default function ProfilePage() {
               )}
             </AnimatePresence>
 
-            {/* Progress Bar Dinâmico */}
+            {/* Poder de Fluência Dinâmico */}
             {patenteInfo.next && (
               <div className="mt-8 md:mt-6 pt-4 border-t border-slate-800/50 w-full max-w-sm mx-auto md:mx-0">
                 <div className="flex justify-between text-[11px] mb-1.5 font-bold">
-                  <span className="text-slate-400 uppercase tracking-widest">Progresso: Nível Real</span>
+                  <span className="text-slate-400 uppercase tracking-widest">Poder de Fluência</span>
                   <span style={{ color: 'var(--itr-primary)' }}>{masteredCount} / {patenteInfo.next.minWords}</span>
                 </div>
                 <div className="w-full h-2 bg-slate-950 border border-slate-800 rounded-full overflow-hidden shadow-inner">
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <p className="text-[10px] text-slate-500 mt-2">
-                  <strong className="text-slate-300">{patenteInfo.wordsToNext} masterizadas</strong> te separam de se tornar um verdadeiro {patenteInfo.next.name}
+                  <strong className="text-slate-300">{patenteInfo.wordsToNext} palavras</strong> para elevar sua maestria para {patenteInfo.next.name}
                 </p>
               </div>
             )}
