@@ -55,6 +55,37 @@ export default function ProfilePage() {
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       
+      {/* MOCK DE USUÁRIO (APENAS PARA TESTE) */}
+      <div className="flex gap-4 mb-8 justify-center">
+        <button 
+          onClick={() => {
+            setMasteredCount(0);
+            setThemeByName('Semente ITR');
+          }}
+          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
+        >
+          Zerar (Aluno)
+        </button>
+        <button 
+          onClick={() => {
+            setMasteredCount(299);
+            setThemeByName('Raiz Forte');
+          }}
+          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
+        >
+          Intermediário
+        </button>
+        <button 
+          onClick={() => {
+            setMasteredCount(1500);
+            setThemeByName('Árvore da Fluência');
+          }}
+          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
+        >
+          Mestre (1500)
+        </button>
+      </div>
+
       {/* 1. SEÇÃO DE PERFIL COM JORNADA DE MAESTRIA INTEGRADA */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

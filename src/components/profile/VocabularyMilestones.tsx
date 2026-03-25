@@ -24,8 +24,8 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
     }
   };
 
-  // USUÁRIO SOLICITOU: Forçar visual completo para teste de design
-  const isMaxReached = true; 
+  // Revertido para lógica real para teste de mock
+  const isMaxReached = masteredCount >= 1500; 
 
   return (
     <div className="w-full">
@@ -50,8 +50,7 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
 
         <div className="grid grid-cols-5 md:grid-cols-10 gap-x-3 gap-y-6 md:gap-y-10 relative z-10 w-full items-center">
           {MILESTONES.map((m, i) => {
-            // USUÁRIO SOLICITOU: Forçar desbloqueio em todos para teste de design
-            const reached = true; 
+            const reached = masteredCount >= m; 
             const isCollecting = lastCollected === m;
             const isGold = m === 1500;
             const isRuby = m === 500;
