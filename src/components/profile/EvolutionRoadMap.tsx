@@ -38,8 +38,8 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Camada da Linha (Background + Progress) - Centrada exatamente conforme solicitado */}
-        <div className="absolute left-[10%] right-[10%] top-[38%] h-[3px] -translate-y-1/2 z-0">
+        {/* Linha da Jornada - Força o alinhamento centralizado nos ícones (h-12=48px, md:h-14=56px) */}
+        <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[3px] -translate-y-1/2 z-0">
           {/* Linha Fundo Cinza (Não conquistado) */}
           <div className="absolute inset-0 bg-slate-800 rounded-full" />
           
