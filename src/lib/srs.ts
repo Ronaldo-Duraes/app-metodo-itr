@@ -36,7 +36,7 @@ export const saveUserProfile = (profile: UserProfile) => {
   saveAppData({ ...data, profile });
 };
 
-export const addCustomCard = (front: string, back: string, association: string) => {
+export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {
   const cards = getCards();
   const newCard: Flashcard = {
     id: Math.random().toString(36).substr(2, 9),
@@ -45,7 +45,8 @@ export const addCustomCard = (front: string, back: string, association: string) 
     association,
     nextReview: new Date().toISOString(),
     reviewedCount: 0,
-    isLearned: false,
+    isLearned: true, // Já conta como masterizada para evolução da patente
+    deck,
   };
   saveCards([...cards, newCard]);
 };
@@ -120,7 +121,91 @@ export const importEssentialVocabulary = () => {
     nextReview: new Date().toISOString(),
     reviewedCount: 0,
     isLearned: false,
+    deck: 'Essencial',
   })).filter(nv => !currentCards.some(cc => cc.front === nv.front));
   
   saveCards([...currentCards, ...newCards]);
+};
+
+export interface Patente {
+  level: number;
+  name: string;
+  minWords: number;
+  maxWords: number | null;
+  iconName: string;
+}
+
+export const PATENTES: Patente[] = [
+  { level: 1, name: 'Semente ITR', minWords: 0, maxWords: 99, iconName: 'Sprout' },
+  { level: 2, name: 'Broto de Fluência', minWords: 100, maxWords: 299, iconName: 'Leaf' },
+  { level: 3, name: 'Raiz Forte', minWords: 300, maxWords: 699, iconName: 'Activity' },
+  { level: 4, name: 'Arbusto de Diálogo', minWords: 700, maxWords: 1499, iconName: 'Shrub' },
+  { level: 5, name: 'Árvore da Fluência', minWords: 1500, maxWords: null, iconName: 'Trees' },
+];
+
+export const getUserPatente = (masteredCount: number) => {
+  const current = PATENTES.find(p => masteredCount >= p.minWords && (p.maxWords === null || masteredCount <= p.maxWords)) || PATENTES[0];
+  const nextIndex = PATENTES.findIndex(p => p.level === current.level) + 1;
+  const next = nextIndex < PATENTES.length ? PATENTES[nextIndex] : null;
+  const wordsToNext = next ? next.minWords - masteredCount : 0;
+  
+  return { current, next, wordsToNext };
+};
+
+export const playVictorySound = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    const playFreq = (freq: number, startTime: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + startTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
+      osc.start(ctx.currentTime + startTime);
+      osc.stop(ctx.currentTime + startTime + duration);
+    };
+
+    // Arpejo de vitória (Acorde Maior) - Toca um som de conquista 'Ta-ta-da-daaa'
+    playFreq(440.00, 0, 0.15); // A4
+    playFreq(554.37, 0.15, 0.15); // C#5
+    playFreq(659.25, 0.30, 0.15); // E5
+    playFreq(880.00, 0.45, 0.4); // A5
+  } catch (e) {
+    console.error('Audio playback failed', e);
+  }
+};
+
+export const playBlipSound = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    // Som curto 
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
+    
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+  } catch (e) {
+    console.error('Blip sound failed', e);
+  }
 };

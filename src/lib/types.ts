@@ -7,6 +7,7 @@ export interface Flashcard {
   lastInterval?: '1h' | '24h' | '1s' | '1m';
   reviewedCount: number;
   isLearned: boolean; // Aprendido no longo prazo
+  deck?: string; // Baralho para agrupamento
 }
 
 export interface UserProfile {

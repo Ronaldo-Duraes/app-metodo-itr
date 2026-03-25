@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addCustomCard } from '@/lib/srs';
+import { addCustomCard, playBlipSound, playVictorySound, getCards, PATENTES } from '@/lib/srs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   PlusCircle, 
@@ -22,16 +22,25 @@ export default function AddVocabularyPage() {
     e.preventDefault();
     if (!front || !back) return;
 
+    const cardsBefore = getCards().filter(c => c.isLearned).length;
     addCustomCard(front, back, association);
+    const cardsAfter = getCards().filter(c => c.isLearned).length;
     
-    // Clear form
+    const thresholdReached = PATENTES.some((p: any) => p.minWords === cardsAfter && p.minWords > 0);
+    
+    if (cardsAfter > cardsBefore && thresholdReached) {
+       playVictorySound();
+    } else {
+       playBlipSound();
+    }
+    
     setFront('');
     setBack('');
     setAssociation('');
     
     // Feedback
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    setTimeout(() => setShowSuccess(false), 2500);
   };
 
   return (
@@ -133,8 +142,8 @@ export default function AddVocabularyPage() {
                   <CheckCircle2 size={24} />
                 </div>
                 <div>
-                  <p className="font-bold">Palavra Salva!</p>
-                  <p className="text-sm text-emerald-500/70">A nova carta já está na sua fila de estudos.</p>
+                  <p className="font-bold text-lg">+1 Palavra para a evolução!</p>
+                  <p className="text-sm text-emerald-500/70">Sua contagem de Palavras Masterizadas aumentou no sistema.</p>
                 </div>
               </motion.div>
             )}

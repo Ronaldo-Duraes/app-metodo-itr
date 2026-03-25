@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getUserProfile, saveUserProfile, getCards } from '@/lib/srs';
+import { getUserProfile, saveUserProfile, getCards, getUserPatente } from '@/lib/srs';
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Trophy, 
-  Edit3, 
-  CheckCircle,
-  Gem,
-  Award,
-  Zap
-} from 'lucide-react';
+import { Edit3, Gem, Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
+import ProfileStats from '@/components/profile/ProfileStats';
+import EvolutionRoadMap from '@/components/profile/EvolutionRoadMap';
+
+const ICON_MAP: Record<string, any> = {
+  'Sprout': Sprout,
+  'Leaf': Leaf,
+  'Activity': Activity,
+  'Shrub': Shrub,
+  'Trees': Trees,
+};
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile>({ name: '' });
@@ -25,7 +27,6 @@ export default function ProfilePage() {
     setProfile(p);
     setNewName(p.name);
     
-    // Calcula masterizadas (isLearned = true)
     const cards = getCards();
     setMasteredCount(cards.filter(c => c.isLearned).length);
   }, []);
@@ -37,22 +38,33 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
+  const patenteInfo = getUserPatente(masteredCount);
+  const PatenteIcon = ICON_MAP[patenteInfo.current.iconName] || Trophy;
+
   return (
-    <div className="max-w-4xl mx-auto py-12">
+    <div className="max-w-5xl mx-auto py-12 px-6">
+      
+      {/* 1. SEÇÃO DE PERFIL COM ROADMAP HORIZONTAL INTEGRADO */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="premium-card p-10 bg-gradient-to-br from-slate-900 to-indigo-900/10 mb-12"
+        className="premium-card p-6 md:p-10 bg-slate-900 border border-slate-800 relative overflow-hidden mb-12 shadow-2xl flex flex-col items-center w-full"
       >
-        <div className="flex flex-col md:flex-row items-center gap-10">
-          <div className="relative group">
-            <div className="w-32 h-32 rounded-full border-4 border-blue-500/30 flex items-center justify-center bg-slate-800 transition-all group-hover:border-blue-500/50 shadow-2xl relative z-10">
-              <User size={64} className="text-slate-500 group-hover:text-blue-400 transition-colors" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+
+        {/* Informações Principais */}
+        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full mb-12">
+          
+          <div className="relative group shrink-0 mt-2">
+            <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl border border-blue-500/30 flex items-center justify-center bg-slate-800/80 transition-all shadow-[0_0_40px_rgba(59,130,246,0.15)] relative z-10 box-border overflow-hidden">
+              <PatenteIcon size={60} className="text-blue-400 group-hover:scale-110 transition-transform duration-500" strokeWidth={1.5} />
             </div>
-            <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg border border-blue-400/50 whitespace-nowrap z-20">
+              {patenteInfo.current.name}
+            </div>
           </div>
 
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1 text-center md:text-left flex flex-col justify-center h-full w-full">
             <AnimatePresence mode="wait">
               {!isEditing ? (
                 <motion.div 
@@ -60,19 +72,22 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
-                  className="space-y-2"
+                  className="space-y-3 pt-2"
                 >
-                  <h1 className="text-4xl font-bold font-outfit">{profile.name}</h1>
-                  <p className="text-slate-400 flex items-center justify-center md:justify-start gap-2">
-                    <Gem size={16} className="text-blue-400" />
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 justify-center md:justify-start">
+                    <h1 className="text-4xl md:text-5xl font-bold font-outfit text-white">{profile.name}</h1>
+                    <button 
+                      onClick={() => setIsEditing(true)}
+                      className="text-slate-500 hover:text-blue-400 transition-colors p-2 rounded-full hover:bg-slate-800 self-center"
+                      title="Editar Nome"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                  </div>
+                  <p className="text-indigo-300 font-medium flex items-center justify-center md:justify-start gap-2">
+                    <Gem size={16} />
                     Aluno Premium Método ITR
                   </p>
-                  <button 
-                    onClick={() => setIsEditing(true)}
-                    className="mt-4 flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors bg-blue-400/5 px-4 py-2 rounded-full border border-blue-400/20"
-                  >
-                    <Edit3 size={14} /> Editar Nome
-                  </button>
                 </motion.div>
               ) : (
                 <motion.div 
@@ -80,25 +95,25 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className="space-y-4"
+                  className="space-y-4 pt-2 w-full"
                 >
                   <input 
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="text-3xl font-bold bg-slate-800 border-2 border-blue-500/50 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm"
+                    className="text-3xl font-bold bg-slate-950 border-2 border-blue-500/50 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-400 w-full max-w-sm text-center md:text-left text-white"
                     autoFocus
                   />
                   <div className="flex gap-3 justify-center md:justify-start">
                     <button 
                       onClick={handleSave}
-                      className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all font-outfit"
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all font-outfit"
                     >
-                      Salvar Alterações
+                      Salvar
                     </button>
                     <button 
                       onClick={() => setIsEditing(false)}
-                      className="text-slate-400 hover:bg-slate-800 px-6 py-2 rounded-xl text-sm"
+                      className="text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                     >
                       Cancelar
                     </button>
@@ -106,33 +121,37 @@ export default function ProfilePage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Sub-Progress Bar de Apoio */}
+            {patenteInfo.next && (
+              <div className="mt-6 pt-4 border-t border-slate-800/50 w-full max-w-sm mx-auto md:mx-0">
+                <div className="flex justify-between text-xs mb-1.5 font-medium">
+                  <span className="text-slate-400">Progresso Geral</span>
+                  <span className="text-blue-400">{masteredCount} / {patenteInfo.next.minWords}</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-950 border border-slate-800 rounded-full overflow-hidden shadow-inner">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ 
+                      width: `${Math.max(5, (masteredCount - patenteInfo.current.minWords) / ((patenteInfo.next.minWords - patenteInfo.current.minWords) || 1) * 100)}%` 
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-2">Apenas <strong className="text-slate-300">{patenteInfo.wordsToNext} masterizadas</strong> te separam de ser um {patenteInfo.next.name}</p>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* ROADMAP VISUAL HORIZONTAL */}
+        <div className="w-full border-t border-slate-800/80 pt-10">
+          <EvolutionRoadMap masteredCount={masteredCount} />
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { label: 'Palavras Masterizadas', value: masteredCount, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/5' },
-          { label: 'Dias de Ofensiva', value: '4', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/5' },
-          { label: 'Conquistas ITR', value: '8', icon: Award, color: 'text-indigo-400', bg: 'bg-indigo-500/5' },
-        ].map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * i }}
-            className={`premium-card p-6 flex items-center gap-5 ${stat.bg} border-slate-800 hover:border-slate-700 transition-colors`}
-          >
-            <div className={`p-3 rounded-2xl ${stat.bg.replace('/5', '/10')}`}>
-              <stat.icon className={stat.color} size={28} />
-            </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
-              <p className="text-2xl font-bold font-outfit">{stat.value}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* 2. ESTATÍSTICAS CARTÕES */}
+      <h3 className="text-xl font-bold text-white font-outfit mb-4">Métricas Globais</h3>
+      <ProfileStats masteredCount={masteredCount} />
     </div>
   );
 }
