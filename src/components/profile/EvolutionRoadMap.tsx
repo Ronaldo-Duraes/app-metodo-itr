@@ -41,7 +41,7 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
                initial={{ opacity: 0, scale: 0.8, y: 10 }}
                animate={{ opacity: 1, scale: 1, y: 0 }}
                exit={{ opacity: 0, scale: 0.8 }}
-               className="absolute right-8 -top-8 flex items-center gap-3 bg-slate-900 border border-slate-700 p-2 rounded-xl shadow-lg z-50"
+               className="absolute right-8 -top-8 flex items-center gap-3 bg-slate-900 border border-slate-700 p-2 rounded-xl shadow-[0_0_20px_var(--itr-glow)] z-50"
             >
                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Sua Cor:</span>
                <input 
@@ -64,7 +64,7 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
             style={{ 
               width: `${((patenteInfo.current.level - 1) / (PATENTES.length - 1)) * 100}%`,
               backgroundColor: 'var(--itr-primary)',
-              boxShadow: '0 0 15px var(--itr-glow)'
+              boxShadow: '0 0 25px var(--itr-glow)'
             }}
           />
         </div>
@@ -82,25 +82,31 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="flex flex-col items-center flex-1 cursor-pointer group hover:-translate-y-1 transition-transform"
+                whileHover={{ scale: 1.05 }}
+                className="flex flex-col items-center flex-1 cursor-pointer group"
                 onClick={() => isAchieved && setThemeByName(patente.name)}
               >
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg transition-all duration-500 relative bg-slate-900 border-2
-                  ${isCurrentMode ? 'scale-125' : 'grayscale opacity-70 hover:grayscale-0'}`}
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all duration-300 relative border-2 bg-slate-900 z-10
+                  ${isCurrentMode ? 'scale-125' : 'grayscale opacity-70 group-hover:grayscale-0 group-hover:scale-110 group-hover:z-20'}`}
                   style={{
                     borderColor: isCurrentMode || (isAchieved && !isCurrentMode) ? 'var(--itr-primary)' : '#334155',
                     color: isCurrentMode || isAchieved ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
                     backgroundColor: isCurrentMode ? 'var(--itr-primary)' : '#0f172a',
-                    boxShadow: isCurrentMode ? '0 0 25px var(--itr-glow)' : 'none'
+                    boxShadow: isCurrentMode ? '0 0 35px var(--itr-glow)' : (isAchieved ? '0 0 10px var(--itr-glow)' : 'none')
                   }}
                 >
-                  <Icon size={isCurrentMode ? 22 : 18} />
+                  <motion.div
+                    animate={isCurrentMode ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  >
+                     <Icon size={isCurrentMode ? 22 : 18} />
+                  </motion.div>
                   {isLocked && <Lock size={12} className="absolute -bottom-1 -right-1 text-slate-500 bg-slate-900 border border-slate-700 rounded-full p-[2px]" />}
                 </div>
 
-                <div className="text-center mt-4">
-                  <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-tight mb-0.5"
-                    style={{ color: isCurrentMode ? 'var(--itr-primary)' : '#64748b' }}>
+                <div className="text-center mt-5 transition-transform group-hover:translate-y-1">
+                  <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-tight mb-0.5 transition-colors"
+                    style={{ color: isCurrentMode ? 'var(--itr-primary)' : '#64748b', textShadow: isCurrentMode ? '0 0 10px var(--itr-glow)' : 'none' }}>
                     {patente.name}
                   </h4>
                   <span className="text-[8px] text-slate-500 font-bold block">

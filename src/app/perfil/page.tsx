@@ -30,13 +30,13 @@ export default function ProfilePage() {
     setProfile(p);
     setNewName(p.name);
     
-    const cards = getCards();
-    const mCount = cards.filter(c => c.isLearned).length;
+    // USUÁRIO SOLICITOU: Forçar o estado para testar os componentes no Level 1500
+    const mCount = 1500;
     setMasteredCount(mCount);
     
-    // Auto set theme when mounting based on current patente (apenas na 1ª carga)
+    // Auto set theme when mounting based on current patente
     const pInfo = getUserPatente(mCount);
-    if (activeThemeName === 'Semente ITR') { // Default
+    if (activeThemeName === 'Semente ITR') {
       setThemeByName(pInfo.current.name);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
