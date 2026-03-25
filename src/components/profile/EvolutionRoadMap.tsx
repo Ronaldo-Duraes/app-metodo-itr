@@ -1,5 +1,4 @@
-'use client';
-
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PATENTES, getUserPatente } from '@/lib/srs';
 import { Sprout, Leaf, Activity, Shrub, Trees, Lock } from 'lucide-react';
@@ -21,25 +20,39 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
   const patenteInfo = getUserPatente(masteredCount);
   const { activeThemeName, setThemeByName } = useTheme();
 
+  // Calcula a porcentagem real de progresso na jornada (níveis 1 a 5)
+  // Progresso vai de 0% (Semente) a 100% (Árvore)
+  const realProgressPercent = ((patenteInfo.current.level - 1) / (PATENTES.length - 1)) * 100;
+
+  // Estado para efeito hover sincronizado com a linha
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
     <div className="w-full pb-4">
-      <div className="flex justify-between items-center mb-8 px-2 md:px-6">
+      <div className="flex justify-between items-center mb-10 px-2 md:px-6">
         <h3 className="text-lg md:text-xl font-bold font-outfit flex items-center gap-2" style={{ color: 'var(--itr-primary)' }}>
           Jornada de Maestria
         </h3>
       </div>
 
-      <div className="relative w-full max-w-4xl mx-auto px-2 md:px-8 h-28">
+      <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Linha Fundo (Cinza discreta) */}
-        <div className="absolute left-[10%] right-[10%] top-[1.3rem] h-0.5 w-[80%] bg-slate-800 -z-10 rounded-full" />
-        
-        {/* Progresso Dinâmico da Linha (Cor da Patente) - FORÇADO 100% PARA TESTE */}
-        <div className="absolute left-[10%] top-[1.3rem] h-0.5 w-[80%] flex -z-10">
-          <div 
-            className="h-full rounded-full transition-all duration-1000" 
+        {/* Camada da Linha (Background + Progress) - Z-0 para ficar acima do fundo mas abaixo dos ícones */}
+        <div className="absolute left-[10%] right-[10%] top-[1.5rem] md:top-[1.75rem] h-[3px] z-0">
+          {/* Linha Fundo Cinza (Não conquistado) */}
+          <div className="absolute inset-0 bg-slate-800 rounded-full" />
+          
+          {/* Linha Iluminada (Conquistado) */}
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ 
+              width: `${realProgressPercent}%`,
+              opacity: hoveredIndex !== null ? 1 : 0.8,
+              boxShadow: hoveredIndex !== null ? '0 0 30px var(--itr-glow)' : '0 0 15px var(--itr-glow)'
+            }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="absolute h-full rounded-full" 
             style={{ 
-              width: `100%`, // Forçado para o usuário ver o design da linha
               backgroundColor: 'var(--itr-primary)',
             }}
           />
@@ -48,7 +61,7 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
         <div className="flex flex-row justify-between items-start relative w-full h-full">
           {PATENTES.map((patente, i) => {
             const isCurrentMode = activeThemeName === patente.name;
-            // USUÁRIO SOLICITOU: Forçar visual de conquistado para teste
+            // Para visual de teste, vamos manter todos ativos, mas a linha reflete o progresso REAL
             const isAchieved = true; 
             const isLocked = false; 
             const Icon = ICON_MAP[patente.iconName];
@@ -59,36 +72,31 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                whileHover={!isLocked ? { scale: 1.05 } : {}}
-                className={`flex flex-col items-center flex-1 transition-transform group ${isLocked ? 'cursor-default' : 'cursor-pointer'}`}
-                onClick={() => isAchieved && setThemeByName(patente.name)}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                whileHover={{ scale: 1.1 }}
+                className="flex flex-col items-center flex-1 cursor-pointer group z-10 transition-all duration-300"
+                onClick={() => setThemeByName(patente.name)}
               >
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all duration-300 relative border-2 bg-slate-900 z-10
-                  ${isCurrentMode ? 'scale-125' : 'opacity-90 group-hover:scale-110'}`}
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative border-2 bg-slate-900 z-10
+                  ${isCurrentMode ? 'scale-110 shadow-[0_0_30px_var(--itr-glow)]' : 'opacity-80 group-hover:opacity-100'}`}
                   style={{
-                    borderColor: isCurrentMode || (isAchieved && !isCurrentMode) ? 'var(--itr-primary)' : '#334155',
-                    color: isCurrentMode || isAchieved ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
+                    borderColor: isCurrentMode ? 'var(--itr-primary)' : (patenteInfo.current.level >= patente.level ? 'var(--itr-primary)' : '#334155'),
+                    color: isCurrentMode || patenteInfo.current.level >= patente.level ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
                     backgroundColor: isCurrentMode ? 'var(--itr-primary)' : '#0f172a',
-                    boxShadow: isCurrentMode ? '0 0 20px var(--itr-glow)' : 'none'
                   }}
                 >
-                  <motion.div
-                    animate={isCurrentMode ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  >
-                     <Icon size={isCurrentMode ? 22 : 18} />
-                  </motion.div>
-                  {isLocked && <Lock size={12} className="absolute -bottom-1 -right-1 text-slate-500 bg-slate-900 border border-slate-700 rounded-full p-[2px]" />}
+                  <Icon size={isCurrentMode ? 24 : 20} strokeWidth={isCurrentMode ? 2.5 : 2} />
                 </div>
 
-                <div className="text-center mt-5 transition-transform group-hover:translate-y-1">
-                  <h4 className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest leading-tight mb-0.5 transition-colors"
-                    style={{ color: isCurrentMode ? 'var(--itr-primary)' : '#64748b' }}>
+                <div className="text-center mt-6 w-full px-1 flex flex-col items-center">
+                  <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-widest leading-tight mb-1 transition-colors whitespace-nowrap"
+                    style={{ color: isCurrentMode ? 'var(--itr-primary)' : '#94a3b8' }}>
                     {patente.name}
                   </h4>
-                  <span className="text-[8px] text-slate-500 font-bold block">
-                    {patente.minWords}{patente.maxWords ? `-${patente.maxWords}` : '+'}
-                  </span>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter opacity-80 whitespace-nowrap">
+                    {patente.minWords}{patente.maxWords ? `-${patente.maxWords}` : '+'} pts
+                  </p>
                 </div>
               </motion.div>
             );

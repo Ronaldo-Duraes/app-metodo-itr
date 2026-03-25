@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Crown, Flame } from 'lucide-react';
+import { Star, Crown, Flame, Trees } from 'lucide-react';
 
 interface VocabularyMilestonesProps {
   masteredCount: number;
@@ -24,7 +24,8 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
     }
   };
 
-  const isMaxReached = masteredCount >= 1500;
+  // USUÁRIO SOLICITOU: Forçar visual completo para teste de design
+  const isMaxReached = true; 
 
   return (
     <div className="w-full">
@@ -57,30 +58,47 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
                 key={m}
                 onClick={() => handleCollect(m)}
                 initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.02 }}
+                animate={isLegendary ? { 
+                  opacity: 1,
+                  scale: 1,
+                  boxShadow: [
+                    '0 0 15px rgba(251, 191, 36, 0.3)', 
+                    '0 0 35px rgba(251, 191, 36, 0.6)', 
+                    '0 0 15px rgba(251, 191, 36, 0.3)'
+                  ] 
+                } : {
+                  opacity: 1,
+                  scale: 1,
+                  boxShadow: reached ? '0 0 10px var(--itr-glow)' : 'none'
+                }}
+                transition={isLegendary ? { 
+                  opacity: { delay: i * 0.02 },
+                  scale: { delay: i * 0.02 },
+                  boxShadow: { repeat: Infinity, duration: 3, ease: "easeInOut" }
+                } : {
+                  delay: i * 0.02
+                }}
                 disabled={!reached}
-                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-300 mx-auto
-                  ${isLegendary ? 'w-full h-12 md:h-14 rounded-xl text-sm md:text-base' : 'w-full h-10 md:h-12 rounded-lg text-xs md:text-sm'}
+                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto
+                  ${isLegendary ? 'w-full h-14 md:h-16 rounded-2xl text-[16px] md:text-lg z-20' : 'w-full h-10 md:h-12 rounded-lg text-xs md:text-sm'}
                 `}
                 style={{
-                  borderColor: reached ? 'var(--itr-primary)' : '#1e293b',
-                  borderWidth: '1px',
-                  backgroundColor: reached ? (isCollecting ? 'var(--itr-primary)' : '#0f172a') : '#0f172a',
-                  color: reached ? (isCollecting ? '#fff' : 'var(--itr-primary)') : '#475569',
-                  boxShadow: reached ? '0 0 10px var(--itr-glow)' : 'none',
+                  borderColor: isLegendary ? '#fbbf24' : 'var(--itr-primary)',
+                  borderWidth: isLegendary ? '2px' : '1px',
+                  backgroundColor: isLegendary ? '#1e1b10' : (isCollecting ? 'var(--itr-primary)' : '#0f172a'),
+                  color: isLegendary ? '#fbbf24' : (isCollecting ? '#fff' : 'var(--itr-primary)'),
                   cursor: reached ? 'pointer' : 'not-allowed',
                 }}
-                whileHover={reached ? { scale: 1.1, boxShadow: '0 0 20px var(--itr-glow)' } : {}}
+                whileHover={reached ? { scale: 1.1, boxShadow: isLegendary ? '0 0 50px rgba(251, 191, 36, 0.8)' : '0 0 20px var(--itr-glow)' } : {}}
                 whileTap={reached ? { scale: 0.95 } : {}}
               >
                 {isCollecting ? (
                   <motion.div animate={{ scale: [1, 1.2, 1] }}>
-                    <Star size={16} fill="currentColor" />
+                    <Star size={isLegendary ? 20 : 16} fill="currentColor" />
                   </motion.div>
                 ) : (
-                  <span className="flex items-center gap-1">
-                     {isLegendary && <Crown size={12} />}
+                  <span className="flex items-center gap-1.5">
+                     {isLegendary && <Crown size={isLegendary ? 18 : 12} className="text-amber-400" />}
                      {m}
                   </span>
                 )}
@@ -90,33 +108,40 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
         </div>
       </div>
 
-      {/* EPIC CARD PARA LEVEL MAXIMO - VERSÃO PREMIUM CLEAN */}
+      {/* Card Épico da Árvore da Fluência (Sempre Lendário: Ouro & Preto) */}
       {isMaxReached && (
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full bg-slate-900 border border-slate-800 rounded-[24px] p-8 mt-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 w-full h-1" style={{ background: 'var(--itr-primary)' }}></div>
-          
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 border bg-slate-950 relative"
-                 style={{ borderColor: 'var(--itr-glow)' }}>
-               <Crown size={36} style={{ color: 'var(--itr-primary)' }} />
+            <div className="w-20 h-20 rounded-3xl bg-slate-900/50 flex items-center justify-center border border-[#FFD700]/30 relative group">
+              <Crown size={40} className="text-[#FFD700] drop-shadow-[0_0_12px_rgba(255,215,0,0.6)]" />
+              <div className="absolute inset-0 bg-[#FFD700]/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="text-center md:text-left">
-              <span className="font-bold uppercase tracking-widest text-[10px] mb-1 block" style={{ color: 'var(--itr-primary)' }}>Maestria Suprema Alcançada</span>
-              <h2 className="text-2xl md:text-3xl font-black font-outfit text-white mb-2">Árvore da Fluência</h2>
-              <p className="text-slate-400 text-sm max-w-sm">Você dominou o vocabulário base oficial. Seu domínio do idioma agora é sólido e elegante.</p>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD700] opacity-80 mb-2 block drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                MAESTRIA SUPREMA ALCANÇADA
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black font-outfit text-white mb-2 drop-shadow-[0_0_15px_rgba(255,215,0,0.2)]">
+                Árvore da Fluência
+              </h2>
+              <p className="text-slate-400 max-w-md font-medium leading-relaxed">
+                Você dominou o vocabulário base oficial. Seu domínio do idioma agora é sólido e elegante.
+              </p>
             </div>
           </div>
 
-          <button 
-            className="px-8 py-3 text-white font-bold rounded-xl transition-all shadow-lg hover:scale-105"
-            style={{ backgroundColor: 'var(--itr-primary)' }}
+          <motion.button 
+            animate={{ 
+              scale: [1, 1.02, 1],
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            className="px-10 py-5 text-[#FFD700] font-black font-outfit rounded-2xl transition-all border-2 border-[#FFD700] bg-[#050505] hover:bg-[#FFD700] hover:text-black active:scale-95 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] relative group overflow-hidden"
           >
-             Resgatar Premiação
-          </button>
+             <Trees size={24} className="transition-colors duration-300" />
+             <span className="tracking-widest uppercase transition-colors duration-300">RESGATAR OURO</span>
+          </motion.button>
         </motion.div>
       )}
     </div>
