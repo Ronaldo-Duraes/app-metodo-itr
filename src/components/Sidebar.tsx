@@ -1,72 +1,78 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LayoutDashboard, BookOpen, User, PlusCircle, LayoutGrid, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Layers, 
-  PlusCircle, 
-  Trophy,
-  Map,
-  User
-} from 'lucide-react';
 
-const menuItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Estudar', path: '/estudar', icon: Layers },
-  { name: 'Adicionar', path: '/adicionar', icon: PlusCircle },
-  { name: 'Atividades', path: '/atividades', icon: Map },
-  { name: 'Perfil', path: '/perfil', icon: User },
-];
-
-export default function Sidebar() {
+const Sidebar = () => {
   const pathname = usePathname();
 
+  const menuItems = [
+    { icon: Zap, label: 'Home', path: '/atividades' },
+    { icon: BookOpen, label: 'Flashcards', path: '/flashcards' },
+    { icon: User, label: 'Perfil', path: '/perfil' },
+  ];
+
   return (
-    <aside className="w-64 h-screen bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 flex flex-col p-6 fixed left-0 top-0">
-      <div className="mb-10 px-2">
-        <h1 className="text-2xl font-outfit font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-          Método ITR
-        </h1>
-        <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">Plataforma de Fluência</p>
-      </div>
+    <aside className="fixed left-0 top-0 h-screen w-20 md:w-64 bg-[#050505] border-r border-white/5 z-50 transition-all duration-300">
+      <div className="flex flex-col h-full py-8">
+        {/* LOGO AREA */}
+        <div className="px-6 mb-12">
+          <div className="w-10 h-10 md:w-full md:h-12 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+            <span className="text-white font-black text-xs md:text-sm tracking-tighter uppercase px-2 hidden md:block">Metodo ITR</span>
+             <Zap className="text-white md:hidden" size={20} fill="currentColor" />
+          </div>
+        </div>
 
-      <nav className="flex-1 space-y-2">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.path;
-          const Icon = item.icon;
+        {/* NAVIGATION LINKS */}
+        <nav className="flex-1 px-4 space-y-2">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.path;
+            const Icon = item.icon;
 
-          return (
-            <Link key={item.path} href={item.path}>
-              <motion.div
-                whileHover={{ x: 5 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                <Icon size={20} />
-                <span className="font-medium">{item.name}</span>
-                {isActive && (
-                  <motion.div 
-                    layoutId="active-pill"
-                    className="ml-auto w-1 h-4 bg-blue-400 rounded-full"
+            return (
+              <Link key={item.path} href={item.path}>
+                <div className={`
+                  group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer
+                  ${isActive 
+                    ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white' 
+                    : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
+                `}>
+                  <Icon 
+                    size={22} 
+                    className={`transition-colors duration-200 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                    fill={isActive ? 'currentColor' : 'none'}
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
-      </nav>
+                  <span className="font-bold text-sm tracking-tight hidden md:block">{item.label}</span>
+                  
+                  {/* HOVER GLOW EFFECT */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-emerald-500/5 blur-xl -z-10 rounded-full opacity-50" />
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="mt-auto pt-6 border-t border-slate-800">
-        <div className="flex items-center gap-3 px-4 py-3 text-slate-500">
-          <Trophy size={20} />
-          <span className="text-sm font-medium">Nível: Iniciante</span>
+        {/* FOOTER / USER STATUS */}
+        <div className="px-4 mt-auto pt-8 border-t border-white/5">
+          <div className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-colors cursor-pointer group">
+            <div className="w-8 h-8 rounded-full bg-slate-800 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
+              <User size={16} />
+            </div>
+            <div className="flex flex-col hidden md:block overflow-hidden">
+               <span className="text-xs font-black text-white truncate">RONALDO D.</span>
+               <span className="text-[10px] text-emerald-500 font-bold tracking-widest uppercase">Elite v1</span>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
   );
-}
+};
+
+export default Sidebar;
