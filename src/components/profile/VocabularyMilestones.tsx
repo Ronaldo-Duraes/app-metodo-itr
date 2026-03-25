@@ -47,12 +47,12 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
       </div>
 
       <div className="relative mb-12">
-        {/* Linha Fina (Base) */}
-        <div className="absolute top-[48%] md:top-[50%] left-2 right-2 h-[1px] md:h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0 opacity-50" />
+        {/* Linha Fina (Base) - Centralizada entre as fileiras */}
+        <div className="absolute top-[50%] left-2 right-2 h-[1px] md:h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0 opacity-50" />
         
-        {/* Linha Fina (Progresso) */}
+        {/* Linha Fina (Progresso) - Centralizada entre as fileiras */}
         <div 
-          className="absolute top-[48%] md:top-[50%] left-2 h-[1px] md:h-0.5 -translate-y-1/2 rounded-full z-0 transition-all duration-1000"
+          className="absolute top-[50%] left-2 h-[1px] md:h-0.5 -translate-y-1/2 rounded-full z-0 transition-all duration-200 ease-out"
           style={{ 
             width: `calc(${Math.min(100, (masteredCount / 1500) * 100)}% - 1rem)`,
             backgroundColor: 'var(--itr-primary)',
@@ -97,7 +97,7 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
                   delay: i * 0.01
                 } : { delay: i * 0.01 }}
                 disabled={!reached && !isNext}
-                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-300 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20 overflow-hidden ${!reached && !isNext ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
+                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-200 ease-out mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20 overflow-hidden ${!reached && !isNext ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                 style={{
                   borderColor: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : 'var(--itr-primary)'),
                   borderWidth: isLegendary ? '2px' : '1px',
@@ -120,7 +120,7 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
                 {/* Overlay sutil para o efeito de preenchimento parecer 'fluido' */}
                 {isNext && (
                    <div 
-                     className="absolute inset-0 bg-white/5 pointer-events-none transition-all duration-500" 
+                     className="absolute inset-0 bg-white/5 pointer-events-none transition-all duration-200 ease-out" 
                      style={{ height: `${fillPercent}%`, top: 'auto', bottom: 0 }}
                    />
                 )}

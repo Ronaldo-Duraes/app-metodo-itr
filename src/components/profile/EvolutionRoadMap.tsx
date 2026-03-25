@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PATENTES, getUserPatente } from '@/lib/srs';
@@ -20,11 +22,10 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
   const patenteInfo = getUserPatente(masteredCount);
   const { activeThemeName, setThemeByName } = useTheme();
 
-  // Calcula a porcentagem real de progresso na jornada (níveis 1 a 5)
-  // Progresso vai de 0% (Semente) a 100% (Árvore)
+  // Calcula a porcentagem real de progresso na jornada (níveis 1 a 5) sem atraso
   const realProgressPercent = ((patenteInfo.current.level - 1) / (PATENTES.length - 1)) * 100;
 
-  // Estado para efeito hover sincronizado com a linha
+  // Estado para efeito hover ultra-rápido sincronizado com a linha
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
@@ -37,12 +38,12 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Camada da Linha (Background + Progress) - Z-0 para ficar acima do fundo mas abaixo dos ícones */}
-        <div className="absolute left-[10%] right-[10%] top-[1.5rem] md:top-[1.75rem] h-[3px] z-0">
+        {/* Camada da Linha (Background + Progress) - Centrada exatamente conforme solicitado */}
+        <div className="absolute left-[10%] right-[10%] top-[38%] h-[3px] -translate-y-1/2 z-0">
           {/* Linha Fundo Cinza (Não conquistado) */}
           <div className="absolute inset-0 bg-slate-800 rounded-full" />
           
-          {/* Linha Iluminada (Conquistado) */}
+          {/* Linha Iluminada (Conquistado) - Animação Ultra-Rápida (75ms) */}
           <motion.div 
             initial={{ width: 0 }}
             animate={{ 
@@ -50,8 +51,8 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
               opacity: hoveredIndex !== null ? 1 : 0.8,
               boxShadow: hoveredIndex !== null ? '0 0 30px var(--itr-glow)' : '0 0 15px var(--itr-glow)'
             }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="absolute h-full rounded-full" 
+            transition={{ duration: 0.075, ease: "easeOut" }}
+            className="absolute h-full rounded-full transition-shadow duration-75" 
             style={{ 
               backgroundColor: 'var(--itr-primary)',
             }}
@@ -61,28 +62,26 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
         <div className="flex flex-row justify-between items-start relative w-full h-full">
           {PATENTES.map((patente, i) => {
             const isCurrentMode = activeThemeName === patente.name;
-            // Para visual de teste, vamos manter todos ativos, mas a linha reflete o progresso REAL
-            const isAchieved = true; 
-            const isLocked = false; 
+            const isAchieved = patenteInfo.current.level >= patente.level; 
             const Icon = ICON_MAP[patente.iconName];
 
             return (
               <motion.div
                 key={patente.level}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.075 }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                whileHover={{ scale: 1.1 }}
-                className="flex flex-col items-center flex-1 cursor-pointer group z-10 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                className="flex flex-col items-center flex-1 cursor-pointer group z-10"
                 onClick={() => setThemeByName(patente.name)}
               >
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative border-2 bg-slate-900 z-10
-                  ${isCurrentMode ? 'scale-110 shadow-[0_0_30px_var(--itr-glow)]' : 'opacity-80 group-hover:opacity-100'}`}
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-75 ease-out relative border-2 bg-slate-900 z-10
+                  ${isCurrentMode ? 'scale-110 shadow-[0_0_20px_var(--itr-glow)]' : 'opacity-80 group-hover:opacity-100'}`}
                   style={{
-                    borderColor: isCurrentMode ? 'var(--itr-primary)' : (patenteInfo.current.level >= patente.level ? 'var(--itr-primary)' : '#334155'),
-                    color: isCurrentMode || patenteInfo.current.level >= patente.level ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
+                    borderColor: isCurrentMode ? 'var(--itr-primary)' : (isAchieved ? 'var(--itr-primary)' : '#334155'),
+                    color: isCurrentMode || isAchieved ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
                     backgroundColor: isCurrentMode ? 'var(--itr-primary)' : '#0f172a',
                   }}
                 >
@@ -90,7 +89,7 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
                 </div>
 
                 <div className="text-center mt-6 w-full px-1 flex flex-col items-center">
-                  <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-widest leading-tight mb-1 transition-colors whitespace-nowrap"
+                  <h4 className="text-[10px] md:text-[11px] font-black uppercase tracking-widest leading-tight mb-1 transition-colors whitespace-nowrap duration-75"
                     style={{ color: isCurrentMode ? 'var(--itr-primary)' : '#94a3b8' }}>
                     {patente.name}
                   </h4>
