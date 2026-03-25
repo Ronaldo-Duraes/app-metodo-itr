@@ -38,25 +38,33 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Linha da Jornada - Força o alinhamento centralizado nos ícones (h-12=48px, md:h-14=56px) */}
-        <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[3px] -translate-y-1/2 z-0">
-          {/* Linha Fundo Cinza (Não conquistado) */}
-          <div className="absolute inset-0 bg-slate-800 rounded-full" />
+        {/* Linha da Jornada (Fibra Óptica Neon) */}
+        <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[2px] -translate-y-1/2 z-0 overflow-hidden rounded-full">
+          {/* Fundo da Linha (Base Escura) */}
+          <div className="absolute inset-0 bg-slate-900/50 rounded-full" />
           
-          {/* Linha Iluminada (Conquistado) - Animação Ultra-Rápida (75ms) */}
+          {/* Progresso Iluminado (Fibra Óptica) */}
           <motion.div 
             initial={{ width: 0 }}
             animate={{ 
               width: `${realProgressPercent}%`,
-              opacity: hoveredIndex !== null ? 1 : 0.8,
-              boxShadow: hoveredIndex !== null ? '0 0 30px var(--itr-glow)' : '0 0 15px var(--itr-glow)'
+              boxShadow: hoveredIndex !== null 
+                ? '0 0 25px rgba(255, 215, 0, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.5)' 
+                : '0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 2px rgba(255, 255, 255, 0.3)'
             }}
             transition={{ duration: 0.075, ease: "easeOut" }}
-            className="absolute h-full rounded-full transition-shadow duration-75" 
+            className="absolute h-full rounded-full transition-shadow duration-75 relative overflow-hidden" 
             style={{ 
-              backgroundColor: 'var(--itr-primary)',
+              background: 'linear-gradient(to right, #854d0e, #eab308, #fef08a)',
             }}
-          />
+          >
+             {/* Efeito de Pulso (Facho de Luz que percorre a fibra) */}
+             <motion.div 
+               animate={{ x: ['-100%', '300%'] }}
+               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+               className="absolute top-0 bottom-0 w-20 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-30deg]"
+             />
+          </motion.div>
         </div>
 
         <div className="flex flex-row justify-between items-start relative w-full h-full">
@@ -77,12 +85,13 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
                 className="flex flex-col items-center flex-1 cursor-pointer group z-10"
                 onClick={() => setThemeByName(patente.name)}
               >
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-75 ease-out relative border-2 bg-slate-900 z-10
-                  ${isCurrentMode ? 'scale-110 shadow-[0_0_20px_var(--itr-glow)]' : 'opacity-80 group-hover:opacity-100'}`}
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-75 ease-out relative border-2 z-10
+                  ${isCurrentMode ? 'scale-110' : 'opacity-80 group-hover:opacity-100'}`}
                   style={{
-                    borderColor: isCurrentMode ? 'var(--itr-primary)' : (isAchieved ? 'var(--itr-primary)' : '#334155'),
+                    borderColor: isCurrentMode || isAchieved ? 'var(--itr-primary)' : '#334155',
                     color: isCurrentMode || isAchieved ? (isCurrentMode ? 'white' : 'var(--itr-primary)') : '#64748b',
                     backgroundColor: isCurrentMode ? 'var(--itr-primary)' : '#0f172a',
+                    boxShadow: isCurrentMode || isAchieved ? '0 0 20px var(--itr-glow)' : 'none'
                   }}
                 >
                   <Icon size={isCurrentMode ? 24 : 20} strokeWidth={isCurrentMode ? 2.5 : 2} />
