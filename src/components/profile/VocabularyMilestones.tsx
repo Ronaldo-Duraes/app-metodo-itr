@@ -111,6 +111,19 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
       {/* Card Épico da Árvore da Fluência (Sempre Lendário: Ouro & Preto) */}
       {isMaxReached && (
         <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mt-12 p-8 rounded-[2.5rem] border-2 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
+          style={{ 
+            backgroundColor: '#050505',
+            borderColor: '#FFD700',
+            background: 'linear-gradient(to bottom, #0a0a0a, #050505)'
+          }}
+        >
+          {/* Efeito de Metal Escovado / Brilho de Borda */}
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FFD700]/30 to-transparent" />
+
+          <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="w-20 h-20 rounded-3xl bg-slate-900/50 flex items-center justify-center border border-[#FFD700]/30 relative group">
               <Crown size={40} className="text-[#FFD700] drop-shadow-[0_0_12px_rgba(255,215,0,0.6)]" />
               <div className="absolute inset-0 bg-[#FFD700]/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
