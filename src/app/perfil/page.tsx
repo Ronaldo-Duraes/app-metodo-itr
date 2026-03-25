@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
   const { activeThemeName, setThemeByName } = useTheme();
 
-  // Mock UID para teste (Em produção virá do Auth)
+  // Mock UID para teste
   const [uid] = useState('user_test_99'); 
 
   useEffect(() => {
@@ -36,17 +36,14 @@ export default function ProfilePage() {
       setProfile(p);
       setNewName(p.name);
       
-      // 1. Tentar buscar progresso no Firebase (Real-time Sync)
       try {
         const stats = await fetchUserStats(uid);
         if (stats) {
           setMasteredCount(stats.masteredCount);
           setUnlockedRewards(stats.unlockedRewards || []);
-          // Sincroniza o Tema Global com a Patente Real do Banco
           const pInfo = getUserPatente(stats.masteredCount);
           setThemeByName(pInfo.current.name);
         } else {
-          // Fallback para LocalStorage se for a primeira vez
           const cards = getCards();
           setMasteredCount(cards.filter(c => c.isLearned).length);
         }
@@ -66,42 +63,28 @@ export default function ProfilePage() {
   };
 
   const patenteInfo = getUserPatente(masteredCount);
-  // Usa o ícone da patente real
   const realPatenteName = patenteInfo.current.name;
   const PatenteIcon = ICON_MAP[realPatenteName === 'Semente ITR' ? 'Sprout' : realPatenteName === 'Broto de Fluência' ? 'Leaf' : realPatenteName === 'Raiz Forte' ? 'Activity' : realPatenteName === 'Arbusto de Diálogo' ? 'Shrub' : 'Trees'] || Trophy;
 
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       
-      {/* MOCK DE USUÁRIO (APENAS PARA TESTE) */}
-      <div className="flex gap-4 mb-8 justify-center">
-        <button 
-          onClick={() => {
-            setMasteredCount(0);
-            setThemeByName('Semente ITR');
+      {/* CONTROLE DE DEBUG (SLIDER REAL-TIME) */}
+      <div className="max-w-md mx-auto mb-12 p-6 rounded-3xl bg-slate-900/40 border border-slate-800 shadow-xl border-dashed">
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ferramenta de Debug - Progresso</span>
+          <span className="text-xl font-black font-outfit" style={{ color: 'var(--itr-primary)' }}>{masteredCount}</span>
+        </div>
+        <input 
+          type="range" min="0" max="1500" step="1" value={masteredCount} 
+          onChange={(e) => {
+            const val = parseInt(e.target.value);
+            setMasteredCount(val);
+            const pInfo = getUserPatente(val);
+            setThemeByName(pInfo.current.name);
           }}
-          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
-        >
-          Zerar (Aluno)
-        </button>
-        <button 
-          onClick={() => {
-            setMasteredCount(299);
-            setThemeByName('Raiz Forte');
-          }}
-          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
-        >
-          Intermediário
-        </button>
-        <button 
-          onClick={() => {
-            setMasteredCount(1500);
-            setThemeByName('Árvore da Fluência');
-          }}
-          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-700 transition-all active:scale-95"
-        >
-          Mestre (1500)
-        </button>
+          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[var(--itr-primary)]"
+        />
       </div>
 
       {/* 1. SEÇÃO DE PERFIL COM JORNADA DE MAESTRIA INTEGRADA */}
@@ -115,7 +98,6 @@ export default function ProfilePage() {
            style={{ backgroundColor: 'var(--itr-primary)' }} 
         />
 
-        {/* Informações Principais */}
         <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full mb-12">
           
           <div className="relative group shrink-0 mt-2">
@@ -131,64 +113,28 @@ export default function ProfilePage() {
           <div className="flex-1 text-center md:text-left flex flex-col justify-center h-full w-full">
             <AnimatePresence mode="wait">
               {!isEditing ? (
-                <motion.div 
-                  key="display"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="space-y-3 pt-2"
-                >
+                <motion.div key="display" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3 pt-2">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 justify-center md:justify-start">
                     <h1 className="text-4xl md:text-5xl font-black font-outfit text-white tracking-tight">{profile.name}</h1>
-                    <button 
-                      onClick={() => setIsEditing(true)}
-                      className="text-slate-500 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800 self-center"
-                      title="Editar Nome"
-                    >
+                    <button onClick={() => setIsEditing(true)} className="text-slate-500 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800 self-center">
                       <Edit3 size={18} />
                     </button>
                   </div>
                   <p className="font-bold flex items-center justify-center md:justify-start gap-2" style={{ color: 'var(--itr-primary)' }}>
-                    <Gem size={16} />
-                    Aluno Premium Método ITR
+                    <Gem size={16} /> Aluno Premium Método ITR
                   </p>
                 </motion.div>
               ) : (
-                <motion.div 
-                  key="edit"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-4 pt-2 w-full"
-                >
-                  <input 
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="text-3xl font-bold bg-slate-950 border-2 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm text-center md:text-left text-white"
-                    style={{ borderColor: 'var(--itr-glow)' }}
-                    autoFocus
-                  />
+                <motion.div key="edit" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4 pt-2 w-full">
+                  <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="text-3xl font-bold bg-slate-950 border-2 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm text-center md:text-left text-white" style={{ borderColor: 'var(--itr-glow)' }} autoFocus />
                   <div className="flex gap-3 justify-center md:justify-start">
-                    <button 
-                      onClick={handleSave}
-                      className="text-white px-6 py-2 rounded-xl text-sm font-bold transition-all font-outfit"
-                      style={{ backgroundColor: 'var(--itr-primary)' }}
-                    >
-                      Salvar
-                    </button>
-                    <button 
-                      onClick={() => setIsEditing(false)}
-                      className="text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                    >
-                      Cancelar
-                    </button>
+                    <button onClick={handleSave} className="text-white px-6 py-2 rounded-xl text-sm font-bold transition-all font-outfit" style={{ backgroundColor: 'var(--itr-primary)' }}>Salvar</button>
+                    <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Poder de Fluência Dinâmico */}
             {patenteInfo.next && (
               <div className="mt-8 md:mt-6 pt-4 border-t border-slate-800/50 w-full max-w-sm mx-auto md:mx-0">
                 <div className="flex justify-between text-[11px] mb-1.5 font-bold">
@@ -205,20 +151,18 @@ export default function ProfilePage() {
                   />
                 </div>
                 <p className="text-[10px] text-slate-500 mt-2">
-                  <strong className="text-slate-300">{patenteInfo.wordsToNext} palavras</strong> para elevar sua maestria para {patenteInfo.next.name}
+                  <strong className="text-slate-300">{patenteInfo.wordsToNext} palavras</strong> para {patenteInfo.next.name}
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* ROADMAP VISUAL HORIZONTAL */}
         <div className="w-full border-t border-slate-800/80 pt-10">
           <EvolutionRoadMap masteredCount={masteredCount} />
         </div>
       </motion.div>
 
-      {/* 2. MARCOS DE VOCABULÁRIO (NOVO PAINEL QUE SUBSTITUI ESTATÍSTICAS) */}
       <VocabularyMilestones 
         masteredCount={masteredCount} 
         uid={uid} 

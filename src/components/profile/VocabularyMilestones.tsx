@@ -30,15 +30,11 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
   const onRedeem = async (rewardKey: string) => {
     try {
       await redeemReward(uid, rewardKey);
-      // Recarregar a página ou usar um estado global para atualizar o ícone
       window.location.reload(); 
     } catch (error) {
       console.error("Erro ao resgatar:", error);
     }
   };
-
-  // Revertido para lógica real para teste de mock
-  const isMaxReached = masteredCount >= 1500; 
 
   const isRubyClaimed = unlockedRewards.includes('ruby_500');
   const isGoldClaimed = unlockedRewards.includes('gold_1500');
@@ -51,10 +47,10 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
       </div>
 
       <div className="relative mb-12">
-        {/* Linha Fina (Base) - Centralizada exatamente no gap entre as duas fileiras */}
+        {/* Linha Fina (Base) */}
         <div className="absolute top-[48%] md:top-[50%] left-2 right-2 h-[1px] md:h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0 opacity-50" />
         
-        {/* Linha Fina (Progresso) - Também centralizada no gap */}
+        {/* Linha Fina (Progresso) */}
         <div 
           className="absolute top-[48%] md:top-[50%] left-2 h-[1px] md:h-0.5 -translate-y-1/2 rounded-full z-0 transition-all duration-1000"
           style={{ 
@@ -67,6 +63,10 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
         <div className="grid grid-cols-5 md:grid-cols-10 gap-x-3 gap-y-6 md:gap-y-10 relative z-10 w-full items-center">
           {MILESTONES.map((m, i) => {
             const reached = masteredCount >= m; 
+            const prev = i === 0 ? 0 : MILESTONES[i-1];
+            const isNext = !reached && masteredCount >= prev;
+            const fillPercent = isNext ? Math.min(100, Math.max(0, ((masteredCount - prev) / (m - prev)) * 100)) : 0;
+            
             const isCollecting = lastCollected === m;
             const isGold = m === 1500;
             const isRuby = m === 500;
@@ -78,31 +78,37 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
                 onClick={() => handleCollect(m)}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isLegendary ? { 
-                  opacity: reached ? 1 : 0.4,
+                  opacity: (reached || isNext) ? 1 : 0.4,
                   scale: reached ? 1.1 : 1,
-                  filter: reached ? 'grayscale(0)' : 'grayscale(1)',
+                  filter: (reached || isNext) ? 'grayscale(0)' : 'grayscale(1)',
                   boxShadow: reached 
                     ? (isGold 
                         ? ['0 0 15px rgba(251, 191, 36, 0.3)', '0 0 35px rgba(251, 191, 36, 0.6)', '0 0 15px rgba(251, 191, 36, 0.3)']
                         : ['0 0 15px rgba(239, 68, 68, 0.3)', '0 0 35px rgba(239, 68, 68, 0.6)', '0 0 15px rgba(239, 68, 68, 0.3)'])
                     : 'none'
                 } : {
-                  opacity: reached ? 1 : 0.4,
+                  opacity: (reached || isNext) ? 1 : 0.4,
                   scale: 1,
-                  filter: reached ? 'grayscale(0)' : 'grayscale(1)',
+                  filter: (reached || isNext) ? 'grayscale(0)' : 'grayscale(1)',
                   boxShadow: reached ? '0 0 10px var(--itr-glow)' : 'none'
                 }}
                 transition={isLegendary && reached ? { 
                   boxShadow: { repeat: Infinity, duration: 3, ease: "easeInOut" },
                   delay: i * 0.01
                 } : { delay: i * 0.01 }}
-                disabled={!reached}
-                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20 ${!reached ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
+                disabled={!reached && !isNext}
+                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-300 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20 overflow-hidden ${!reached && !isNext ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                 style={{
                   borderColor: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : 'var(--itr-primary)'),
                   borderWidth: isLegendary ? '2px' : '1px',
-                  backgroundColor: isLegendary ? '#050505' : (isCollecting ? 'var(--itr-primary)' : '#0f172a'),
-                  color: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : (isCollecting ? '#fff' : 'var(--itr-primary)')),
+                  backgroundColor: '#0f172a',
+                  color: (reached || isCollecting) ? (isGold ? '#fbbf24' : (isRuby ? '#ef4444' : '#fff')) : (isNext ? 'rgba(255,255,255,0.7)' : 'var(--itr-primary)'),
+                  background: reached 
+                    ? (isCollecting ? 'var(--itr-primary)' : (isLegendary ? '#050505' : 'var(--itr-primary)'))
+                    : (isNext 
+                        ? `linear-gradient(to top, var(--itr-primary) ${fillPercent}%, transparent ${fillPercent}%)`
+                        : '#0f172a'
+                      )
                 }}
                 whileHover={reached ? { 
                   scale: isLegendary ? 1.2 : 1.1, 
@@ -110,14 +116,21 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
                     ? '0 0 50px rgba(251, 191, 36, 0.8)' 
                     : (isRuby ? '0 0 50px rgba(239, 68, 68, 0.8)' : '0 0 20px var(--itr-glow)') 
                 } : {}}
-                whileTap={reached ? { scale: 0.95 } : {}}
               >
+                {/* Overlay sutil para o efeito de preenchimento parecer 'fluido' */}
+                {isNext && (
+                   <div 
+                     className="absolute inset-0 bg-white/5 pointer-events-none transition-all duration-500" 
+                     style={{ height: `${fillPercent}%`, top: 'auto', bottom: 0 }}
+                   />
+                )}
+                
                 {isCollecting ? (
                   <motion.div animate={{ scale: [1, 1.2, 1] }}>
                     <Star size={16} fill="currentColor" />
                   </motion.div>
                 ) : (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 relative z-10">
                      {isGold && <Crown size={14} className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />}
                      {isRuby && <Zap size={14} className="text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" />}
                      {m}
@@ -159,7 +172,7 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
         </motion.div>
       </div>
 
-      {/* Card Épico da Árvore da Fluência (Sempre Lendário: Ouro & Preto) */}
+      {/* Card Épico da Árvore da Fluência */}
       <div className={`transition-all duration-700 ${masteredCount < 1500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -171,7 +184,6 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
             background: 'linear-gradient(to bottom, #0a0a0a, #050505)'
           }}
         >
-          {/* Efeito de Metal Escovado / Brilho de Borda */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FFD700]/30 to-transparent" />
 
           <div className="flex flex-col md:flex-row items-center gap-6">
