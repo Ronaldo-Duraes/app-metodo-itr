@@ -10,12 +10,13 @@ const config: Config = {
     extend: {
       colors: {
         itr: {
-          primary: "#3b82f6", // Blue
-          secondary: "#10b981", // Green
-          accent: "#f59e0b", // Amber
-          background: "#0f172a", // Slate 900
-          card: "#1e293b", // Slate 800
+          primary: "var(--itr-primary)",
+          glow: "var(--itr-glow)",
         },
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)"],
+        outfit: ["var(--font-outfit)"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

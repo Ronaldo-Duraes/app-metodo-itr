@@ -3,30 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 15, 23, 42;
-  --background-end-rgb: 2, 6, 23;
+  --itr-primary: #3b82f6; 
+  --itr-glow: rgba(59,130,246,0.5);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  min-height: 100vh;
+  color: #f8fafc;
+  background: #020617;
+}
+
+/* utilitários premiums globais usando itr-primary */
+.btn-premium {
+  @apply rounded-2xl font-bold transition-all shadow-lg text-white;
 }
 
 .premium-card {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  border-radius: 24px;
+  @apply rounded-3xl bg-slate-900 border border-slate-800 shadow-xl;
 }
 
-.btn-premium {
-  @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 transform active:scale-95;
+/* Custom Scrollbar for hidden scroll effect */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
 }
