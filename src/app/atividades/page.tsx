@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Gamepad2, Zap, BrainCircuit, Trophy } from 'lucide-react';
+import ActivitiesRoadmap from '@/components/activities/ActivitiesRoadmap';
 
 export default function ActivitiesPage() {
   return (
@@ -15,6 +16,11 @@ export default function ActivitiesPage() {
         <h1 className="text-4xl md:text-5xl font-bold font-outfit mb-4 text-white">Expanda seus Limites</h1>
         <p className="text-slate-400 text-lg max-w-2xl">Novos modos de jogo e desafios interativos estão sendo forjados para elevar sua fluência ao próximo nível.</p>
       </motion.div>
+
+      {/* ROADMAP DE CACTOS NOVO */}
+      <div className="mb-16">
+        <ActivitiesRoadmap />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-10">
         {[
