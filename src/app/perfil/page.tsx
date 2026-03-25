@@ -8,6 +8,7 @@ import { Edit3, Gem, Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide
 import EvolutionRoadMap from '@/components/profile/EvolutionRoadMap';
 import VocabularyMilestones from '@/components/profile/VocabularyMilestones';
 import { useTheme } from '@/components/ThemeProvider';
+import { fetchUserStats } from '@/lib/firebase';
 
 const ICON_MAP: Record<string, any> = {
   'Sprout': Sprout,
@@ -22,23 +23,40 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [masteredCount, setMasteredCount] = useState(0);
+  const [unlockedRewards, setUnlockedRewards] = useState<string[]>([]);
 
   const { activeThemeName, setThemeByName } = useTheme();
 
+  // Mock UID para teste (Em produção virá do Auth)
+  const [uid] = useState('user_test_99'); 
+
   useEffect(() => {
-    const p = getUserProfile();
-    setProfile(p);
-    setNewName(p.name);
+    async function syncData() {
+      const p = getUserProfile();
+      setProfile(p);
+      setNewName(p.name);
+      
+      // 1. Tentar buscar progresso no Firebase (Real-time Sync)
+      try {
+        const stats = await fetchUserStats(uid);
+        if (stats) {
+          setMasteredCount(stats.masteredCount);
+          setUnlockedRewards(stats.unlockedRewards || []);
+          // Sincroniza o Tema Global com a Patente Real do Banco
+          const pInfo = getUserPatente(stats.masteredCount);
+          setThemeByName(pInfo.current.name);
+        } else {
+          // Fallback para LocalStorage se for a primeira vez
+          const cards = getCards();
+          setMasteredCount(cards.filter(c => c.isLearned).length);
+        }
+      } catch (error) {
+        console.error("Erro ao sincronizar com Firebase:", error);
+      }
+    }
     
-    // Voltando para o contador real de palavras
-    const cards = getCards();
-    const mCount = cards.filter(c => c.isLearned).length;
-    setMasteredCount(mCount);
-    
-    // Auto set theme when mounting based on current real patente
-    const pInfo = getUserPatente(mCount);
-    setThemeByName(pInfo.current.name);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    syncData();
+  }, [uid, setThemeByName]);
 
   const handleSave = () => {
     const updated = { ...profile, name: newName };
@@ -201,7 +219,11 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* 2. MARCOS DE VOCABULÁRIO (NOVO PAINEL QUE SUBSTITUI ESTATÍSTICAS) */}
-      <VocabularyMilestones masteredCount={masteredCount} />
+      <VocabularyMilestones 
+        masteredCount={masteredCount} 
+        uid={uid} 
+        unlockedRewards={unlockedRewards} 
+      />
     </div>
   );
 }

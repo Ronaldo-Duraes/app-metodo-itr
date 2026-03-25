@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Crown, Flame, Trees, Zap } from 'lucide-react';
+import { redeemReward } from '@/lib/firebase';
 
 interface VocabularyMilestonesProps {
   masteredCount: number;
+  uid: string;
+  unlockedRewards: string[];
 }
 
 const MILESTONES = [
@@ -14,7 +17,7 @@ const MILESTONES = [
   500, 600, 700, 1100, 1500
 ];
 
-export default function VocabularyMilestones({ masteredCount }: VocabularyMilestonesProps) {
+export default function VocabularyMilestones({ masteredCount, uid, unlockedRewards }: VocabularyMilestonesProps) {
   const [lastCollected, setLastCollected] = useState<number | null>(null);
 
   const handleCollect = (m: number) => {
@@ -24,8 +27,21 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
     }
   };
 
+  const onRedeem = async (rewardKey: string) => {
+    try {
+      await redeemReward(uid, rewardKey);
+      // Recarregar a página ou usar um estado global para atualizar o ícone
+      window.location.reload(); 
+    } catch (error) {
+      console.error("Erro ao resgatar:", error);
+    }
+  };
+
   // Revertido para lógica real para teste de mock
   const isMaxReached = masteredCount >= 1500; 
+
+  const isRubyClaimed = unlockedRewards.includes('ruby_500');
+  const isGoldClaimed = unlockedRewards.includes('gold_1500');
 
   return (
     <div className="w-full">
@@ -62,31 +78,31 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
                 onClick={() => handleCollect(m)}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isLegendary ? { 
-                  opacity: 1,
-                  scale: 1.1, // Ligeiramente maior conforme solicitado
-                  boxShadow: isGold 
-                    ? ['0 0 15px rgba(251, 191, 36, 0.3)', '0 0 35px rgba(251, 191, 36, 0.6)', '0 0 15px rgba(251, 191, 36, 0.3)']
-                    : ['0 0 15px rgba(239, 68, 68, 0.3)', '0 0 35px rgba(239, 68, 68, 0.6)', '0 0 15px rgba(239, 68, 68, 0.3)']
+                  opacity: reached ? 1 : 0.4,
+                  scale: reached ? 1.1 : 1,
+                  filter: reached ? 'grayscale(0)' : 'grayscale(1)',
+                  boxShadow: reached 
+                    ? (isGold 
+                        ? ['0 0 15px rgba(251, 191, 36, 0.3)', '0 0 35px rgba(251, 191, 36, 0.6)', '0 0 15px rgba(251, 191, 36, 0.3)']
+                        : ['0 0 15px rgba(239, 68, 68, 0.3)', '0 0 35px rgba(239, 68, 68, 0.6)', '0 0 15px rgba(239, 68, 68, 0.3)'])
+                    : 'none'
                 } : {
-                  opacity: 1,
+                  opacity: reached ? 1 : 0.4,
                   scale: 1,
+                  filter: reached ? 'grayscale(0)' : 'grayscale(1)',
                   boxShadow: reached ? '0 0 10px var(--itr-glow)' : 'none'
                 }}
-                transition={isLegendary ? { 
-                  opacity: { delay: i * 0.02 },
-                  scale: { delay: i * 0.02 },
-                  boxShadow: { repeat: Infinity, duration: 3, ease: "easeInOut" }
-                } : {
-                  delay: i * 0.02
-                }}
+                transition={isLegendary && reached ? { 
+                  boxShadow: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+                  delay: i * 0.01
+                } : { delay: i * 0.01 }}
                 disabled={!reached}
-                className="relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20"
+                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20 ${!reached ? 'grayscale opacity-40 cursor-not-allowed' : ''}`}
                 style={{
                   borderColor: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : 'var(--itr-primary)'),
                   borderWidth: isLegendary ? '2px' : '1px',
                   backgroundColor: isLegendary ? '#050505' : (isCollecting ? 'var(--itr-primary)' : '#0f172a'),
                   color: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : (isCollecting ? '#fff' : 'var(--itr-primary)')),
-                  cursor: reached ? 'pointer' : 'not-allowed',
                 }}
                 whileHover={reached ? { 
                   scale: isLegendary ? 1.2 : 1.1, 
@@ -113,12 +129,42 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
         </div>
       </div>
 
+      {/* Seção Rubi (500 Palavras) */}
+      <div className={`mt-8 transition-all duration-700 ${masteredCount < 500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-[2rem] border-2 bg-[#050505] flex flex-col md:flex-row items-center justify-between gap-6 border-[#ef4444] shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-slate-900/50 flex items-center justify-center border border-[#ef4444]/30">
+               <Zap size={28} className="text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+            </div>
+            <div>
+              <h4 className="text-lg font-black font-outfit text-white">Recompensa Rubi</h4>
+              <p className="text-xs text-slate-400">Desbloqueado ao atingir 500 palavras masterizadas.</p>
+            </div>
+          </div>
+          <button 
+            disabled={masteredCount < 500 || isRubyClaimed}
+            onClick={() => onRedeem('ruby_500')}
+            className={`px-8 py-3 rounded-xl font-black font-outfit text-xs tracking-widest transition-all border-2 border-[#ef4444] bg-[#050505] text-[#ef4444] hover:bg-[#ef4444] hover:text-white flex items-center gap-2 
+              ${masteredCount >= 500 && !isRubyClaimed ? 'animate-pulse cursor-pointer' : 'opacity-50 cursor-not-allowed'}
+              ${isRubyClaimed ? 'bg-[#ef4444] text-white border-transparent' : ''}
+            `}
+          >
+             {isRubyClaimed ? <Star size={16} fill="white" /> : <Zap size={16} />}
+             {isRubyClaimed ? 'RESGATADO' : 'RESGATAR RUBI'}
+          </button>
+        </motion.div>
+      </div>
+
       {/* Card Épico da Árvore da Fluência (Sempre Lendário: Ouro & Preto) */}
-      {isMaxReached && (
+      <div className={`transition-all duration-700 ${masteredCount < 1500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mt-12 p-8 rounded-[2.5rem] border-2 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
+          className="mt-10 p-8 rounded-[2.5rem] border-2 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
           style={{ 
             backgroundColor: '#050505',
             borderColor: '#FFD700',
@@ -147,21 +193,20 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
           </div>
 
           <motion.button 
-            animate={{ 
-              scale: [1, 1.02, 1],
-            }}
-            transition={{ 
-              duration: 3, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            className="px-10 py-5 text-[#FFD700] font-black font-outfit rounded-2xl transition-all border-2 border-[#FFD700] bg-[#050505] hover:bg-[#FFD700] hover:text-black active:scale-95 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] relative group overflow-hidden"
+            disabled={masteredCount < 1500 || isGoldClaimed}
+            onClick={() => onRedeem('gold_1500')}
+            animate={masteredCount >= 1500 && !isGoldClaimed ? { scale: [1, 1.02, 1] } : {}}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className={`px-10 py-5 font-black font-outfit rounded-2xl transition-all border-2 border-[#FFD700] active:scale-95 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.2)] relative group overflow-hidden
+              ${masteredCount >= 1500 && !isGoldClaimed ? 'bg-[#050505] text-[#FFD700] hover:bg-[#FFD700] hover:text-black cursor-pointer' : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'}
+              ${isGoldClaimed ? 'bg-[#FFD700] text-black border-transparent' : ''}
+            `}
           >
-             <Trees size={24} className="transition-colors duration-300" />
-             <span className="tracking-widest uppercase transition-colors duration-300">RESGATAR OURO</span>
+             <Trees size={24} />
+             <span className="tracking-widest uppercase">{isGoldClaimed ? 'RESGATADO' : 'RESGATAR OURO'}</span>
           </motion.button>
         </motion.div>
-      )}
+      </div>
     </div>
   );
 }
