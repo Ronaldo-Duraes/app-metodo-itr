@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark">
-      <body className={`${inter.variable} ${outfit.variable} font-sans bg-slate-950 text-slate-100 min-h-screen flex selection:bg-itr-primary selection:text-white`}>
+      <body className={`${inter.variable} ${outfit.variable} font-sans bg-black text-white min-h-screen flex selection:bg-itr-primary selection:text-white`}>
         <ThemeProvider>
           <Sidebar />
           <main className="flex-1 ml-64 p-8 relative overflow-y-auto h-screen scroll-smooth">
