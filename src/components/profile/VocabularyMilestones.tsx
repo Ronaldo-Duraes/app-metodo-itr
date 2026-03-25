@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Crown, Flame, Trees } from 'lucide-react';
+import { Star, Crown, Flame, Trees, Zap } from 'lucide-react';
 
 interface VocabularyMilestonesProps {
   masteredCount: number;
@@ -10,8 +10,8 @@ interface VocabularyMilestonesProps {
 
 const MILESTONES = [
   10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-  150, 200, 250, 300,
-  400, 500, 600, 700, 1100, 1500
+  150, 200, 250, 300, 400, 
+  500, 600, 700, 1100, 1500
 ];
 
 export default function VocabularyMilestones({ masteredCount }: VocabularyMilestonesProps) {
@@ -34,24 +34,28 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
         <span className="text-xs text-slate-400 font-bold tracking-widest uppercase">Evolução</span>
       </div>
 
-      <div className="relative mb-12 py-2">
-        {/* Linha Fina (Base) */}
-        <div className="absolute top-1/2 left-4 right-4 h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0" />
-        {/* Linha Fina (Progresso) */}
+      <div className="relative mb-12">
+        {/* Linha Fina (Base) - Centralizada exatamente no gap entre as duas fileiras */}
+        <div className="absolute top-[48%] md:top-[50%] left-2 right-2 h-[1px] md:h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0 opacity-50" />
+        
+        {/* Linha Fina (Progresso) - Também centralizada no gap */}
         <div 
-          className="absolute top-1/2 left-4 h-0.5 -translate-y-1/2 rounded-full z-0 transition-all duration-1000"
+          className="absolute top-[48%] md:top-[50%] left-2 h-[1px] md:h-0.5 -translate-y-1/2 rounded-full z-0 transition-all duration-1000"
           style={{ 
-            width: `calc(${Math.min(100, (masteredCount / 1500) * 100)}% - 2rem)`,
+            width: `calc(${Math.min(100, (masteredCount / 1500) * 100)}% - 1rem)`,
             backgroundColor: 'var(--itr-primary)',
+            boxShadow: '0 0 10px var(--itr-glow)'
           }}
         />
 
-        <div className="grid grid-cols-5 md:grid-cols-10 gap-x-3 gap-y-6 md:gap-y-8 relative z-10 w-full">
+        <div className="grid grid-cols-5 md:grid-cols-10 gap-x-3 gap-y-6 md:gap-y-10 relative z-10 w-full items-center">
           {MILESTONES.map((m, i) => {
             // USUÁRIO SOLICITOU: Forçar desbloqueio em todos para teste de design
             const reached = true; 
             const isCollecting = lastCollected === m;
-            const isLegendary = m === 1500;
+            const isGold = m === 1500;
+            const isRuby = m === 500;
+            const isLegendary = isGold || isRuby;
             
             return (
               <motion.button
@@ -60,12 +64,10 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isLegendary ? { 
                   opacity: 1,
-                  scale: 1,
-                  boxShadow: [
-                    '0 0 15px rgba(251, 191, 36, 0.3)', 
-                    '0 0 35px rgba(251, 191, 36, 0.6)', 
-                    '0 0 15px rgba(251, 191, 36, 0.3)'
-                  ] 
+                  scale: 1.1, // Ligeiramente maior conforme solicitado
+                  boxShadow: isGold 
+                    ? ['0 0 15px rgba(251, 191, 36, 0.3)', '0 0 35px rgba(251, 191, 36, 0.6)', '0 0 15px rgba(251, 191, 36, 0.3)']
+                    : ['0 0 15px rgba(239, 68, 68, 0.3)', '0 0 35px rgba(239, 68, 68, 0.6)', '0 0 15px rgba(239, 68, 68, 0.3)']
                 } : {
                   opacity: 1,
                   scale: 1,
@@ -79,26 +81,30 @@ export default function VocabularyMilestones({ masteredCount }: VocabularyMilest
                   delay: i * 0.02
                 }}
                 disabled={!reached}
-                className={`relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto
-                  ${isLegendary ? 'w-full h-14 md:h-16 rounded-2xl text-[16px] md:text-lg z-20' : 'w-full h-10 md:h-12 rounded-lg text-xs md:text-sm'}
-                `}
+                className="relative flex items-center justify-center font-black font-outfit transition-all duration-500 mx-auto w-full h-10 md:h-12 rounded-lg text-xs md:text-sm flex-shrink-0 z-20"
                 style={{
-                  borderColor: isLegendary ? '#fbbf24' : 'var(--itr-primary)',
+                  borderColor: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : 'var(--itr-primary)'),
                   borderWidth: isLegendary ? '2px' : '1px',
-                  backgroundColor: isLegendary ? '#1e1b10' : (isCollecting ? 'var(--itr-primary)' : '#0f172a'),
-                  color: isLegendary ? '#fbbf24' : (isCollecting ? '#fff' : 'var(--itr-primary)'),
+                  backgroundColor: isLegendary ? '#050505' : (isCollecting ? 'var(--itr-primary)' : '#0f172a'),
+                  color: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : (isCollecting ? '#fff' : 'var(--itr-primary)')),
                   cursor: reached ? 'pointer' : 'not-allowed',
                 }}
-                whileHover={reached ? { scale: 1.1, boxShadow: isLegendary ? '0 0 50px rgba(251, 191, 36, 0.8)' : '0 0 20px var(--itr-glow)' } : {}}
+                whileHover={reached ? { 
+                  scale: isLegendary ? 1.2 : 1.1, 
+                  boxShadow: isGold 
+                    ? '0 0 50px rgba(251, 191, 36, 0.8)' 
+                    : (isRuby ? '0 0 50px rgba(239, 68, 68, 0.8)' : '0 0 20px var(--itr-glow)') 
+                } : {}}
                 whileTap={reached ? { scale: 0.95 } : {}}
               >
                 {isCollecting ? (
                   <motion.div animate={{ scale: [1, 1.2, 1] }}>
-                    <Star size={isLegendary ? 20 : 16} fill="currentColor" />
+                    <Star size={16} fill="currentColor" />
                   </motion.div>
                 ) : (
-                  <span className="flex items-center gap-1.5">
-                     {isLegendary && <Crown size={isLegendary ? 18 : 12} className="text-amber-400" />}
+                  <span className="flex items-center gap-1">
+                     {isGold && <Crown size={14} className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />}
+                     {isRuby && <Zap size={14} className="text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" />}
                      {m}
                   </span>
                 )}
