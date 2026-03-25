@@ -34,10 +34,16 @@ export default function ActivitiesRoadmap() {
       {/* LUZES RADIAIS DE FUNDO */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/5 blur-[150px] rounded-full pointer-events-none z-0" />
       
-      {/* ESPINHA DORSAL (Cyberpunk Backbone) com 120px de Respiro Real */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[420px] bottom-40 w-[6px] z-0">
+      {/* ESPINHA DORSAL (Cyberpunk Backbone) com FADE ESTRUTURAL */}
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 top-[400px] bottom-40 w-[6px] z-0"
+        style={{ 
+          maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)'
+        }}
+      >
         <div 
-          className="w-full h-full opacity-40"
+          className="w-full h-full opacity-40 shrink-0"
           style={{ 
             background: 'linear-gradient(to bottom, #22c55e, #eab308, #ef4444)',
             boxShadow: '0 0 20px rgba(34, 197, 94, 0.2)'
@@ -47,12 +53,12 @@ export default function ActivitiesRoadmap() {
         <motion.div 
           animate={{ y: ['-100%', '1000%'] }}
           transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-          className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-transparent via-white/30 to-transparent blur-xl opacity-20"
+          className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-transparent via-white/30 to-transparent blur-xl opacity-20 shrink-0"
         />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center max-w-2xl mx-auto">
-        {/* HEADER ESCALONADO (15% menor) */}
+      <div className="relative z-10 flex flex-col items-center max-w-2xl mx-auto font-outfit">
+        {/* HEADER ESCALONADO */}
         <header className="text-center relative mb-12">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
@@ -60,17 +66,17 @@ export default function ActivitiesRoadmap() {
             className="relative z-10"
           >
             <span className="text-[10px] font-black uppercase tracking-[0.8em] text-slate-500 mb-4 block opacity-40">
-              Protocolo Industrial v2.1
+              Protocolo Industrial v2.2
             </span>
-            <h2 className="text-4xl md:text-7xl font-black font-outfit tracking-tighter uppercase leading-[0.9] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-sutil
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-sutil
               bg-gradient-to-r from-green-400/80 via-emerald-500/80 to-blue-600/80 drop-shadow-lg">
               Protocolo<br/>Atividades
             </h2>
           </motion.div>
         </header>
 
-        {/* Espaçador de 120px entre Título e Início do Roadmap */}
-        <div className="h-[120px] w-full" />
+        {/* Espaçador de 100px (Reduzido em 20px conforme solicitado) */}
+        <div className="h-[100px] w-full" />
 
         {/* Layout Esguio (Slim Cards) */}
         <div className="flex flex-col gap-10 w-full">
@@ -87,7 +93,7 @@ export default function ActivitiesRoadmap() {
                 viewport={{ once: true, margin: "-50px" }}
                 className={`flex w-full ${isLeft ? 'justify-start md:pl-4' : 'justify-end md:pr-4'} relative`}
               >
-                {/* BLOCO GLASSMORFICO ESGUIO (Reduzido para w-52) */}
+                {/* BLOCO GLASSMORFICO ESGUIO */}
                 <div 
                   className="relative w-40 md:w-52 p-5 rounded-none border-2 bg-white/[0.02] backdrop-blur-2xl shadow-2xl flex flex-col items-center group
                     hover:translate-y-[-2px] transition-all duration-300 overflow-visible"
@@ -96,8 +102,8 @@ export default function ActivitiesRoadmap() {
                     boxShadow: `0 0 25px ${module.glow}`
                   }}
                 >
-                  {/* BADGE NUMERADO (Posicionado levemente para fora) */}
-                  <div className={`absolute -top-4 -left-4 w-8 h-8 rounded-full bg-black border-2 flex items-center justify-center z-20 shadow-xl`}
+                  {/* BADGE NUMERADO (Levemente externo) */}
+                  <div className={`absolute -top-4 -left-4 w-8 h-8 rounded-full bg-black border-2 flex items-center justify-center z-20 shadow-xl pointer-events-none`}
                     style={{ borderColor: groupColor }}>
                     <span className="text-white text-[10px] font-bold">{module.number}</span>
                   </div>
@@ -115,14 +121,14 @@ export default function ActivitiesRoadmap() {
                     <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 block ${module.color} opacity-70`}>
                       {module.difficulty}
                     </span>
-                    <h3 className="font-black font-outfit text-xl text-white tracking-tighter uppercase leading-none">
+                    <h3 className="font-black text-xl text-white tracking-tighter uppercase leading-none">
                       {module.name}
                     </h3>
                   </div>
 
                   {/* Botão ALTO CONTRASTE */}
                   <button 
-                    className={`w-full py-3 rounded-none font-black font-outfit text-[9px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all
+                    className={`w-full py-3 rounded-none font-black text-[9px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all
                       text-black ${module.btnBg} hover:opacity-80 active:scale-95`}
                   >
                      <Play size={10} fill="currentColor" />
@@ -130,7 +136,7 @@ export default function ActivitiesRoadmap() {
                   </button>
                 </div>
 
-                {/* Seta Sutil de Direção (Opcional - Estilo Timeline) */}
+                {/* Seta Sutil de Direção */}
                 <div 
                   className="absolute top-1/2 -translate-y-1/2 w-4 h-[1px] opacity-10 hidden md:block"
                   style={{ 
