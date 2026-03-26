@@ -352,7 +352,7 @@ export default function FlashcardsPage() {
                     className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-500 text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
                   >
                     <Plus size={14} strokeWidth={3} />
-                    Adicionar Novo Card
+                    ADICIONAR NOVO CARD
                   </button>
                   <div className="relative flex-1 w-full max-w-md">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -375,11 +375,11 @@ export default function FlashcardsPage() {
                     <div key={card.id} className="p-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">Inglês</span>
+                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">INGLÊS</span>
                           <p className="text-white font-black uppercase text-lg tracking-tight">{card.front}</p>
                         </div>
                         <div>
-                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">Português</span>
+                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">PORTUGUÊS</span>
                           <p className="text-emerald-500 font-bold uppercase text-lg tracking-tight">{card.back}</p>
                         </div>
                       </div>
