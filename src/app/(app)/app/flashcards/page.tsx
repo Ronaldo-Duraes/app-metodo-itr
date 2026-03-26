@@ -497,12 +497,21 @@ export default function FlashcardsPage() {
                 </div>
                 
                 <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
+                  {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
+                    <button 
+                      onClick={() => router.push(`/app/estudar?deck=${viewingDeck.id}`)}
+                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-500 text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                    >
+                      <Play size={14} fill="currentColor" />
+                      INICIAR ESTUDO
+                    </button>
+                  )}
                   <button 
                     onClick={() => {
                       setNewCardData({ ...newCardData, deckName: viewingDeck.name });
                       setIsCardModalOpen(true);
                     }}
-                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-500 text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
                   >
                     <Plus size={14} strokeWidth={3} />
                     ADICIONAR NOVO CARD
