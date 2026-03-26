@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import * as d3 from 'd3-geo';
 import * as topojson from 'topojson-client';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 // Importação direta do mapa baixado (não depende de fetch da internet)
-import worldAtlas from './world-110m.json';
+import worldAtlas from '@/components/landing/ui/world-110m.json';
 
 // Cidades da rota para simular a expansão (Inglês) dando a volta ao mundo com hops curtos
 const ROUTE = [

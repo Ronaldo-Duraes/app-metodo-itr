@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from "react";
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_MARKERS = [
     { lat: 37.78, lng: -122.42, label: "San Francisco" },

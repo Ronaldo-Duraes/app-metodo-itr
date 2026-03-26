@@ -125,13 +125,14 @@ export default function EstudarPage() {
       <main className="flex-1 w-full max-w-4xl flex flex-col items-center justify-center relative z-10">
         
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentCard.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="w-full"
-          >
+          {currentCard && (
+            <motion.div
+              key={currentCard.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="w-full"
+            >
             {/* THE CARD */}
             <div className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01]'} transition-all duration-500 flex flex-col items-center justify-center p-12 overflow-hidden`}>
               
@@ -210,7 +211,8 @@ export default function EstudarPage() {
                 )}
               </AnimatePresence>
             </div>
-          </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 

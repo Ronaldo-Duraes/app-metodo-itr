@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { db } from '../firebase';
+import { db } from '@/lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import { Activity, Users, MousePointer2, Clock, Smartphone, Monitor, ChevronDown, ChevronUp, Link as LinkIcon, Fingerprint, MapPin, Compass, Globe, Map, Download, Printer, Trash2, Filter, BarChart2, LogOut, Eye, Target, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, CartesianGrid, AreaChart, Area } from 'recharts';
 
 export default function AdminLeads() {
-    const [isAuthenticated, setIsAuthenticated] = useState(
-        localStorage.getItem('itr_admin_auth') === 'true'
-    );
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const auth = localStorage.getItem('itr_admin_auth') === 'true';
+        setIsAuthenticated(auth);
+    }, []);
     const [passInput, setPassInput] = useState('');
     const [rawLeads, setRawLeads] = useState([]);
     const [loading, setLoading] = useState(true);
