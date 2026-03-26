@@ -274,18 +274,17 @@ export default function FlashcardsPage() {
   };
 
   const getTimeLeft = (card: Flashcard) => {
-    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500', bg: 'bg-emerald-500/10', icon: <Check size={12} /> };
+    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500/80', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' };
     
-    const diff = new Date(card.nextReview).getTime() - Date.now();
-    if (diff <= 0) return { text: 'Revisar Agora', color: 'text-red-500', bg: 'bg-red-500/10', icon: null };
+    const diffMs = new Date(card.nextReview).getTime() - Date.now();
+    const diffMin = diffMs / (1000 * 60);
+
+    if (diffMin <= 0) return { text: 'Revisar Agora', color: 'text-red-500', bg: 'bg-zinc-900', border: 'border-red-500/50' };
     
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours >= 24) {
-      const days = Math.floor(hours / 24);
-      return { text: `Em ${days}d`, color: 'text-emerald-500/60', bg: 'bg-white/5', icon: null };
-    }
-    
-    return { text: `Em ${hours}h`, color: 'text-yellow-500', bg: 'bg-yellow-500/10', icon: null };
+    if (diffMin < 10) return { text: '< 10 MIN', color: 'text-red-500', bg: 'bg-zinc-900', border: 'border-red-500/30' };
+    if (diffMin < 1440) return { text: '< 1 DIA', color: 'text-emerald-500', bg: 'bg-zinc-900', border: 'border-emerald-500/30' };
+    if (diffMin < 10080) return { text: '< 7 DIAS', color: 'text-blue-500', bg: 'bg-zinc-900', border: 'border-blue-500/30' };
+    return { text: '< 30 DIAS', color: 'text-yellow-500', bg: 'bg-zinc-900', border: 'border-yellow-500/30' };
   };
 
   const handleUpdateCard = (e: React.FormEvent) => {
@@ -642,7 +641,7 @@ export default function FlashcardsPage() {
 
                       {/* COLUNA 3: STATUS (ESPAÇO PRESERVADO) */}
                       <div className="flex justify-center">
-                        <div className={`flex items-center gap-2 px-4 py-2 border border-white/5 ${getTimeLeft(card).bg} min-w-[120px] justify-center`}>
+                        <div className={`flex items-center gap-2 px-4 py-2 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} min-w-[120px] justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
                           {card.isMemorized ? (
                              <Check size={12} className="text-emerald-500" strokeWidth={4} />
                           ) : (

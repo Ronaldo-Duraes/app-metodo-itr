@@ -317,25 +317,28 @@ export const playVictorySound = () => {
     if (!AudioContext) return;
     const ctx = new AudioContext();
     
-    const playFreq = (freq: number, startTime: number, duration: number) => {
+    const playTechNode = (freq: number, type: OscillatorType, startTime: number, duration: number, volume = 0.2) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      osc.type = type;
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.type = 'triangle';
+      
       osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + startTime + duration);
+      
       gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + startTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+      
       osc.start(ctx.currentTime + startTime);
       osc.stop(ctx.currentTime + startTime + duration);
     };
 
-    // Arpejo de vitória (Acorde Maior) - Toca um som de conquista 'Ta-ta-da-daaa'
-    playFreq(440.00, 0, 0.15); // A4
-    playFreq(554.37, 0.15, 0.15); // C#5
-    playFreq(659.25, 0.30, 0.15); // E5
-    playFreq(880.00, 0.45, 0.4); // A5
+    // Industrial Tech Chime - Seco, metálico e futurista
+    playTechNode(880, 'square', 0, 0.1, 0.1);    // A5
+    playTechNode(1318.51, 'sine', 0.05, 0.2, 0.15); // E6
+    playTechNode(1760, 'triangle', 0.1, 0.4, 0.1);  // A6
   } catch (e) {
     console.error('Audio playback failed', e);
   }
@@ -352,17 +355,17 @@ export const playBlipSound = () => {
     osc.connect(gain);
     gain.connect(ctx.destination);
     
-    // Som curto 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.08);
+    // "Metallic Click" - Curto e seco
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.04);
     
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.1);
+    osc.stop(ctx.currentTime + 0.04);
   } catch (e) {
     console.error('Blip sound failed', e);
   }
