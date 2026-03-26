@@ -1,4 +1,4 @@
-import { Flashcard, ReviewInterval, UserProfile, AppData } from './types';
+import { Flashcard, ReviewInterval, UserProfile, AppData, Deck } from './types';
 
 const STORAGE_KEY = 'itr_app_data';
 
@@ -57,6 +57,53 @@ export const addDeck = (name: string) => {
   };
   saveDecks([...decks, newDeck]);
   return newDeck;
+};
+
+export const renameDeck = (deckId: string, newName: string) => {
+  const decks = getDecks();
+  const updatedDecks = decks.map(d => d.id === deckId ? { ...d, name: newName } : d);
+  saveDecks(updatedDecks);
+
+  // Opcional: Atualizar o nome do deck nos cards se estiver usando o nome como referência?
+  // Atualmente o filtro no UI usa 'deck.name || deck.id'. 
+  // É melhor manter a consistência.
+  const cards = getCards();
+  const updatedCards = cards.map(c => {
+    const deck = decks.find(d => d.id === deckId);
+    if (c.deck === deck?.name) return { ...c, deck: newName };
+    return c;
+  });
+  saveCards(updatedCards);
+};
+
+export const deleteDeck = (deckId: string) => {
+  const decks = getDecks();
+  const deckToDelete = decks.find(d => d.id === deckId);
+  if (!deckToDelete) return;
+
+  const updatedDecks = decks.filter(d => d.id !== deckId);
+  saveDecks(updatedDecks);
+
+  // IMPORTANTE: Remover todos os cards deste deck
+  const cards = getCards();
+  const updatedCards = cards.filter(c => c.deck !== deckToDelete.name && c.deck !== deckToDelete.id);
+  saveCards(updatedCards);
+};
+
+export const addFullCard = (front: string, back: string, association: string, deckName: string) => {
+  const cards = getCards();
+  const newCard: Flashcard = {
+    id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    front,
+    back,
+    association,
+    nextReview: new Date().toISOString(),
+    reviewedCount: 0,
+    isLearned: false, // Novos cards começam como não aprendidos
+    deck: deckName,
+  };
+  saveCards([...cards, newCard]);
+  return newCard;
 };
 
 export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {

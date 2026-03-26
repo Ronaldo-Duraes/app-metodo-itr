@@ -2,15 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X } from 'lucide-react';
-import { getCards, getDecks, addDeck, getTodayPendingCards } from '@/lib/srs';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight } from 'lucide-react';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 
 export default function FlashcardsPage() {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
   const [newDeckName, setNewDeckName] = useState('');
+  const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
+  const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '' });
+  
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,10 +36,47 @@ export default function FlashcardsPage() {
   const handleCreateDeck = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDeckName.trim()) return;
-    
     addDeck(newDeckName.trim());
     setNewDeckName('');
     setIsModalOpen(false);
+    loadData();
+  };
+
+  const handleRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeDeck || !newDeckName.trim()) return;
+    renameDeck(activeDeck.id, newDeckName.trim());
+    setNewDeckName('');
+    setActiveDeck(null);
+    setIsRenameModalOpen(false);
+    loadData();
+  };
+
+  const handleDelete = () => {
+    if (!activeDeck) return;
+    deleteDeck(activeDeck.id);
+    setActiveDeck(null);
+    setIsDeleteModalOpen(false);
+    loadData();
+  };
+
+  const handleCreateCard = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { front, back, association, deckName } = newCardData;
+    
+    // Lógica de Segurança
+    if (!deckName && decks.length === 0) {
+      if (!newDeckName.trim()) return;
+      const d = addDeck(newDeckName.trim());
+      addFullCard(front, back, association, d.name);
+    } else {
+      if (!front || !back || !deckName) return;
+      addFullCard(front, back, association, deckName);
+    }
+
+    setNewCardData({ front: '', back: '', association: '', deckName: '' });
+    setNewDeckName('');
+    setIsCardModalOpen(false);
     loadData();
   };
 
@@ -52,12 +97,18 @@ export default function FlashcardsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <button className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95">
+            <button 
+              onClick={() => setIsCardModalOpen(true)}
+              className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
+            >
               <Plus size={16} strokeWidth={3} />
               Novo Card
             </button>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setNewDeckName('');
+                setIsModalOpen(true);
+              }}
               className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95"
             >
               <Plus size={16} strokeWidth={3} />
@@ -130,14 +181,14 @@ export default function FlashcardsPage() {
             </div>
 
             {/* --- ANCORA: MEUS DECKS --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
               {decks.map((deck) => {
                 const deckCards = cards.filter(c => c.deck === deck.name || c.deck === deck.id);
                 return (
                   <motion.div 
                     key={deck.id}
-                    whileHover={{ scale: 1.02 }}
-                    className="p-6 border border-white/10 bg-white/[0.02] hover:border-white/30 transition-all flex items-center justify-between group cursor-pointer"
+                    whileHover={{ scale: 1.01 }}
+                    className="p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex items-center justify-between group cursor-pointer relative"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
@@ -148,20 +199,58 @@ export default function FlashcardsPage() {
                         <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
                       </div>
                     </div>
-                    <MoreVertical size={16} className="text-slate-700 group-hover:text-white" />
+                    
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
+                        }}
+                        className="p-2 text-slate-700 hover:text-white transition-colors"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+
+                      {activeMenuId === deck.id && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 shadow-2xl z-40 py-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDeck(deck);
+                              setNewDeckName(deck.name);
+                              setIsRenameModalOpen(true);
+                              setActiveMenuId(null);
+                            }}
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                          >
+                            <Edit2 size={12} /> Renomear
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDeck(deck);
+                              setIsDeleteModalOpen(true);
+                              setActiveMenuId(null);
+                            }}
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/5 transition-all"
+                          >
+                            <Trash2 size={12} /> Excluir
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
                 );
               })}
               
-              {/* BOTÃO ADICIONAL DENTRO DA GRADE (ESTILO CONSISTENTE) */}
               <motion.div 
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.01 }}
                 onClick={() => setIsModalOpen(true)}
-                className="p-6 border border-dashed border-white/10 bg-transparent hover:border-emerald-500/50 transition-all flex items-center justify-center group cursor-pointer"
+                className="p-6 border border-dashed border-white/10 bg-transparent hover:border-emerald-500/50 transition-all flex items-center justify-center group cursor-pointer h-[88px]"
               >
-                <div className="flex flex-col items-center gap-2">
-                  <Plus size={24} className="text-slate-700 group-hover:text-emerald-500" />
-                  <span className="text-[10px] font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Criar Novo Deck</span>
+                <div className="flex flex-col items-center gap-1">
+                  <Plus size={20} className="text-slate-700 group-hover:text-emerald-500" />
+                  <span className="text-[9px] font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Novo Baralho</span>
                 </div>
               </motion.div>
             </div>
@@ -171,7 +260,7 @@ export default function FlashcardsPage() {
               <div className="mt-12 p-12 border-2 border-dashed border-white/5 flex flex-col items-center text-center opacity-40">
                 <BookOpen size={40} className="mb-6 text-slate-700" />
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-xs">
-                  Você ainda não tem decks. Crie o seu primeiro para começar a estudar!
+                  Ainda sem conteúdo. Comece criando seu primeiro baralho de estudos.
                 </p>
               </div>
             )}
@@ -180,57 +269,137 @@ export default function FlashcardsPage() {
         </div>
       </div>
 
-      {/* MODAL DE CRIAÇÃO */}
+      {/* --- MODAIS --- */}
       <AnimatePresence>
+        
+        {/* MODAL: NOVO DECK */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm px-6">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-md bg-[#0a0a0a] border-2 border-emerald-500/30 p-8 rounded-none shadow-[0_0_50px_rgba(16,185,129,0.1)]"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-emerald-500/20 p-8 rounded-none shadow-2xl"
             >
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Novo Deck</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
-                  <X size={24} />
-                </button>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Criar Baralho</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
               </div>
-
               <form onSubmit={handleCreateDeck} className="space-y-6">
                 <div>
-                  <label className="block text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">
-                    Nome do Deck
-                  </label>
-                  <input 
-                    autoFocus
-                    type="text"
-                    value={newDeckName}
-                    onChange={(e) => setNewDeckName(e.target.value)}
-                    placeholder="EX: BUSINESS ENGLISH 2024"
-                    className="w-full bg-white/5 border-2 border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors placeholder:text-white/10"
-                  />
+                  <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Nome da Coleção</label>
+                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: PHRASAL VERBS..." className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors" />
                 </div>
-
-                <div className="pt-4 flex flex-col gap-3">
-                  <button 
-                    type="submit"
-                    className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all shadow-xl active:scale-95"
-                  >
-                    Confirmar Criação
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="w-full py-4 bg-transparent border-2 border-white/10 text-white/40 font-black text-xs tracking-[0.2em] uppercase hover:text-white transition-all active:scale-95"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                <button type="submit" className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all">Salvar Baralho</button>
               </form>
             </motion.div>
           </div>
         )}
+
+        {/* MODAL: RENOMEAR DECK */}
+        {isRenameModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-emerald-500/20 p-8 rounded-none shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Renomear</h2>
+                <button onClick={() => setIsRenameModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleRename} className="space-y-6">
+                <div>
+                  <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Novo Nome</label>
+                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors" />
+                </div>
+                <button type="submit" className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all">Atualizar</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: EXCLUIR DECK (CONFIRMAÇÃO) */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-red-500/30 p-10 rounded-none shadow-2xl text-center"
+            >
+              <div className="p-4 bg-red-500/10 border border-red-500/20 w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="text-red-500" size={32} />
+              </div>
+              <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">Excluir "{activeDeck?.name}"?</h2>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-8 leading-relaxed">
+                Esta ação é irreversível. Todos os cards deste baralho serão permanentemente apagados.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button onClick={handleDelete} className="w-full py-4 bg-red-600 text-white font-black text-xs tracking-[0.2em] uppercase hover:bg-red-500 transition-all">Confirmar Exclusão</button>
+                <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-white/5 text-white/40 font-black text-xs tracking-[0.2em] uppercase hover:text-white transition-all">Manter Baralho</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: NOVO CARD */}
+        {isCardModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl overflow-y-auto max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/5">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Adicionar Flashcard</h2>
+                <button onClick={() => setIsCardModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleCreateCard} className="space-y-8">
+                {decks.length === 0 ? (
+                  <div className="p-6 bg-emerald-500/5 border border-emerald-500/20">
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-4 block">Primeiro Passo Necessário</span>
+                    <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Dê um nome ao seu primeiro Baralho</label>
+                    <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: FRASES DO DIA..." className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/50" />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Selecione o Baralho</label>
+                    <div className="grid grid-cols-1 gap-2">
+                       {decks.map(d => (
+                         <button 
+                           key={d.id} type="button" 
+                           onClick={() => setNewCardData({...newCardData, deckName: d.name})}
+                           className={`p-4 border text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${newCardData.deckName === d.name ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500' : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/20'}`}
+                         >
+                           {d.name}
+                           {newCardData.deckName === d.name && <Zap size={10} fill="currentColor" />}
+                         </button>
+                       ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Versão em Inglês</label>
+                      <input type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="Term or phrase..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Tradução (PT-BR)</label>
+                      <input type="text" value={newCardData.back} onChange={(e) => setNewCardData({...newCardData, back: e.target.value})} placeholder="Tradução ou sentido..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">Técnica de Memorização (Mnemonic)</label>
+                    <textarea rows={3} value={newCardData.association} onChange={(e) => setNewCardData({...newCardData, association: e.target.value})} placeholder="Dica mental para não esquecer..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40 resize-none h-24" />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-5 bg-white text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-500 transition-all shadow-xl flex items-center justify-center gap-3">
+                  Salvar Flashcard <ArrowRight size={16} />
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
       </AnimatePresence>
     </div>
   );
