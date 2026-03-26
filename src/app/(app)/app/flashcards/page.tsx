@@ -6,6 +6,7 @@ import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edi
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // --- COMPONENTE: DECK SELECTOR CUSTOM (INDUSTRIAL) ---
 interface DeckSelectorProps {
@@ -86,6 +87,7 @@ const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false }: D
 };
 
 export default function FlashcardsPage() {
+  const router = useRouter();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -342,106 +344,98 @@ export default function FlashcardsPage() {
                       activeMenuId === deck.id ? 'z-[60] border-emerald-500/20' : 'z-auto'
                     }`}
                   >
-                    <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-4">
-                      <div className="relative group/play">
-                        <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
-                          <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
+                    <div className="flex items-start justify-between w-full">
+                      <div className="flex items-center gap-4">
+                        <div className="relative group/play">
+                          <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
+                            <Layers size={20} className="text-slate-500 group-hover:text-emerald-500 transition-colors" />
+                          </div>
+                          {/* BOTÃO PLAY SOBREPOSTO (HOVER) */}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (deckCards.length > 0) {
+                                router.push(`/app/estudar?deck=${deck.id}`);
+                              }
+                            }}
+                            className={`absolute inset-0 w-full h-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center opacity-0 group-hover/play:opacity-100 transition-all scale-75 group-hover/play:scale-100 cursor-pointer ${deckCards.length === 0 ? 'cursor-not-allowed opacity-0 group-hover/play:opacity-40 grayscale' : ''}`}
+                            title={deckCards.length > 0 ? "Iniciar Estudo" : "Adicione cards primeiro"}
+                          >
+                            <Play size={18} fill="black" className="text-black ml-1" />
+                          </button>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-black opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
-                          <Play size={8} fill="black" className="ml-0.5 text-black" />
+                        <div>
+                          <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.name}</h4>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
                         </div>
                       </div>
-                      <div>
-                        <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.name}</h4>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
-                        }}
-                        className="w-12 h-12 flex items-center justify-center text-slate-700 hover:text-white transition-colors cursor-pointer rounded-full hover:bg-white/5"
-                        title="Opções do Baralho"
-                      >
-                        <MoreVertical size={20} />
-                      </button>
-
-                      {activeMenuId === deck.id && (
-                        <div 
-                          ref={menuRef}
-                          onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
-                        >
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setViewingDeck(deck);
-                              setSearchTerm('');
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
-                          >
-                            <Edit2 size={12} /> Editar Cards
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDeck(deck);
-                              setNewDeckName(deck.name);
-                              setIsRenameModalOpen(true);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
-                          >
-                            <ArrowRight size={12} /> Renomear
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDeck(deck);
-                              setIsDeleteModalOpen(true);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
-                          >
-                            <Trash2 size={12} /> Excluir
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                    <div className="pt-4 border-t border-white/5 w-full flex flex-col gap-4">
-                      {deckCards.length > 0 ? (
-                        <Link 
-                          href={`/app/estudar?deck=${deck.id}`} 
-                          className="w-full"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button 
-                            className="w-full py-3 rounded-md bg-emerald-500 text-black font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95"
-                          >
-                            <Play size={14} fill="currentColor" />
-                            Iniciar Estudos
-                          </button>
-                        </Link>
-                      ) : (
+                      
+                      <div className="relative">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            setNewCardData({ ...newCardData, deckName: deck.name });
-                            setIsCardModalOpen(true);
+                            setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
                           }}
-                          className="w-full py-3 rounded-md bg-white/5 border border-emerald-500/20 text-emerald-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-500/50 active:scale-95"
+                          className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-white transition-colors cursor-pointer rounded-full hover:bg-white/5"
+                          title="Opções do Baralho"
                         >
-                          <Plus size={14} strokeWidth={3} />
-                          Adicione cards para estudar
+                          <MoreVertical size={20} />
                         </button>
-                      )}
+
+                        {activeMenuId === deck.id && (
+                          <div 
+                            ref={menuRef}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
+                          >
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingDeck(deck);
+                                setSearchTerm('');
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <Edit2 size={12} /> Editar Cards
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDeck(deck);
+                                setNewDeckName(deck.name);
+                                setIsRenameModalOpen(true);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <ArrowRight size={12} /> Renomear
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDeck(deck);
+                                setIsDeleteModalOpen(true);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
+                            >
+                              <Trash2 size={12} /> Excluir
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* FOOTER DO CARD */}
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5 opacity-40 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2">
+                         <div className={`w-1.5 h-1.5 rounded-full ${deckCards.length > 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-700'}`} />
+                         <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{deckCards.length > 0 ? 'Ativo' : 'Vazio'}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[8px] font-black text-slate-600 uppercase tracking-widest">
+                        Gerenciar <ArrowRight size={10} className="ml-1 transition-transform group-hover:translate-x-1" />
+                      </div>
                     </div>
                   </motion.div>
                 );
