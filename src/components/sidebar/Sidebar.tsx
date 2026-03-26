@@ -44,7 +44,7 @@ const Sidebar = () => {
                 alt='Logo ITR' 
                 fill
                 priority
-                className='object-contain invert brightness-200 drop-shadow-[0_0_15px_rgba(0,255,128,0.2)] hover:scale-105 transition-transform' 
+                className='object-contain drop-shadow-[0_0_15px_rgba(188,19,254,0.15)] hover:scale-105 transition-transform' 
               />
             </Link>
         </div>
