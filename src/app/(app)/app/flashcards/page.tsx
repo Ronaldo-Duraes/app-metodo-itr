@@ -397,7 +397,7 @@ export default function FlashcardsPage() {
                               }}
                               className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
                             >
-                              <Edit2 size={12} /> Editar Cards
+                              <ArrowRight size={12} /> Editar Cards
                             </button>
                             <button 
                               onClick={(e) => {
@@ -409,7 +409,7 @@ export default function FlashcardsPage() {
                               }}
                               className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
                             >
-                              <ArrowRight size={12} /> Renomear
+                              <Edit2 size={12} /> Renomear
                             </button>
                             <button 
                               onClick={(e) => {
