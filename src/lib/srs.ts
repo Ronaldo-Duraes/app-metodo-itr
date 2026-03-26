@@ -1,4 +1,4 @@
-import { Flashcard, ReviewInterval, UserProfile, AppData, Deck } from './types';
+import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry } from './types';
 
 const STORAGE_KEY = 'itr_app_data';
 
@@ -16,6 +16,7 @@ const getAppData = (): AppData => {
   }
   const data = JSON.parse(stored);
   if (!data.decks) data.decks = [];
+  if (!data.dictionary) data.dictionary = [];
   return data;
 };
 
@@ -100,6 +101,7 @@ export const addFullCard = (front: string, back: string, association: string, de
     deck: deckName,
   };
   saveCards([...cards, newCard]);
+  addOrUpdateDictionaryEntry(newCard); // Alimenta o dicionário ao criar
   return newCard;
 };
 
@@ -163,6 +165,12 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   );
   
   saveCards(updatedCards);
+
+  // Se foi memorizado, atualiza no dicionário
+  if (isMemorized) {
+    const card = updatedCards.find(c => c.id === cardId);
+    if (card) addOrUpdateDictionaryEntry(card);
+  }
 };
 
 // Função de limpeza total (Remover se quiser desabilitar o nuclear reset)
@@ -178,6 +186,41 @@ export const updateCardAssociation = (cardId: string, association: string) => {
     c.id === cardId ? { ...c, association } : c
   );
   saveCards(updatedCards);
+};
+
+export const getDictionary = (): DictionaryEntry[] => {
+  return getAppData().dictionary || [];
+};
+
+export const saveDictionary = (dictionary: DictionaryEntry[]) => {
+  const data = getAppData();
+  data.dictionary = dictionary;
+  saveAppData(data);
+};
+
+export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
+  const dictionary = getDictionary();
+  const existingIndex = dictionary.findIndex(e => e.word.toLowerCase() === card.front.toLowerCase());
+
+  if (existingIndex >= 0) {
+    const updatedEntry = {
+      ...dictionary[existingIndex],
+      isMemorized: card.isMemorized || dictionary[existingIndex].isMemorized,
+      usageFrequency: dictionary[existingIndex].usageFrequency + 1,
+      translation: card.back // Atualiza tradução se mudou
+    };
+    dictionary[existingIndex] = updatedEntry;
+  } else {
+    dictionary.push({
+      id: `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      word: card.front,
+      translation: card.back,
+      dateAdded: new Date().toISOString(),
+      isMemorized: card.isMemorized || false,
+      usageFrequency: 1
+    });
+  }
+  saveDictionary(dictionary);
 };
 
 export const deleteCard = (cardId: string) => {

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
 
 const Sidebar = () => {
@@ -16,7 +16,6 @@ const Sidebar = () => {
     const p = getUserProfile();
     if (p && p.name) setProfile(p);
   }, []);
-
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push('/app/perfil?t=' + Date.now());
@@ -27,6 +26,7 @@ const Sidebar = () => {
     { icon: Zap, label: 'Atividades', path: '/app/atividades' },
     { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
+    { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario' },
   ];
 
   return (

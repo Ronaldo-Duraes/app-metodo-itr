@@ -22,10 +22,20 @@ export interface Deck {
   name: string;
 }
 
+export interface DictionaryEntry {
+  id: string;
+  word: string;
+  translation: string;
+  dateAdded: string;
+  isMemorized: boolean;
+  usageFrequency: number;
+}
+
 export interface AppData {
   cards: Flashcard[];
   profile: UserProfile;
   decks: Deck[];
+  dictionary?: DictionaryEntry[];
 }
 
 export type ReviewInterval = '10m' | '1d' | '7d' | '30d' | 'memorized';
