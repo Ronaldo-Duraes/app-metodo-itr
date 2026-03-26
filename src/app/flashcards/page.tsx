@@ -20,6 +20,12 @@ export default function FlashcardsPage() {
   
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // DECK EDITOR STATE
+  const [viewingDeck, setViewingDeck] = useState<Deck | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isEditCardModalOpen, setIsEditCardModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
 
   useEffect(() => {
     loadData();
@@ -77,6 +83,26 @@ export default function FlashcardsPage() {
     setNewCardData({ front: '', back: '', association: '', deckName: '' });
     setNewDeckName('');
     setIsCardModalOpen(false);
+    loadData();
+  };
+
+  const handleDeleteCard = (id: string) => {
+    const { deleteCard } = require('@/lib/srs');
+    deleteCard(id);
+    loadData();
+  };
+
+  const handleUpdateCard = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCard) return;
+    const { updateCard } = require('@/lib/srs');
+    updateCard(editingCard.id, {
+      front: editingCard.front,
+      back: editingCard.back,
+      association: editingCard.association
+    });
+    setIsEditCardModalOpen(false);
+    setEditingCard(null);
     loadData();
   };
 
@@ -216,6 +242,17 @@ export default function FlashcardsPage() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
+                              setViewingDeck(deck);
+                              setSearchTerm('');
+                              setActiveMenuId(null);
+                            }}
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500/70 hover:text-emerald-500 hover:bg-white/5 transition-all"
+                          >
+                            <Edit2 size={12} /> Editar Cards
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setActiveDeck(deck);
                               setNewDeckName(deck.name);
                               setIsRenameModalOpen(true);
@@ -223,7 +260,7 @@ export default function FlashcardsPage() {
                             }}
                             className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all"
                           >
-                            <Edit2 size={12} /> Renomear
+                            <ArrowRight size={12} /> Renomear
                           </button>
                           <button 
                             onClick={(e) => {
@@ -268,6 +305,92 @@ export default function FlashcardsPage() {
 
         </div>
       </div>
+
+      {/* --- ANCORA: LISTA_CARDS_DECK --- */}
+      <AnimatePresence>
+        {viewingDeck && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed inset-0 z-[60] bg-[#050505] p-8 md:p-12 overflow-y-auto"
+          >
+            <div className="max-w-5xl mx-auto">
+              <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div className="flex items-center gap-6">
+                  <button 
+                    onClick={() => setViewingDeck(null)}
+                    className="p-3 border border-white/10 text-white hover:bg-white/5 transition-all"
+                  >
+                    <ArrowRight size={20} className="rotate-180" />
+                  </button>
+                  <div>
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Editor de Conteúdo</span>
+                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{viewingDeck.name}</h2>
+                  </div>
+                </div>
+                
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="BUSCAR CARDS NESTE DECK..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 text-white font-bold uppercase tracking-widest text-xs outline-none focus:border-emerald-500/50"
+                  />
+                </div>
+              </header>
+
+              <div className="space-y-4">
+                {cards
+                  .filter(c => (c.deck === viewingDeck.name || c.deck === viewingDeck.id) && 
+                    (c.front.toLowerCase().includes(searchTerm.toLowerCase()) || c.back.toLowerCase().includes(searchTerm.toLowerCase())))
+                  .map(card => (
+                    <div key={card.id} className="p-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">Inglês</span>
+                          <p className="text-white font-black uppercase text-lg tracking-tight">{card.front}</p>
+                        </div>
+                        <div>
+                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">Português</span>
+                          <p className="text-emerald-500 font-bold uppercase text-lg tracking-tight">{card.back}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => {
+                            setEditingCard(card);
+                            setIsEditCardModalOpen(true);
+                          }}
+                          className="p-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCard(card.id)}
+                          className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/40 hover:text-red-500 hover:border-red-500/30 transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                
+                {cards.filter(c => (c.deck === viewingDeck.name || c.deck === viewingDeck.id)).length === 0 && (
+                  <div className="py-20 text-center border-2 border-dashed border-white/5 opacity-20">
+                     <Layers size={48} className="mx-auto mb-4 text-slate-500" />
+                     <p className="text-xs font-black uppercase tracking-widest text-slate-500">Este baralho está vazio.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* --- FIM ANCORA: LISTA_CARDS_DECK --- */}
 
       {/* --- MODAIS --- */}
       <AnimatePresence>
@@ -394,6 +517,57 @@ export default function FlashcardsPage() {
 
                 <button type="submit" className="w-full py-5 bg-white text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-500 transition-all shadow-xl flex items-center justify-center gap-3">
                   Salvar Flashcard <ArrowRight size={16} />
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: EDITAR CARD INDIVIDUAL */}
+        {isEditCardModalOpen && editingCard && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-10 pb-4 border-b border-white/5">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Editar Flashcard</h2>
+                <button onClick={() => setIsEditCardModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleUpdateCard} className="space-y-8">
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Versão em Inglês</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.front} 
+                      onChange={(e) => setEditingCard({...editingCard, front: e.target.value})} 
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-emerald-500/40" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Tradução (PT-BR)</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.back} 
+                      onChange={(e) => setEditingCard({...editingCard, back: e.target.value})} 
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-emerald-500/40" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">Técnica de Memorização</label>
+                    <textarea 
+                      rows={3} 
+                      value={editingCard.association || ''} 
+                      onChange={(e) => setEditingCard({...editingCard, association: e.target.value})} 
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40 resize-none h-24" 
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-5 bg-emerald-500 text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-400 transition-all shadow-xl">
+                  Atualizar Card
                 </button>
               </form>
             </motion.div>
