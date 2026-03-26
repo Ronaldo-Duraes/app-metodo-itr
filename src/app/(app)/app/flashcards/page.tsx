@@ -533,23 +533,12 @@ export default function FlashcardsPage() {
                     <Plus size={14} strokeWidth={3} />
                     ADICIONAR NOVO CARD
                   </button>
-                  <div className="relative flex-1 w-full max-w-xs">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="BUSCAR..." 
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/10 h-14 pl-12 pr-4 text-white font-bold uppercase tracking-widest text-[10px] outline-none focus:border-emerald-500/50"
-                    />
-                  </div>
                 </div>
               </header>
 
               <div className="space-y-4">
                 {cards
-                  .filter(c => (c.deck === viewingDeck.name || c.deck === viewingDeck.id) && 
-                    (c.front.toLowerCase().includes(searchTerm.toLowerCase()) || c.back.toLowerCase().includes(searchTerm.toLowerCase())))
+                  .filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id)
                   .map(card => (
                     <div key={card.id} className="p-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
