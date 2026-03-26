@@ -223,6 +223,21 @@ export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
   saveDictionary(dictionary);
 };
 
+export const updateDictionaryEntry = (id: string, word: string, translation: string) => {
+  const dictionary = getDictionary();
+  const index = dictionary.findIndex(e => e.id === id);
+  if (index >= 0) {
+    dictionary[index] = { ...dictionary[index], word, translation };
+    saveDictionary(dictionary);
+    return true;
+  }
+  return false;
+};
+
+export const getDictionaryCount = (): number => {
+  return getDictionary().length;
+};
+
 export const deleteCard = (cardId: string) => {
   const cards = getCards();
   const updatedCards = cards.filter(c => c.id !== cardId);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getUserProfile, saveUserProfile, getCards, getUserPatente } from '@/lib/srs';
+import { getUserProfile, saveUserProfile, getCards, getUserPatente, getDictionaryCount } from '@/lib/srs';
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit3, Gem, Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
@@ -49,8 +49,10 @@ function ProfileContent() {
           const pInfo = getUserPatente(stats.masteredCount);
           setThemeByName(pInfo.current.name);
         } else {
-          const cards = getCards();
-          setMasteredCount(cards.filter(c => c.isLearned).length);
+          const totalVocab = getDictionaryCount();
+          setMasteredCount(totalVocab);
+          const pInfo = getUserPatente(totalVocab);
+          setThemeByName(pInfo.current.name);
         }
       } catch (error) {
         console.error("Erro ao sincronizar com Firebase:", error);
