@@ -297,7 +297,9 @@ export default function FlashcardsPage() {
                       setViewingDeck(deck);
                       setSearchTerm('');
                     }}
-                    className="p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex items-center justify-between group cursor-pointer relative"
+                    className={`p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex items-center justify-between group cursor-pointer relative ${
+                      activeMenuId === deck.id ? 'z-[60] border-emerald-500/20' : 'z-auto'
+                    }`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
@@ -315,51 +317,63 @@ export default function FlashcardsPage() {
                           e.stopPropagation();
                           setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
                         }}
-                        className="p-3 text-slate-700 hover:text-white transition-colors cursor-pointer"
+                        className="w-12 h-12 flex items-center justify-center text-slate-700 hover:text-white transition-colors cursor-pointer rounded-full hover:bg-white/5"
+                        title="Opções do Baralho"
                       >
-                        <MoreVertical size={18} />
+                        <MoreVertical size={20} />
                       </button>
 
                       {activeMenuId === deck.id && (
-                        <div 
-                          onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-full mt-2 w-48 bg-black border border-white/10 shadow-2xl z-[100] py-2"
-                        >
-                          <button 
+                        <>
+                          {/* Camada de bloqueio global para fechar ao clicar fora e impedir cliques no card pai */}
+                          <div 
+                            className="fixed inset-0 z-[100]" 
                             onClick={(e) => {
                               e.stopPropagation();
-                              setViewingDeck(deck);
-                              setSearchTerm('');
                               setActiveMenuId(null);
                             }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 transition-all border-b border-white/5"
+                          />
+                          
+                          <div 
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
                           >
-                            <Edit2 size={12} /> Editar Cards
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDeck(deck);
-                              setNewDeckName(deck.name);
-                              setIsRenameModalOpen(true);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-all border-b border-white/5"
-                          >
-                            <ArrowRight size={12} /> Renomear
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDeck(deck);
-                              setIsDeleteModalOpen(true);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
-                          >
-                            <Trash2 size={12} /> Excluir
-                          </button>
-                        </div>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingDeck(deck);
+                                setSearchTerm('');
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <Edit2 size={12} /> Editar Cards
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDeck(deck);
+                                setNewDeckName(deck.name);
+                                setIsRenameModalOpen(true);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <ArrowRight size={12} /> Renomear
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDeck(deck);
+                                setIsDeleteModalOpen(true);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
+                            >
+                              <Trash2 size={12} /> Excluir
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </motion.div>
