@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown } from 'lucide-react';
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 
@@ -212,6 +212,10 @@ export default function FlashcardsPage() {
                   <motion.div 
                     key={deck.id}
                     whileHover={{ scale: 1.01 }}
+                    onClick={() => {
+                      setViewingDeck(deck);
+                      setSearchTerm('');
+                    }}
                     className="p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex items-center justify-between group cursor-pointer relative"
                   >
                     <div className="flex items-center gap-4">
@@ -230,13 +234,16 @@ export default function FlashcardsPage() {
                           e.stopPropagation();
                           setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
                         }}
-                        className="p-2 text-slate-700 hover:text-white transition-colors"
+                        className="p-3 text-slate-700 hover:text-white transition-colors cursor-pointer"
                       >
-                        <MoreVertical size={16} />
+                        <MoreVertical size={18} />
                       </button>
 
                       {activeMenuId === deck.id && (
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 shadow-2xl z-40 py-2">
+                        <div 
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 shadow-2xl z-50 py-2"
+                        >
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
@@ -504,17 +511,22 @@ export default function FlashcardsPage() {
                          <div className="px-2 py-0.5 bg-emerald-500 text-black text-[8px] font-black uppercase tracking-tighter">Fixado</div>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 gap-2">
-                        {decks.map(d => (
-                          <button 
-                            key={d.id} type="button" 
-                            onClick={() => setNewCardData({...newCardData, deckName: d.name})}
-                            className={`p-4 border text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${newCardData.deckName === d.name ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500' : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/20'}`}
-                          >
-                            {d.name}
-                            {newCardData.deckName === d.name && <Zap size={10} fill="currentColor" />}
-                          </button>
-                        ))}
+                      <div className="relative">
+                        <select 
+                          value={newCardData.deckName}
+                          onChange={(e) => setNewCardData({...newCardData, deckName: e.target.value})}
+                          className="w-full bg-white/[0.03] border border-white/10 p-4 pr-10 text-white font-bold uppercase tracking-widest text-[10px] outline-none focus:border-emerald-500/40 appearance-none cursor-pointer"
+                        >
+                          <option value="" disabled className="bg-[#0a0a0a]">Selecione um Baralho</option>
+                          {decks.map(d => (
+                            <option key={d.id} value={d.name} className="bg-[#0a0a0a]">
+                              {d.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                          <ChevronDown size={14} />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -532,7 +544,7 @@ export default function FlashcardsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">Técnica de Memorização (Mnemonic)</label>
+                    <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">TÉCNICA DE MEMORIZAÇÃO</label>
                     <textarea rows={3} value={newCardData.association} onChange={(e) => setNewCardData({...newCardData, association: e.target.value})} placeholder="Dica mental para não esquecer..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40 resize-none h-24" />
                   </div>
                 </div>
