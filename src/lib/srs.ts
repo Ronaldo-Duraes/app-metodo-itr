@@ -337,3 +337,21 @@ export const playBlipSound = () => {
     console.error('Blip sound failed', e);
   }
 };
+
+export const getSortedDeckCards = (cards: Flashcard[], deckID?: string) => {
+  let filtered = cards;
+  if (deckID) {
+    const decks = getDecks();
+    const targetDeck = decks.find(d => d.id === deckID || d.name === deckID);
+    if (targetDeck) {
+      filtered = cards.filter(c => c.deck === targetDeck.name || c.deck === targetDeck.id);
+    } else {
+      filtered = cards.filter(c => c.deck === deckID);
+    }
+  }
+
+  // Sort: Overdue cards first, then by earliest nextReview
+  return [...filtered].sort((a, b) => {
+    return new Date(a.nextReview).getTime() - new Date(b.nextReview).getTime();
+  });
+};

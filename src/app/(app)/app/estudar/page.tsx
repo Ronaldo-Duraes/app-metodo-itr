@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, ArrowRight, CheckCircle2, Trophy, Clock, Brain } from 'lucide-react';
-import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
+import { getCards, getSortedDeckCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
 import { Flashcard, ReviewInterval } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,8 +23,8 @@ export default function EstudarPage() {
 
   useEffect(() => {
     const cards = getCards();
-    const priority = getPriorityCards(cards, deckId || undefined);
-    setPile(priority);
+    const sorted = getSortedDeckCards(cards, deckId || undefined);
+    setPile(sorted);
     setIsLoading(false);
 
     if (deckId) {
@@ -206,19 +206,21 @@ export default function EstudarPage() {
                     className="flex flex-row gap-1.5 md:gap-2 w-full"
                   >
                     {[
-                      { label: 'DIFÍCIL', time: '10 MIN', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
-                      { label: 'MÉDIO', time: '1 DIA', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
-                      { label: 'FÁCIL', time: '7 DIAS', interval: '7d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
-                      { label: 'MUITO FÁCIL', time: '30 DIAS', interval: '30d' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
-                      { label: 'MEMORIZADO', time: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
+                      { top: '10 MIN', bottom: 'DIFÍCIL', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
+                      { top: '1 DIA', bottom: 'MÉDIO', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
+                      { top: '7 DIAS', bottom: 'FÁCIL', interval: '7d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
+                      { top: '30 DIAS', bottom: 'MUITO FÁCIL', interval: '30d' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
+                      { top: 'MEMORIZADO', bottom: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
                     ].map((opt) => (
                       <button 
                         key={opt.interval}
                         onClick={() => handleReview(opt.interval)}
-                        className={`flex-1 flex flex-col items-center justify-center p-3 border bg-white/[0.02] hover:bg-white/5 transition-all group min-w-0`}
+                        className={`flex-1 flex flex-col items-center justify-center p-4 border bg-white/[0.02] hover:bg-white/5 transition-all group min-w-0`}
                       >
-                        <span className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors truncate w-full text-center">{opt.label}</span>
-                        <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]} w-full text-center`}>{opt.time}</span>
+                        <span className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors truncate w-full text-center">{opt.top}</span>
+                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]} w-full text-center group-hover:text-white transition-colors`}>
+                          {opt.bottom}
+                        </span>
                       </button>
                     ))}
                   </motion.div>
