@@ -202,26 +202,16 @@ export const saveDictionary = (dictionary: DictionaryEntry[]) => {
 
 export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
   const dictionary = getDictionary();
-  const existingIndex = dictionary.findIndex(e => e.word.toLowerCase() === card.front.toLowerCase());
-
-  if (existingIndex >= 0) {
-    const updatedEntry = {
-      ...dictionary[existingIndex],
-      isMemorized: card.isMemorized || dictionary[existingIndex].isMemorized,
-      usageFrequency: dictionary[existingIndex].usageFrequency + 1,
-      translation: card.back // Atualiza tradução se mudou
-    };
-    dictionary[existingIndex] = updatedEntry;
-  } else {
-    dictionary.push({
-      id: `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      word: card.front,
-      translation: card.back,
-      dateAdded: new Date().toISOString(),
-      isMemorized: card.isMemorized || false,
-      usageFrequency: 1
-    });
-  }
+  // SEMPRE cria uma nova linha com ID único, 
+  // permitindo duplicidades independentes no inventário
+  dictionary.push({
+    id: `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    word: card.front,
+    translation: card.back,
+    dateAdded: new Date().toISOString(),
+    isMemorized: card.isMemorized || false,
+    usageFrequency: 1
+  });
   saveDictionary(dictionary);
 };
 

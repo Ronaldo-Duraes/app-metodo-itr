@@ -878,22 +878,22 @@ export default function FlashcardsPage() {
                 </div>
 
                 {isNewCardDuplicate && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
-                      <span className="text-orange-500 text-sm">⚠️</span>
-                      <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
-                        Este vocabulário (ou tradução) já existe no seu Dicionário.
+                  <div className="space-y-4 py-2 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-500 text-[10px]">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500/80 uppercase tracking-widest">
+                        Este vocabulário já existe no seu Dicionário.
                       </p>
                     </div>
                     
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div 
                         onClick={() => setSkipDictionary(!skipDictionary)}
-                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 group-hover:border-white/40'}`}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 group-hover:border-white/30'}`}
                       >
                         {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apenas criar flashcard (ignorar atualização do Dicionário)</span>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Não enviar para o dicionário</span>
                     </label>
                   </div>
                 )}
@@ -959,22 +959,22 @@ export default function FlashcardsPage() {
                 </div>
 
                 {isEditingCardDuplicate && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
-                      <span className="text-orange-500 text-sm">⚠️</span>
-                      <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
-                        Este vocabulário (ou tradução) já existe no seu Dicionário.
+                  <div className="space-y-4 py-2 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-500 text-[10px]">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500/80 uppercase tracking-widest">
+                        Este vocabulário já existe no seu Dicionário.
                       </p>
                     </div>
 
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div 
                         onClick={() => setSkipDictionary(!skipDictionary)}
-                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 group-hover:border-white/40'}`}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 group-hover:border-white/30'}`}
                       >
                         {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apenas atualizar card (não sincronizar com Dicionário)</span>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Não sincronizar com Dicionário</span>
                     </label>
                   </div>
                 )}
