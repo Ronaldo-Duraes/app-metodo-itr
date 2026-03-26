@@ -92,12 +92,12 @@ const Sidebar = () => {
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#050505] rounded-full"></div>
               </div>
               
-              <div className="flex flex-col hidden md:block overflow-hidden">
-                <span className="text-[11px] font-black text-white truncate uppercase tracking-tighter group-hover:text-emerald-400 transition-colors">
+              <div className="flex flex-col hidden md:flex justify-center h-full">
+                <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none">
                   {profile.name}
                 </span>
-                <span className="text-[9px] text-slate-600 font-bold tracking-widest uppercase">
-                  Nível de Elite
+                <span className="text-[9px] font-black text-[#BC13FE] tracking-[0.2em] uppercase mt-1 leading-none opacity-90">
+                  ALUNO
                 </span>
               </div>
             </div>
