@@ -396,35 +396,32 @@ export default function FlashcardsPage() {
                   </div>
 
                     <div className="pt-4 border-t border-white/5 w-full flex flex-col gap-4">
-                      <Link 
-                        href={deckCards.length > 0 ? `/app/estudar?deck=${deck.id}` : '#'} 
-                        className="w-full"
-                        onClick={(e) => {
-                          if (deckCards.length === 0) {
-                            e.preventDefault();
-                            return;
-                          }
-                          e.stopPropagation();
-                        }}
-                      >
-                        <button 
-                          disabled={deckCards.length === 0}
-                          className={`w-full py-3 rounded-md font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 ${
-                            deckCards.length > 0 
-                              ? 'bg-emerald-500 text-black hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95' 
-                              : 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5 opacity-50'
-                          }`}
+                      {deckCards.length > 0 ? (
+                        <Link 
+                          href={`/app/estudar?deck=${deck.id}`} 
+                          className="w-full"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {deckCards.length > 0 ? (
-                            <>
-                              <Play size={14} fill="currentColor" />
-                              Iniciar Estudos
-                            </>
-                          ) : (
-                            'Adicione cards para estudar'
-                          )}
+                          <button 
+                            className="w-full py-3 rounded-md bg-emerald-500 text-black font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95"
+                          >
+                            <Play size={14} fill="currentColor" />
+                            Iniciar Estudos
+                          </button>
+                        </Link>
+                      ) : (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNewCardData({ ...newCardData, deckName: deck.name });
+                            setIsCardModalOpen(true);
+                          }}
+                          className="w-full py-3 rounded-md bg-white/5 border border-emerald-500/20 text-emerald-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-500/50 active:scale-95"
+                        >
+                          <Plus size={14} strokeWidth={3} />
+                          Adicione cards para estudar
                         </button>
-                      </Link>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -663,7 +660,7 @@ export default function FlashcardsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
-                      <input type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="INGLÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                      <input autoFocus type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="INGLÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
                     </div>
                     <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
