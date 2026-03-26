@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Search, Filter } from 'lucide-react';
+import { Book, Search, Filter, Gem } from 'lucide-react';
 import { getDictionary, updateDictionaryEntry } from '@/lib/srs';
 import { DictionaryEntry } from '@/lib/types';
 import { Edit2, X, Check } from 'lucide-react';
@@ -78,41 +78,53 @@ export default function DicionarioPage() {
         </button>
       </div>
 
-      {/* LIST GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 relative z-0">
+      {/* LIST HEADERS (DESKTOP) */}
+      <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
+        <div>Português</div>
+        <div>Inglês</div>
+        <div className="text-right">Status</div>
+      </div>
+
+      {/* LIST ROWS */}
+      <div className="flex flex-col gap-1 relative z-0">
         {filteredWords.map((item, index) => (
           <motion.div 
             key={item.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.01 }}
-            className="group relative flex items-center justify-between p-6 bg-zinc-900/30 border border-white/5 hover:border-emerald-500/30 transition-all"
+            onClick={() => handleEditClick(item)}
+            className="group relative flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_120px] items-center p-4 md:px-8 md:py-5 bg-zinc-900 border border-white/5 hover:border-emerald-500/30 hover:bg-zinc-800/60 transition-all cursor-pointer"
           >
-            <div className="flex flex-col flex-1">
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter mb-1">
-                {item.isMemorized ? '✓ Memorizada' : 'Em revisão'}
-              </span>
-              {/* Português em Destaque */}
-              <h3 className="text-lg font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
+            {/* Português (Destaque) */}
+            <div className="w-full md:w-auto mb-2 md:mb-0">
+              <h3 className="text-sm md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
                 {item.translation}
               </h3>
-              {/* Inglês logo abaixo */}
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
+            </div>
+
+            {/* Inglês */}
+            <div className="w-full md:w-auto mb-4 md:mb-0">
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                 {item.word}
               </p>
             </div>
             
-            <div className="flex flex-col items-end gap-3">
-              <button 
-                onClick={() => handleEditClick(item)}
-                className="p-2 bg-white/5 hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 transition-all border border-transparent hover:border-emerald-500/30"
-              >
-                <Edit2 size={14} />
-              </button>
-              <div className="text-right">
-                <div className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">
-                  Freq: <span className="text-white">{item.usageFrequency}x</span>
+            {/* Status Badge */}
+            <div className="w-full md:w-auto flex justify-start md:justify-end items-center gap-4">
+              {item.isMemorized ? (
+                <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
+                  <Gem size={10} /> Memorizado
                 </div>
+              ) : (
+                <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter">
+                  Em Revisão
+                </div>
+              )}
+              
+              {/* Indicador Mobile de Edit */}
+              <div className="md:hidden text-slate-700">
+                <Edit2 size={12} />
               </div>
             </div>
           </motion.div>
