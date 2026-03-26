@@ -38,32 +38,26 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Linha da Jornada (Fibra Óptica Neon) */}
-        <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[2px] -translate-y-1/2 z-0 overflow-hidden rounded-full">
+        {/* Linha da Jornada (Industrial Minimalist) */}
+        <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[2px] -translate-y-1/2 z-0 overflow-visible rounded-full">
           {/* Fundo da Linha (Base Escura) */}
-          <div className="absolute inset-0 bg-slate-900/50 rounded-full" />
+          <div className="absolute inset-0 bg-zinc-800 rounded-full" />
           
-          {/* Progresso Iluminado (Fibra Óptica) */}
+          {/* Progresso Iluminado (Ouro Lendário) */}
           <motion.div 
             initial={{ width: 0 }}
             animate={{ 
               width: `${realProgressPercent}%`,
-              boxShadow: hoveredIndex !== null 
-                ? '0 0 25px rgba(255, 215, 0, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.5)' 
-                : '0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 2px rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 0 15px #FFD700'
             }}
-            transition={{ duration: 0.075, ease: "easeOut" }}
-            className="absolute h-full rounded-full transition-shadow duration-75 relative overflow-hidden" 
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="absolute h-full rounded-full"
             style={{ 
-              background: 'linear-gradient(to right, #854d0e, #eab308, #fef08a)',
+              background: 'linear-gradient(to right, #B8860B, #FFD700, #FFFACD)'
             }}
           >
-             {/* Efeito de Pulso (Facho de Luz que percorre a fibra) */}
-             <motion.div 
-               animate={{ x: ['-100%', '300%'] }}
-               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-               className="absolute top-0 bottom-0 w-20 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-30deg]"
-             />
+             {/* Efeito de Brilho Dinâmico */}
+             <div className="absolute inset-0 bg-white/20" />
           </motion.div>
         </div>
 
