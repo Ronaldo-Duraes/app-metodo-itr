@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check } from 'lucide-react';
-import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData } from '@/lib/srs';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData, getDictionary } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -133,6 +133,7 @@ export default function FlashcardsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditCardModalOpen, setIsEditCardModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [originalVocab, setOriginalVocab] = useState({ front: '', back: '' });
 
   useEffect(() => {
     // RESET NUCLEAR (FORÇA 0 CARDS E 0 BARALHOS)
@@ -156,11 +157,55 @@ export default function FlashcardsPage() {
     setIsLoading(false);
   };
 
-  const isDuplicateDeck = newDeckName.trim() !== '' && decks.some(d => d.name.trim().toLowerCase() === newDeckName.trim().toLowerCase());
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const isVocabDuplicate = (front: string, back: string, originalFront?: string, originalBack?: string) => {
+    const dict = getDictionary();
+    const nf = normalizeText(front);
+    const nb = normalizeText(back);
+    
+    if (!nf && !nb) return false;
+
+    return dict.some(e => {
+      // Se estamos editando e os valores não mudaram, não é duplicidade "nova"
+      if (originalFront && originalBack) {
+        if (normalizeText(e.word) === normalizeText(originalFront) && 
+            normalizeText(e.translation) === normalizeText(originalBack)) {
+          return false;
+        }
+      }
+
+      const dw = normalizeText(e.word);
+      const dt = normalizeText(e.translation);
+
+      return (nf && (nf === dw || nf === dt)) || (nb && (nb === dw || nb === dt));
+    });
+  };
+
+  const isNewCardDuplicate = isVocabDuplicate(newCardData.front, newCardData.back);
+  const isEditingCardDuplicate = editingCard ? isVocabDuplicate(editingCard.front, editingCard.back, originalVocab.front, originalVocab.back) : false; 
+  // Nota: Para edição, precisamos passar o valor ORIGINAL da entrada que está sendo editada para ignorá-la.
+  // Como `editingCard` é o estado que muda no input, o valor original deve ser capturado quando o modal abre.
+
+  const isDuplicateDeck = newDeckName.trim() !== '' && decks.some(d => {
+    // Se estivermos renomeando, ignora o deck atual para não acusar duplicidade com ele mesmo
+    if (isRenameModalOpen && activeDeck && d.id === activeDeck.id) return false;
+    return d.name.toLowerCase().trim() === newDeckName.toLowerCase().trim();
+  });
 
   const handleCreateDeck = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDeckName.trim() || isDuplicateDeck) return;
+    const normalizedNew = newDeckName.toLowerCase().trim();
+    const exists = decks.some(d => d.name.toLowerCase().trim() === normalizedNew);
+    
+    if (!newDeckName.trim() || exists) return;
+    
     addDeck(newDeckName);
     setNewDeckName('');
     setIsModalOpen(false);
@@ -169,7 +214,7 @@ export default function FlashcardsPage() {
 
   const handleRename = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeDeck || !newDeckName.trim()) return;
+    if (!activeDeck || !newDeckName.trim() || isDuplicateDeck) return;
     renameDeck(activeDeck.id, newDeckName);
     setNewDeckName('');
     setActiveDeck(null);
@@ -521,7 +566,7 @@ export default function FlashcardsPage() {
                   >
                     <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-1 block">Gerenciamento de Baralho</span>
                     <h2 
-                      className="text-4xl md:text-6xl font-black text-white uppercase tracking-normal whitespace-pre-wrap leading-tight"
+                      className="text-4xl md:text-6xl font-black text-white tracking-normal whitespace-pre-wrap leading-tight"
                       style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
                     >
                       {viewingDeck.name}
@@ -588,6 +633,7 @@ export default function FlashcardsPage() {
                         <button 
                           onClick={() => {
                             setEditingCard(card);
+                            setOriginalVocab({ front: card.front, back: card.back });
                             setIsEditCardModalOpen(true);
                           }}
                           className="p-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all"
@@ -636,7 +682,7 @@ export default function FlashcardsPage() {
               <form onSubmit={handleCreateDeck} className="space-y-6">
                 <div>
                   <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Nome da Coleção</label>
-                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: PHRASAL VERBS..." className={`w-full bg-white/5 border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} />
+                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: Phrasal Verbs..." className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} />
                   {isDuplicateDeck && (
                     <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
                       ESTE NOME JÁ EXISTE. ESCOLHA UM NOME EXCLUSIVO PARA O SEU DECK.
@@ -674,11 +720,22 @@ export default function FlashcardsPage() {
                     type="text" 
                     value={newDeckName} 
                     onChange={(e) => setNewDeckName(e.target.value)} 
-                    className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold tracking-widest focus:border-emerald-500/50 outline-none transition-colors" 
+                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} 
                     style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
                   />
+                  {isDuplicateDeck && (
+                    <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      ESTE NOME JÁ EXISTE em outro baralho. ESCOLHA UM NOME EXCLUSIVO.
+                    </p>
+                  )}
                 </div>
-                <button type="submit" className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all">Atualizar</button>
+                <button 
+                  type="submit" 
+                  disabled={isDuplicateDeck || !newDeckName.trim()}
+                  className={`w-full py-4 text-black font-black text-xs tracking-[0.2em] uppercase transition-all ${isDuplicateDeck || !newDeckName.trim() ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400'}`}
+                >
+                  Atualizar
+                </button>
               </form>
             </motion.div>
           </div>
@@ -762,7 +819,20 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-5 bg-white text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-500 transition-all shadow-xl flex items-center justify-center gap-3">
+                {isNewCardDuplicate && (
+                  <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
+                    <span className="text-orange-500 text-sm">⚠️</span>
+                    <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      Este vocabulário (ou tradução) já existe no seu Dicionário.
+                    </p>
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  disabled={isNewCardDuplicate || !newCardData.front || !newCardData.back || (!viewingDeck && !newCardData.deckName && !newDeckName.trim())}
+                  className={`w-full py-5 font-black text-xs tracking-[0.3em] uppercase transition-all shadow-xl flex items-center justify-center gap-3 ${isNewCardDuplicate ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-white text-black hover:bg-emerald-500'}`}
+                >
                   Salvar Flashcard <ArrowRight size={16} />
                 </button>
               </form>
@@ -813,7 +883,20 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-5 bg-emerald-500 text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-400 transition-all shadow-xl">
+                {isEditingCardDuplicate && (
+                  <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
+                    <span className="text-orange-500 text-sm">⚠️</span>
+                    <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      Este vocabulário (ou tradução) já existe no seu Dicionário.
+                    </p>
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  disabled={isEditingCardDuplicate || !editingCard.front || !editingCard.back}
+                  className={`w-full py-5 font-black text-xs tracking-[0.3em] uppercase transition-all shadow-xl ${isEditingCardDuplicate ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-emerald-500 text-black hover:bg-emerald-400'}`}
+                >
                   ATUALIZAR CARD
                 </button>
               </form>
