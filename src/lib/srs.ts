@@ -128,10 +128,11 @@ export const addCustomCard = (front: string, back: string, association: string, 
 export const calculateNextReview = (interval: ReviewInterval): Date => {
   const now = new Date();
   switch (interval) {
-    case '1h': return new Date(now.getTime() + 60 * 60 * 1000);
-    case '24h': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    case '1s': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    case '1m': return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    case '10m': return new Date(now.getTime() + 10 * 60 * 1000);
+    case '1d': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    case '7d': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    case '30d': return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    case 'memorized': return new Date(now.getTime() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 anos no futuro
     default: return now;
   }
 };
@@ -141,25 +142,27 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   const now = new Date();
   
   let intervalMinutes = 0;
+  let isMemorized = false;
   switch (intervalType) {
-    case '1h': intervalMinutes = 60; break;
-    case '24h': intervalMinutes = 1440; break;
-    case '1s': intervalMinutes = 10080; break;
-    case '1m': intervalMinutes = 43200; break;
+    case '10m': intervalMinutes = 10; break;
+    case '1d': intervalMinutes = 1440; break;
+    case '7d': intervalMinutes = 10080; break;
+    case '30d': intervalMinutes = 43200; break;
+    case 'memorized': isMemorized = true; break;
   }
 
   const nextReview = new Date(now.getTime() + intervalMinutes * 60 * 1000).toISOString();
-  const isLearned = intervalType === '1s' || intervalType === '1m';
   
   const updatedCards = cards.map(c => 
     c.id === cardId 
       ? { 
           ...c, 
-          nextReview, 
+          nextReview: isMemorized ? new Date(Date.now() + 100*365*24*60*60*1000).toISOString() : nextReview, 
           lastReviewed: now.toISOString(),
           interval: intervalMinutes,
           reviewedCount: c.reviewedCount + 1, 
-          isLearned: isLearned || c.isLearned 
+          isLearned: isMemorized || intervalType === '7d' || intervalType === '30d' || c.isLearned,
+          isMemorized: isMemorized || c.isMemorized
         } 
       : c
   );
@@ -201,11 +204,12 @@ export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
       filtered = cards.filter(c => c.deck === deckID);
     }
   }
-  return filtered.filter(card => {
-    // Se nunca foi revisado, está pendente se o nextReview (criado na adição) já passou
-    // Ou se (lastReviewed + interval) já passou
-    return new Date(card.nextReview) <= now;
-  });
+  return filtered
+    .filter(card => !card.isMemorized) // Exclui cards memorizados
+    .filter(card => {
+      // Se nunca foi revisado, está pendente se o nextReview já passou
+      return new Date(card.nextReview) <= now;
+    });
 };
 
 export const getTodayPendingCards = (cards: Flashcard[]) => {

@@ -8,6 +8,7 @@ export interface Flashcard {
   interval: number; // Intervalo em minutos
   reviewedCount: number;
   isLearned: boolean; // Aprendido no longo prazo
+  isMemorized?: boolean; // Pessoal: Parar de revisar totalmente
   deck?: string; // Baralho para agrupamento
 }
 
@@ -27,4 +28,4 @@ export interface AppData {
   decks: Deck[];
 }
 
-export type ReviewInterval = '1h' | '24h' | '1s' | '1m';
+export type ReviewInterval = '10m' | '1d' | '7d' | '30d' | 'memorized';

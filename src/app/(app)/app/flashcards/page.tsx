@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown } from 'lucide-react';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check } from 'lucide-react';
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
@@ -194,6 +194,21 @@ export default function FlashcardsPage() {
   const handleDeleteCard = (id: string) => {
     deleteCard(id);
     loadData();
+  };
+
+  const getTimeLeft = (card: Flashcard) => {
+    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500', bg: 'bg-emerald-500/10', icon: <Check size={12} /> };
+    
+    const diff = new Date(card.nextReview).getTime() - Date.now();
+    if (diff <= 0) return { text: 'Revisar Agora', color: 'text-red-500', bg: 'bg-red-500/10', icon: null };
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      return { text: `Em ${days}d`, color: 'text-emerald-500/60', bg: 'bg-white/5', icon: null };
+    }
+    
+    return { text: `Em ${hours}h`, color: 'text-yellow-500', bg: 'bg-yellow-500/10', icon: null };
   };
 
   const handleUpdateCard = (e: React.FormEvent) => {
@@ -522,8 +537,19 @@ export default function FlashcardsPage() {
                           <p className="text-emerald-500 font-bold uppercase text-lg tracking-tight">{card.back}</p>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
+
+                      <div className="flex items-center gap-6">
+                        {/* CRONÔMETRO / STATUS */}
+                        <div className={`flex items-center gap-2 px-4 py-2 border border-white/5 ${getTimeLeft(card).bg}`}>
+                          {card.isMemorized ? (
+                             <Check size={12} className="text-emerald-500" strokeWidth={4} />
+                          ) : (
+                             <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${getTimeLeft(card).color.replace('text-', 'bg-')}`} />
+                          )}
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${getTimeLeft(card).color}`}>
+                            {getTimeLeft(card).text}
+                          </span>
+                        </div>
                         <button 
                           onClick={() => {
                             setEditingCard(card);

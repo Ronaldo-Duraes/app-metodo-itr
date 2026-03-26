@@ -206,18 +206,20 @@ export default function EstudarPage() {
                     className="grid grid-cols-2 md:grid-cols-4 gap-4"
                   >
                     {[
-                      { label: 'Difícil', time: '1h', interval: '1h' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
-                      { label: 'Bom', time: '24h', interval: '24h' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
-                      { label: 'Fácil', time: '1 Sem.', interval: '1s' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
-                      { label: 'Lendário', time: '1 Mês', interval: '1m' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
+                      { label: 'Difícil', sub: '+10m', time: '10 min', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
+                      { label: 'Médio', sub: '+1d', time: '1 Dia', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
+                      { label: 'Fácil', sub: '+7d', time: '7 Dias', interval: '7d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
+                      { label: 'Lendário', sub: '+30d', time: '30 Dias', interval: '30d' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
+                      { label: 'Memorizado', sub: '(parar de revisar)', time: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
                     ].map((opt) => (
                       <button 
                         key={opt.interval}
                         onClick={() => handleReview(opt.interval)}
-                        className={`flex flex-col items-center p-6 border bg-white/[0.02] hover:bg-white/5 transition-all group`}
+                        className={`flex flex-col items-center justify-center p-4 border bg-white/[0.02] hover:bg-white/5 transition-all group`}
                       >
                         <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors">{opt.label}</span>
-                        <span className={`text-sm font-black uppercase tracking-tighter ${opt.color.split(' ')[0]}`}>{opt.time}</span>
+                        <span className={`text-[11px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]}`}>{opt.time}</span>
+                        <span className="text-[7px] font-bold text-white/30 uppercase mt-1 opacity-50">{opt.sub}</span>
                       </button>
                     ))}
                   </motion.div>
