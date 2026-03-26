@@ -3,19 +3,25 @@ import { Flashcard, ReviewInterval, UserProfile, AppData } from './types';
 const STORAGE_KEY = 'itr_app_data';
 
 const getAppData = (): AppData => {
-  if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' } };
+  if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [] };
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
     // Tenta migrar da chave antiga se existir
     const oldCards = localStorage.getItem('itr_flashcards_v1');
     const initialData: AppData = { 
       cards: oldCards ? JSON.parse(oldCards) : [], 
-      profile: { name: 'Estudante ITR' } 
+      profile: { name: 'Estudante ITR' },
+      decks: [
+        { id: 'deck-1', name: 'Essenciais ITR' },
+        { id: 'deck-2', name: 'Verbos Comuns' }
+      ]
     };
     saveAppData(initialData);
     return initialData;
   }
-  return JSON.parse(stored);
+  const data = JSON.parse(stored);
+  if (!data.decks) data.decks = [];
+  return data;
 };
 
 const saveAppData = (data: AppData) => {
@@ -34,6 +40,23 @@ export const getUserProfile = (): UserProfile => getAppData().profile;
 export const saveUserProfile = (profile: UserProfile) => {
   const data = getAppData();
   saveAppData({ ...data, profile });
+};
+
+export const getDecks = (): Deck[] => getAppData().decks;
+
+export const saveDecks = (decks: Deck[]) => {
+  const data = getAppData();
+  saveAppData({ ...data, decks });
+};
+
+export const addDeck = (name: string) => {
+  const decks = getDecks();
+  const newDeck: Deck = {
+    id: `deck-${Date.now()}`,
+    name
+  };
+  saveDecks([...decks, newDeck]);
+  return newDeck;
 };
 
 export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {

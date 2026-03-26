@@ -15,9 +15,15 @@ export interface UserProfile {
   avatar?: string;
 }
 
+export interface Deck {
+  id: string;
+  name: string;
+}
+
 export interface AppData {
   cards: Flashcard[];
   profile: UserProfile;
+  decks: Deck[];
 }
 
 export type ReviewInterval = '1h' | '24h' | '1s' | '1m';

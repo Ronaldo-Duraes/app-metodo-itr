@@ -1,10 +1,43 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X } from 'lucide-react';
+import { getCards, getDecks, addDeck, getTodayPendingCards } from '@/lib/srs';
+import { Flashcard, Deck } from '@/lib/types';
 
 export default function FlashcardsPage() {
+  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newDeckName, setNewDeckName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    const loadedCards = getCards();
+    const loadedDecks = getDecks();
+    setCards(loadedCards);
+    setDecks(loadedDecks);
+    setIsLoading(false);
+  };
+
+  const handleCreateDeck = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDeckName.trim()) return;
+    
+    addDeck(newDeckName.trim());
+    setNewDeckName('');
+    setIsModalOpen(false);
+    loadData();
+  };
+
+  const pendingCards = getTodayPendingCards(cards);
+  const totalMastered = cards.filter(c => c.isLearned).length;
+
   return (
     <div className="min-h-screen bg-[#050505] p-8 md:p-12 font-outfit">
       <div className="max-w-7xl mx-auto">
@@ -18,12 +51,19 @@ export default function FlashcardsPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <button className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95">
               <Plus size={16} strokeWidth={3} />
               Novo Card
             </button>
-            <button className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95"
+            >
+              <Plus size={16} strokeWidth={3} />
+              Novo Deck
+            </button>
+            <button className="flex items-center gap-3 bg-transparent border-2 border-white/40 text-white/40 px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:text-white transition-colors active:scale-95">
               Importar
             </button>
           </div>
@@ -52,10 +92,10 @@ export default function FlashcardsPage() {
                 
                 <div className="flex items-center gap-4 mb-8">
                   <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-widest uppercase">
-                    24 pendentes
+                    {pendingCards.length} pendentes
                   </div>
                   <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold tracking-widest uppercase">
-                    Level 04
+                    Mastered: {totalMastered}
                   </div>
                 </div>
 
@@ -70,11 +110,11 @@ export default function FlashcardsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 border border-white/5 bg-white/[0.01]">
                 <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Total Decks</span>
-                <span className="text-2xl font-black text-white tracking-tighter">12</span>
+                <span className="text-2xl font-black text-white tracking-tighter">{decks.length}</span>
               </div>
               <div className="p-6 border border-white/5 bg-white/[0.01]">
                 <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Cards Ativos</span>
-                <span className="text-2xl font-black text-white tracking-tighter">458</span>
+                <span className="text-2xl font-black text-white tracking-tighter">{cards.length}</span>
               </div>
             </div>
           </div>
@@ -89,43 +129,109 @@ export default function FlashcardsPage() {
               </div>
             </div>
 
+            {/* --- ANCORA: MEUS DECKS --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { title: 'Essenciais ITR', count: 156, color: 'emerald' },
-                { title: 'Verbos Comuns', count: 85, color: 'blue' },
-                { title: 'Mirage Deck', count: 42, color: 'yellow' },
-                { title: 'Core Grammar', count: 210, color: 'emerald' },
-              ].map((deck, i) => (
-                <motion.div 
-                  key={i}
-                  whileHover={{ scale: 1.02 }}
-                  className="p-6 border border-white/10 bg-white/[0.02] hover:border-white/30 transition-all flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors`}>
-                      <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
+              {decks.map((deck) => {
+                const deckCards = cards.filter(c => c.deck === deck.name || c.deck === deck.id);
+                return (
+                  <motion.div 
+                    key={deck.id}
+                    whileHover={{ scale: 1.02 }}
+                    className="p-6 border border-white/10 bg-white/[0.02] hover:border-white/30 transition-all flex items-center justify-between group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
+                        <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.name}</h4>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.title}</h4>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deck.count} CARDS</span>
-                    </div>
-                  </div>
-                  <MoreVertical size={16} className="text-slate-700 group-hover:text-white" />
-                </motion.div>
-              ))}
+                    <MoreVertical size={16} className="text-slate-700 group-hover:text-white" />
+                  </motion.div>
+                );
+              })}
+              
+              {/* BOTÃO ADICIONAL DENTRO DA GRADE (ESTILO CONSISTENTE) */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                onClick={() => setIsModalOpen(true)}
+                className="p-6 border border-dashed border-white/10 bg-transparent hover:border-emerald-500/50 transition-all flex items-center justify-center group cursor-pointer"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Plus size={24} className="text-slate-700 group-hover:text-emerald-500" />
+                  <span className="text-[10px] font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Criar Novo Deck</span>
+                </div>
+              </motion.div>
             </div>
+            {/* --- FIM ANCORA: MEUS DECKS --- */}
 
-            {/* EMPTY STATE / CALL TO ACTION */}
-            <div className="mt-12 p-12 border-2 border-dashed border-white/5 flex flex-col items-center text-center opacity-40">
-              <BookOpen size={40} className="mb-6 text-slate-700" />
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-xs">
-                Explore seus decks ou aumente seu vocabulário adicionando novos cards
-              </p>
-            </div>
+            {decks.length === 0 && !isLoading && (
+              <div className="mt-12 p-12 border-2 border-dashed border-white/5 flex flex-col items-center text-center opacity-40">
+                <BookOpen size={40} className="mb-6 text-slate-700" />
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-xs">
+                  Você ainda não tem decks. Crie o seu primeiro para começar a estudar!
+                </p>
+              </div>
+            )}
           </div>
 
         </div>
       </div>
+
+      {/* MODAL DE CRIAÇÃO */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-md bg-[#0a0a0a] border-2 border-emerald-500/30 p-8 rounded-none shadow-[0_0_50px_rgba(16,185,129,0.1)]"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Novo Deck</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateDeck} className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-3">
+                    Nome do Deck
+                  </label>
+                  <input 
+                    autoFocus
+                    type="text"
+                    value={newDeckName}
+                    onChange={(e) => setNewDeckName(e.target.value)}
+                    placeholder="EX: BUSINESS ENGLISH 2024"
+                    className="w-full bg-white/5 border-2 border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors placeholder:text-white/10"
+                  />
+                </div>
+
+                <div className="pt-4 flex flex-col gap-3">
+                  <button 
+                    type="submit"
+                    className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all shadow-xl active:scale-95"
+                  >
+                    Confirmar Criação
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-full py-4 bg-transparent border-2 border-white/10 text-white/40 font-black text-xs tracking-[0.2em] uppercase hover:text-white transition-all active:scale-95"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
