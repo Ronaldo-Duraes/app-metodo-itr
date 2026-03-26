@@ -6,15 +6,10 @@ const getAppData = (): AppData => {
   if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [] };
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
-    // Tenta migrar da chave antiga se existir
-    const oldCards = localStorage.getItem('itr_flashcards_v1');
     const initialData: AppData = { 
-      cards: oldCards ? JSON.parse(oldCards) : [], 
+      cards: [], 
       profile: { name: 'Estudante ITR' },
-      decks: [
-        { id: 'deck-1', name: 'Essenciais ITR' },
-        { id: 'deck-2', name: 'Verbos Comuns' }
-      ]
+      decks: [] 
     };
     saveAppData(initialData);
     return initialData;
@@ -170,6 +165,13 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   saveCards(updatedCards);
 };
 
+// Função de limpeza total (Remover se quiser desabilitar o nuclear reset)
+export const clearAllData = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.clear();
+  window.location.reload();
+};
+
 export const updateCardAssociation = (cardId: string, association: string) => {
   const cards = getCards();
   const updatedCards = cards.map(c => 
@@ -216,44 +218,7 @@ export const getTodayPendingCards = (cards: Flashcard[]) => {
   return getPriorityCards(cards);
 };
 
-export const ESSENTIAL_VOCABULARY = [
-  // Pronouns
-  { front: 'I', back: 'Eu' }, { front: 'You', back: 'Você' }, { front: 'He', back: 'Ele' }, 
-  { front: 'She', back: 'Ela' }, { front: 'It', back: 'Isto/Ele/Ela (coisas)' }, { front: 'We', back: 'Nós' }, { front: 'They', back: 'Eles/Elas' },
-  // Verb to be
-  { front: 'I am', back: 'Eu sou/estou' }, { front: 'You are', back: 'Você é/está' }, { front: 'He is', back: 'Ele é/está' },
-  { front: 'She is', back: 'Ela é/está' }, { front: 'It is', back: 'Isto é/está' }, { front: 'We are', back: 'Nós somos/estamos' }, { front: 'They are', back: 'Eles são/estão' },
-  // Essential Verbs
-  { front: 'To go', back: 'Ir' }, { front: 'To have', back: 'Ter' }, { front: 'To do', back: 'Fazer' }, { front: 'To say', back: 'Dizer' },
-  { front: 'To get', back: 'Pegar/Conseguir' }, { front: 'To make', back: 'Fazer/Criar' }, { front: 'To know', back: 'Saber' },
-  { front: 'To think', back: 'Pensar' }, { front: 'To take', back: 'Pegar/Levar' }, { front: 'To see', back: 'Ver' },
-  { front: 'To come', back: 'Vir' }, { front: 'To want', back: 'Querer' }, { front: 'To use', back: 'Usar' }, { front: 'To find', back: 'Encontrar' },
-  { front: 'To give', back: 'Dar' }, { front: 'To tell', back: 'Contar/Falar' }, { front: 'To work', back: 'Trabalhar' },
-  { front: 'To call', back: 'Chamar/Ligar' }, { front: 'To try', back: 'Tentar' }, { front: 'To ask', back: 'Perguntar' },
-  { front: 'To need', back: 'Precisar' }, { front: 'To feel', back: 'Sentir' }, { front: 'To become', back: 'Tornar-se' },
-  { front: 'To leave', back: 'Sair/Deixar' }, { front: 'To put', back: 'Colocar' }, { front: 'To mean', back: 'Significar' },
-  { front: 'To keep', back: 'Manter' }, { front: 'To let', back: 'Deixar' }, { front: 'To begin', back: 'Começar' },
-  { front: 'To seem', back: 'Parecer' }, { front: 'To help', back: 'Ajudar' }, { front: 'To talk', back: 'Conversar' },
-  { front: 'To turn', back: 'Virar' }, { front: 'To start', back: 'Começar' }, { front: 'To show', back: 'Mostrar' },
-  { front: 'To hear', back: 'Ouvir' }, { front: 'To play', back: 'Jogar/Tocar' }, { front: 'To run', back: 'Correr' },
-];
-
-export const importEssentialVocabulary = () => {
-  const currentCards = getCards();
-  const newCards: Flashcard[] = ESSENTIAL_VOCABULARY.map((v, index) => ({
-    id: `essential-${index}-${Date.now()}`,
-    front: v.front,
-    back: v.back,
-    nextReview: new Date().toISOString(),
-    lastReviewed: null,
-    interval: 0,
-    reviewedCount: 0,
-    isLearned: false,
-    deck: 'Essencial',
-  })).filter(nv => !currentCards.some(cc => cc.front === nv.front));
-  
-  saveCards([...currentCards, ...newCards]);
-};
+// Final do arquivo srs.ts
 
 export interface Patente {
   level: number;

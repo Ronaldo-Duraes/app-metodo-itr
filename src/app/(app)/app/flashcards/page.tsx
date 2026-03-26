@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check } from 'lucide-react';
-import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -135,7 +135,17 @@ export default function FlashcardsPage() {
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
 
   useEffect(() => {
+    // RESET NUCLEAR (FORÇA 0 CARDS E 0 BARALHOS)
+    if (typeof window !== 'undefined' && !localStorage.getItem('nuclear_reset_v4')) {
+      localStorage.clear();
+      localStorage.setItem('nuclear_reset_v4', 'true');
+      window.location.reload();
+      return;
+    }
     loadData();
+    // Atualiza a fila a cada minuto para garantir que seja "viva"
+    const interval = setInterval(loadData, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = () => {
@@ -283,25 +293,39 @@ export default function FlashcardsPage() {
               
               <div className="flex flex-col h-full">
                 <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-4">Ação Prioritária</span>
-                <h2 className="text-3xl font-black text-white mb-6 tracking-tighter uppercase whitespace-pre-line">
-                  Revisar Agora
-                </h2>
                 
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-widest uppercase">
-                    {pendingCards.length} pendentes
-                  </div>
-                  <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold tracking-widest uppercase">
-                    Mastered: {totalMastered}
-                  </div>
-                </div>
+                {pendingCards.length > 0 ? (
+                  <>
+                    <h2 className="text-3xl font-black text-white mb-6 tracking-tighter uppercase whitespace-pre-line">
+                      Revisar Agora
+                    </h2>
+                    
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-widest uppercase">
+                        {pendingCards.length} pendentes
+                      </div>
+                      <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold tracking-widest uppercase">
+                        Mastered: {totalMastered}
+                      </div>
+                    </div>
 
-                <Link href="/app/estudar" className="w-full block">
-                  <button className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all shadow-xl">
-                    <Play size={14} fill="currentColor" />
-                    Iniciar Estudo
-                  </button>
-                </Link>
+                    <Link href="/app/estudar" className="w-full block">
+                      <button className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all shadow-xl">
+                        <Play size={14} fill="currentColor" />
+                        Iniciar Estudo
+                      </button>
+                    </Link>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full py-4 text-center">
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/5 flex items-center justify-center mb-6 border border-emerald-500/10">
+                      <Check className="text-emerald-500" size={32} strokeWidth={3} />
+                    </div>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 max-w-[200px] leading-relaxed">
+                      Tudo em dia! <br/> Nenhum vocabulário precisa de revisão agora.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -530,42 +554,49 @@ export default function FlashcardsPage() {
                 {cards
                   .filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id)
                   .map(card => (
-                    <div key={card.id} className="p-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">INGLÊS</span>
-                          <p className="text-white font-black uppercase text-lg tracking-tight">{card.front}</p>
-                        </div>
-                        <div>
-                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">PORTUGUÊS</span>
-                          <p className="text-emerald-500 font-bold uppercase text-lg tracking-tight">{card.back}</p>
-                        </div>
+                    <div key={card.id} className="px-8 py-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all grid grid-cols-[1fr_1fr_150px_110px] gap-8 items-center group">
+                      {/* COLUNA 1: INGLÊS */}
+                      <div className="min-w-0">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">INGLÊS</span>
+                        <p className="text-white font-black uppercase text-base tracking-tight truncate">{card.front}</p>
                       </div>
 
-                      <div className="flex items-center gap-6">
-                        {/* CRONÔMETRO / STATUS */}
-                        <div className={`flex items-center gap-2 px-4 py-2 border border-white/5 ${getTimeLeft(card).bg}`}>
+                      {/* COLUNA 2: PORTUGUÊS */}
+                      <div className="min-w-0">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">PORTUGUÊS</span>
+                        <p className="text-emerald-500 font-bold uppercase text-base tracking-tight truncate">{card.back}</p>
+                      </div>
+
+                      {/* COLUNA 3: STATUS (ESPAÇO PRESERVADO) */}
+                      <div className="flex justify-center">
+                        <div className={`flex items-center gap-2 px-4 py-2 border border-white/5 ${getTimeLeft(card).bg} min-w-[120px] justify-center`}>
                           {card.isMemorized ? (
                              <Check size={12} className="text-emerald-500" strokeWidth={4} />
                           ) : (
                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${getTimeLeft(card).color.replace('text-', 'bg-')}`} />
                           )}
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${getTimeLeft(card).color}`}>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${getTimeLeft(card).color}`}>
                             {getTimeLeft(card).text}
                           </span>
                         </div>
+                      </div>
+
+                      {/* COLUNA 4: AÇÕES (FIXO À DIREITA) */}
+                      <div className="flex items-center gap-3 justify-end">
                         <button 
                           onClick={() => {
                             setEditingCard(card);
                             setIsEditCardModalOpen(true);
                           }}
                           className="p-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all"
+                          title="Editar Card"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button 
                           onClick={() => handleDeleteCard(card.id)}
                           className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/40 hover:text-red-500 hover:border-red-500/30 transition-all"
+                          title="Excluir Card"
                         >
                           <Trash2 size={16} />
                         </button>
