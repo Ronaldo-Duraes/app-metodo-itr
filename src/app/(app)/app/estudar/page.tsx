@@ -203,23 +203,22 @@ export default function EstudarPage() {
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                    className="flex flex-row gap-1.5 md:gap-2 w-full"
                   >
                     {[
-                      { label: 'Difícil', sub: '+10m', time: '10 min', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
-                      { label: 'Médio', sub: '+1d', time: '1 Dia', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
-                      { label: 'Fácil', sub: '+7d', time: '7 Dias', interval: '7d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
-                      { label: 'Lendário', sub: '+30d', time: '30 Dias', interval: '30d' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
-                      { label: 'Memorizado', sub: '(parar de revisar)', time: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
+                      { label: 'DIFÍCIL', time: '10 MIN', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
+                      { label: 'MÉDIO', time: '1 DIA', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
+                      { label: 'FÁCIL', time: '7 DIAS', interval: '7d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
+                      { label: 'MUITO FÁCIL', time: '30 DIAS', interval: '30d' as ReviewInterval, color: 'text-yellow-500 border-yellow-500/20' },
+                      { label: 'MEMORIZADO', time: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
                     ].map((opt) => (
                       <button 
                         key={opt.interval}
                         onClick={() => handleReview(opt.interval)}
-                        className={`flex flex-col items-center justify-center p-4 border bg-white/[0.02] hover:bg-white/5 transition-all group`}
+                        className={`flex-1 flex flex-col items-center justify-center p-3 border bg-white/[0.02] hover:bg-white/5 transition-all group min-w-0`}
                       >
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors">{opt.label}</span>
-                        <span className={`text-[11px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]}`}>{opt.time}</span>
-                        <span className="text-[7px] font-bold text-white/30 uppercase mt-1 opacity-50">{opt.sub}</span>
+                        <span className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors truncate w-full text-center">{opt.label}</span>
+                        <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]} w-full text-center`}>{opt.time}</span>
                       </button>
                     ))}
                   </motion.div>

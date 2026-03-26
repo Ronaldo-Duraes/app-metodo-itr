@@ -344,8 +344,13 @@ export default function FlashcardsPage() {
                   >
                     <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
-                        <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
+                      <div className="relative group/play">
+                        <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
+                          <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-black opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+                          <Play size={8} fill="black" className="ml-0.5 text-black" />
+                        </div>
                       </div>
                       <div>
                         <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.name}</h4>
