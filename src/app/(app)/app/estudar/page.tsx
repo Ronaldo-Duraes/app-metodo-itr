@@ -6,22 +6,33 @@ import { X, Zap, ArrowRight, CheckCircle2, Trophy, Clock, Brain } from 'lucide-r
 import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
 import { Flashcard, ReviewInterval } from '@/lib/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getDecks } from '@/lib/srs';
 
 export default function EstudarPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const deckId = searchParams.get('deck');
+  
   const [pile, setPile] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [deckName, setDeckName] = useState<string | null>(null);
 
   useEffect(() => {
     const cards = getCards();
-    const priority = getPriorityCards(cards);
+    const priority = getPriorityCards(cards, deckId || undefined);
     setPile(priority);
     setIsLoading(false);
-  }, []);
+
+    if (deckId) {
+      const decks = getDecks();
+      const deck = decks.find(d => d.id === deckId || d.name === deckId);
+      if (deck) setDeckName(deck.name);
+    }
+  }, [deckId]);
 
   const currentCard = pile[currentIndex];
 
@@ -102,7 +113,9 @@ export default function EstudarPage() {
           </Link>
           <div className="h-10 w-[1px] bg-white/10" />
           <div>
-            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Pilha Atual</span>
+            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
+              Foco: {deckName || 'Geral'}
+            </span>
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(pile.length, 10) }).map((_, i) => (

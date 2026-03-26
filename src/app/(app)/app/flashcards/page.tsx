@@ -323,10 +323,11 @@ export default function FlashcardsPage() {
                       setViewingDeck(deck);
                       setSearchTerm('');
                     }}
-                    className={`p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex items-center justify-between group cursor-pointer relative ${
+                    className={`p-6 border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all flex flex-col gap-6 group cursor-pointer relative ${
                       activeMenuId === deck.id ? 'z-[60] border-emerald-500/20' : 'z-auto'
                     }`}
                   >
+                    <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-emerald-500/50 transition-colors">
                         <Layers size={20} className="text-slate-500 group-hover:text-emerald-500" />
@@ -391,6 +392,39 @@ export default function FlashcardsPage() {
                           </button>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                    <div className="pt-4 border-t border-white/5 w-full flex flex-col gap-4">
+                      <Link 
+                        href={deckCards.length > 0 ? `/app/estudar?deck=${deck.id}` : '#'} 
+                        className="w-full"
+                        onClick={(e) => {
+                          if (deckCards.length === 0) {
+                            e.preventDefault();
+                            return;
+                          }
+                          e.stopPropagation();
+                        }}
+                      >
+                        <button 
+                          disabled={deckCards.length === 0}
+                          className={`w-full py-3 rounded-md font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 ${
+                            deckCards.length > 0 
+                              ? 'bg-emerald-500 text-black hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95' 
+                              : 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5 opacity-50'
+                          }`}
+                        >
+                          {deckCards.length > 0 ? (
+                            <>
+                              <Play size={14} fill="currentColor" />
+                              Iniciar Estudos
+                            </>
+                          ) : (
+                            'Adicione cards para estudar'
+                          )}
+                        </button>
+                      </Link>
                     </div>
                   </motion.div>
                 );

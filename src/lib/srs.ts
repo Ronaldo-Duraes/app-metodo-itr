@@ -187,9 +187,21 @@ export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
   saveCards(updatedCards);
 };
 
-export const getPriorityCards = (cards: Flashcard[]) => {
+export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
   const now = new Date();
-  return cards.filter(card => {
+  let filtered = cards;
+  if (deckID) {
+    // Busca o nome do deck para garantir filtro por texto ou ID
+    const decks = getDecks();
+    const targetDeck = decks.find(d => d.id === deckID || d.name === deckID);
+    if (targetDeck) {
+      filtered = cards.filter(c => c.deck === targetDeck.name || c.deck === targetDeck.id);
+    } else {
+      // Fallback: tenta filtrar direto pelo deckID se o objeto deck não for encontrado
+      filtered = cards.filter(c => c.deck === deckID);
+    }
+  }
+  return filtered.filter(card => {
     // Se nunca foi revisado, está pendente se o nextReview (criado na adição) já passou
     // Ou se (lastReviewed + interval) já passou
     return new Date(card.nextReview) <= now;
