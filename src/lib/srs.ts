@@ -97,6 +97,8 @@ export const addFullCard = (front: string, back: string, association: string, de
     front,
     back,
     association,
+    lastReviewed: null,
+    interval: 0,
     nextReview: new Date().toISOString(),
     reviewedCount: 0,
     isLearned: false, // Novos cards começam como não aprendidos
@@ -114,6 +116,8 @@ export const addCustomCard = (front: string, back: string, association: string, 
     back,
     association,
     nextReview: new Date().toISOString(),
+    lastReviewed: null,
+    interval: 0,
     reviewedCount: 0,
     isLearned: true, // Já conta como masterizada para evolução da patente
     deck,
@@ -132,14 +136,31 @@ export const calculateNextReview = (interval: ReviewInterval): Date => {
   }
 };
 
-export const updateCardReview = (cardId: string, interval: ReviewInterval) => {
+export const updateCardReview = (cardId: string, intervalType: ReviewInterval) => {
   const cards = getCards();
-  const nextReview = calculateNextReview(interval).toISOString();
-  const isLearned = interval === '1s' || interval === '1m';
+  const now = new Date();
+  
+  let intervalMinutes = 0;
+  switch (intervalType) {
+    case '1h': intervalMinutes = 60; break;
+    case '24h': intervalMinutes = 1440; break;
+    case '1s': intervalMinutes = 10080; break;
+    case '1m': intervalMinutes = 43200; break;
+  }
+
+  const nextReview = new Date(now.getTime() + intervalMinutes * 60 * 1000).toISOString();
+  const isLearned = intervalType === '1s' || intervalType === '1m';
   
   const updatedCards = cards.map(c => 
     c.id === cardId 
-      ? { ...c, nextReview, lastInterval: interval, reviewedCount: c.reviewedCount + 1, isLearned: isLearned || c.isLearned } 
+      ? { 
+          ...c, 
+          nextReview, 
+          lastReviewed: now.toISOString(),
+          interval: intervalMinutes,
+          reviewedCount: c.reviewedCount + 1, 
+          isLearned: isLearned || c.isLearned 
+        } 
       : c
   );
   
@@ -154,10 +175,17 @@ export const updateCardAssociation = (cardId: string, association: string) => {
   saveCards(updatedCards);
 };
 
-export const getTodayPendingCards = (cards: Flashcard[]) => {
+export const getPriorityCards = (cards: Flashcard[]) => {
   const now = new Date();
-  now.setHours(23, 59, 59, 999); // Final do dia de hoje
-  return cards.filter(card => new Date(card.nextReview) <= now);
+  return cards.filter(card => {
+    // Se nunca foi revisado, está pendente se o nextReview (criado na adição) já passou
+    // Ou se (lastReviewed + interval) já passou
+    return new Date(card.nextReview) <= now;
+  });
+};
+
+export const getTodayPendingCards = (cards: Flashcard[]) => {
+  return getPriorityCards(cards);
 };
 
 export const ESSENTIAL_VOCABULARY = [
@@ -189,6 +217,8 @@ export const importEssentialVocabulary = () => {
     front: v.front,
     back: v.back,
     nextReview: new Date().toISOString(),
+    lastReviewed: null,
+    interval: 0,
     reviewedCount: 0,
     isLearned: false,
     deck: 'Essencial',

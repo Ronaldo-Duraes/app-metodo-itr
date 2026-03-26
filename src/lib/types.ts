@@ -3,8 +3,9 @@ export interface Flashcard {
   front: string; // Inglês
   back: string;  // Português
   association?: string; // Técnica de memorização
-  nextReview: string; // ISO Date
-  lastInterval?: '1h' | '24h' | '1s' | '1m';
+  nextReview: string; // ISO Date (Calculado)
+  lastReviewed: string | null; // ISO Date da última revisão
+  interval: number; // Intervalo em minutos
   reviewedCount: number;
   isLearned: boolean; // Aprendido no longo prazo
   deck?: string; // Baralho para agrupamento
