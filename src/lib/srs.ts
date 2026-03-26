@@ -175,6 +175,18 @@ export const updateCardAssociation = (cardId: string, association: string) => {
   saveCards(updatedCards);
 };
 
+export const deleteCard = (cardId: string) => {
+  const cards = getCards();
+  const updatedCards = cards.filter(c => c.id !== cardId);
+  saveCards(updatedCards);
+};
+
+export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
+  const cards = getCards();
+  const updatedCards = cards.map(c => c.id === cardId ? { ...c, ...updates } : c);
+  saveCards(updatedCards);
+};
+
 export const getPriorityCards = (cards: Flashcard[]) => {
   const now = new Date();
   return cards.filter(card => {

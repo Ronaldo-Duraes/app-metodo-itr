@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight } from 'lucide-react';
-import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard } from '@/lib/srs';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 
 export default function FlashcardsPage() {
@@ -87,7 +87,6 @@ export default function FlashcardsPage() {
   };
 
   const handleDeleteCard = (id: string) => {
-    const { deleteCard } = require('@/lib/srs');
     deleteCard(id);
     loadData();
   };
@@ -95,7 +94,6 @@ export default function FlashcardsPage() {
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCard) return;
-    const { updateCard } = require('@/lib/srs');
     updateCard(editingCard.id, {
       front: editingCard.front,
       back: editingCard.back,
@@ -567,7 +565,7 @@ export default function FlashcardsPage() {
                 </div>
 
                 <button type="submit" className="w-full py-5 bg-emerald-500 text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-400 transition-all shadow-xl">
-                  Atualizar Card
+                  ATUALIZAR CARD
                 </button>
               </form>
             </motion.div>
