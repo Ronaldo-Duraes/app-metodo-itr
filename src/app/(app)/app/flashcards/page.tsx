@@ -149,7 +149,7 @@ export default function FlashcardsPage() {
   const handleCreateDeck = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDeckName.trim()) return;
-    addDeck(newDeckName.trim());
+    addDeck(newDeckName);
     setNewDeckName('');
     setIsModalOpen(false);
     loadData();
@@ -158,7 +158,7 @@ export default function FlashcardsPage() {
   const handleRename = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeDeck || !newDeckName.trim()) return;
-    renameDeck(activeDeck.id, newDeckName.trim());
+    renameDeck(activeDeck.id, newDeckName);
     setNewDeckName('');
     setActiveDeck(null);
     setIsRenameModalOpen(false);
@@ -180,7 +180,7 @@ export default function FlashcardsPage() {
     // Lógica de Segurança
     if (!deckName && decks.length === 0) {
       if (!newDeckName.trim()) return;
-      const d = addDeck(newDeckName.trim());
+      const d = addDeck(newDeckName);
       addFullCard(front, back, association, d.name);
     } else {
       if (!front || !back || !deckName) return;
@@ -365,7 +365,12 @@ export default function FlashcardsPage() {
                           </button>
                         </div>
                         <div>
-                          <h4 className="font-black text-white text-sm uppercase tracking-tight">{deck.name}</h4>
+                          <h4 
+                            className="font-black text-white text-sm tracking-normal whitespace-pre-wrap"
+                            style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                          >
+                            {deck.name}
+                          </h4>
                           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
                         </div>
                       </div>
@@ -477,7 +482,7 @@ export default function FlashcardsPage() {
             className="fixed inset-0 z-[60] bg-[#050505] p-8 md:p-12 overflow-y-auto"
           >
             <div className="max-w-5xl mx-auto">
-              <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+              <header className="flex flex-row items-center justify-between gap-12 mb-16 px-4">
                 <div className="flex items-center gap-6">
                   <button 
                     onClick={() => {
@@ -490,9 +495,21 @@ export default function FlashcardsPage() {
                   >
                     <ArrowRight size={20} className="rotate-180" />
                   </button>
-                  <div>
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">Editor de Conteúdo</span>
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{viewingDeck.name}</h2>
+                  <div 
+                    onClick={() => {
+                      setActiveDeck(viewingDeck);
+                      setNewDeckName(viewingDeck.name);
+                      setIsRenameModalOpen(true);
+                    }}
+                    className="group cursor-pointer hover:opacity-80 transition-all"
+                  >
+                    <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-1 block">Gerenciamento de Baralho</span>
+                    <h2 
+                      className="text-4xl md:text-6xl font-black text-white uppercase tracking-normal whitespace-pre-wrap leading-tight"
+                      style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                    >
+                      {viewingDeck.name}
+                    </h2>
                   </div>
                 </div>
                 
@@ -500,7 +517,7 @@ export default function FlashcardsPage() {
                   {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
                     <button 
                       onClick={() => router.push(`/app/estudar?deck=${viewingDeck.id}`)}
-                      className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-500 text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                      className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
                     >
                       <Play size={14} fill="currentColor" />
                       INICIAR ESTUDO
@@ -511,19 +528,19 @@ export default function FlashcardsPage() {
                       setNewCardData({ ...newCardData, deckName: viewingDeck.name });
                       setIsCardModalOpen(true);
                     }}
-                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
+                    className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
                   >
                     <Plus size={14} strokeWidth={3} />
                     ADICIONAR NOVO CARD
                   </button>
-                  <div className="relative flex-1 w-full max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                  <div className="relative flex-1 w-full max-w-xs">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                     <input 
                       type="text" 
-                      placeholder="BUSCAR CARDS NESTE DECK..." 
+                      placeholder="BUSCAR..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 text-white font-bold uppercase tracking-widest text-xs outline-none focus:border-emerald-500/50 h-[52px]"
+                      className="w-full bg-white/[0.03] border border-white/10 h-14 pl-12 pr-4 text-white font-bold uppercase tracking-widest text-[10px] outline-none focus:border-emerald-500/50"
                     />
                   </div>
                 </div>
@@ -629,7 +646,14 @@ export default function FlashcardsPage() {
               <form onSubmit={handleRename} className="space-y-6">
                 <div>
                   <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Novo Nome</label>
-                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors" />
+                  <input 
+                    autoFocus 
+                    type="text" 
+                    value={newDeckName} 
+                    onChange={(e) => setNewDeckName(e.target.value)} 
+                    className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold tracking-widest focus:border-emerald-500/50 outline-none transition-colors" 
+                    style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                  />
                 </div>
                 <button type="submit" className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all">Atualizar</button>
               </form>
@@ -676,7 +700,15 @@ export default function FlashcardsPage() {
                   <div className="p-6 bg-emerald-500/5 border border-emerald-500/20">
                     <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-4 block">Primeiro Passo Necessário</span>
                     <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Dê um nome ao seu primeiro Baralho</label>
-                    <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: FRASES DO DIA..." className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/50" />
+                    <input 
+                      autoFocus 
+                      type="text" 
+                      value={newDeckName} 
+                      onChange={(e) => setNewDeckName(e.target.value)} 
+                      placeholder="EX: FRASES DO DIA..." 
+                      className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/50" 
+                      style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                    />
                   </div>
                 ) : (
                   <div>
