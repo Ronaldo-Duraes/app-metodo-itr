@@ -7,6 +7,84 @@ import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDe
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
 
+// --- COMPONENTE: DECK SELECTOR CUSTOM (INDUSTRIAL) ---
+interface DeckSelectorProps {
+  decks: Deck[];
+  selectedDeckName: string;
+  onSelect: (name: string) => void;
+  disabled?: boolean;
+}
+
+const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false }: DeckSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative w-full font-outfit">
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full p-4 flex items-center justify-between border-2 transition-all cursor-pointer ${
+          disabled ? 'bg-white/5 border-white/5 opacity-50' : 
+          isOpen ? 'bg-black border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/[0.03] border-white/10 hover:border-white/20'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Layers size={16} className={disabled ? 'text-slate-600' : 'text-emerald-500'} />
+          <span className={`text-[11px] font-bold uppercase tracking-widest ${selectedDeckName ? 'text-white' : 'text-slate-500'}`}>
+            {selectedDeckName || 'Selecione um Baralho'}
+          </span>
+        </div>
+        {!disabled && (
+          <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
+            <ChevronDown size={16} className="text-slate-500" />
+          </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop para fechar ao clicar fora */}
+            <div className="fixed inset-0 z-[90]" onClick={() => setIsOpen(false)} />
+            
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-full left-0 right-0 mt-2 bg-black border border-emerald-500/30 shadow-2xl z-[100] max-h-60 overflow-y-auto custom-scrollbar"
+            >
+              {decks.map((deck) => (
+                <div 
+                  key={deck.id}
+                  onClick={() => {
+                    onSelect(deck.name);
+                    setIsOpen(false);
+                  }}
+                  className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-emerald-500 hover:text-black transition-all cursor-pointer border-b border-white/5 last:border-0"
+                >
+                  {deck.name}
+                </div>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #10b981;
+          border-radius: 10px;
+        }
+      `}</style>
+    </div>
+  );
+};
+
 export default function FlashcardsPage() {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -245,7 +323,7 @@ export default function FlashcardsPage() {
                       {activeMenuId === deck.id && (
                         <div 
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-white/10 shadow-2xl z-50 py-2"
+                          className="absolute right-0 top-full mt-2 w-48 bg-black border border-white/10 shadow-2xl z-[100] py-2"
                         >
                           <button 
                             onClick={(e) => {
@@ -254,7 +332,7 @@ export default function FlashcardsPage() {
                               setSearchTerm('');
                               setActiveMenuId(null);
                             }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500/70 hover:text-emerald-500 hover:bg-white/5 transition-all"
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/10 transition-all border-b border-white/5"
                           >
                             <Edit2 size={12} /> Editar Cards
                           </button>
@@ -266,7 +344,7 @@ export default function FlashcardsPage() {
                               setIsRenameModalOpen(true);
                               setActiveMenuId(null);
                             }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-all border-b border-white/5"
                           >
                             <ArrowRight size={12} /> Renomear
                           </button>
@@ -277,7 +355,7 @@ export default function FlashcardsPage() {
                               setIsDeleteModalOpen(true);
                               setActiveMenuId(null);
                             }}
-                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/5 transition-all"
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
                           >
                             <Trash2 size={12} /> Excluir
                           </button>
@@ -508,30 +586,12 @@ export default function FlashcardsPage() {
                 ) : (
                   <div>
                     <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Selecione o Baralho</label>
-                    {viewingDeck ? (
-                      <div className="p-4 border border-emerald-500 bg-emerald-500/10 text-emerald-500 flex items-center justify-between">
-                         <span className="text-[10px] font-black uppercase tracking-widest">{viewingDeck.name}</span>
-                         <div className="px-2 py-0.5 bg-emerald-500 text-black text-[8px] font-black uppercase tracking-tighter">Fixado</div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <select 
-                          value={newCardData.deckName}
-                          onChange={(e) => setNewCardData({...newCardData, deckName: e.target.value})}
-                          className="w-full bg-white/[0.03] border border-white/10 p-4 pr-10 text-white font-bold uppercase tracking-widest text-[10px] outline-none focus:border-emerald-500/40 appearance-none cursor-pointer"
-                        >
-                          <option value="" disabled className="bg-[#0a0a0a]">Selecione um Baralho</option>
-                          {decks.map(d => (
-                            <option key={d.id} value={d.name} className="bg-[#0a0a0a]">
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                          <ChevronDown size={14} />
-                        </div>
-                      </div>
-                    )}
+                    <DeckSelector 
+                      decks={decks}
+                      selectedDeckName={viewingDeck ? viewingDeck.name : newCardData.deckName}
+                      onSelect={(name) => setNewCardData({...newCardData, deckName: name})}
+                      disabled={!!viewingDeck}
+                    />
                   </div>
                 )}
 
