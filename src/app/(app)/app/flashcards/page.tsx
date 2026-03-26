@@ -432,16 +432,6 @@ export default function FlashcardsPage() {
                       </div>
                     </div>
 
-                    {/* FOOTER DO CARD */}
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <div className="flex items-center gap-2">
-                         <div className={`w-1.5 h-1.5 rounded-full ${deckCards.length > 0 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-700'}`} />
-                         <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{deckCards.length > 0 ? 'Ativo' : 'Vazio'}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-[8px] font-black text-slate-600 uppercase tracking-widest">
-                        Gerenciar <ArrowRight size={10} className="ml-1 transition-transform group-hover:translate-x-1" />
-                      </div>
-                    </div>
                   </motion.div>
                 );
               })}
