@@ -9,6 +9,8 @@ import EvolutionRoadMap from '@/components/profile/EvolutionRoadMap';
 import VocabularyMilestones from '@/components/profile/VocabularyMilestones';
 import { useTheme } from '@/components/ThemeProvider';
 import { fetchUserStats } from '@/lib/firebase';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 const ICON_MAP: Record<string, any> = {
   'Sprout': Sprout,
@@ -18,7 +20,9 @@ const ICON_MAP: Record<string, any> = {
   'Trees': Trees,
 };
 
-export default function ProfilePage() {
+function ProfileContent() {
+  const searchParams = useSearchParams();
+  const trigger = searchParams.get('t') || 'initial';
   const [profile, setProfile] = useState<UserProfile>({ name: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
@@ -89,6 +93,7 @@ export default function ProfilePage() {
 
       {/* 1. SEÇÃO DE PERFIL COM JORNADA DE MAESTRIA INTEGRADA */}
       <motion.div 
+        key={trigger}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="premium-card p-6 md:p-10 bg-slate-900 border border-slate-800 relative overflow-hidden mb-12 shadow-2xl flex flex-col items-center w-full"
@@ -169,5 +174,13 @@ export default function ProfilePage() {
         unlockedRewards={unlockedRewards} 
       />
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <ProfileContent />
+    </Suspense>
   );
 }

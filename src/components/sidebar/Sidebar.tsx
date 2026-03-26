@@ -18,11 +18,8 @@ const Sidebar = () => {
   }, []);
 
   const handleProfileClick = (e: React.MouseEvent) => {
-    if (pathname === '/perfil') {
-      e.preventDefault();
-      // Force refresh or trigger animation by adding a temporary query param or just pushing the same route
-      router.push('/perfil?refresh=' + Date.now());
-    }
+    e.preventDefault();
+    router.push('/perfil?t=' + Date.now());
   };
 
   const menuItems = [
