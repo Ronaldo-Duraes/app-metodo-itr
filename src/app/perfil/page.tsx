@@ -5,8 +5,9 @@ import { getUserProfile, saveUserProfile, getCards, getUserPatente } from '@/lib
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit3, Gem, Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
-import EvolutionRoadMap from '@/components/profile/EvolutionRoadMap';
 import VocabularyMilestones from '@/components/profile/VocabularyMilestones';
+import ProfileFooter from '@/components/profile/ProfileFooter';
+import MaestriaRoadmap from '@/components/profile/MaestriaRoadmap';
 import { useTheme } from '@/components/ThemeProvider';
 import { fetchUserStats } from '@/lib/firebase';
 import { useSearchParams } from 'next/navigation';
@@ -103,68 +104,20 @@ function ProfileContent() {
            style={{ backgroundColor: 'var(--itr-primary)' }} 
         />
 
-        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full mb-12">
-          
-          <div className="relative group shrink-0 mt-2">
-            <div className="w-32 h-32 md:w-36 md:h-36 rounded-[2rem] border flex items-center justify-center bg-slate-800/80 transition-all relative z-10 box-border overflow-hidden" 
-                 style={{ borderColor: 'var(--itr-glow)', boxShadow: '0 0 40px var(--itr-glow)' }}>
-              <PatenteIcon size={64} className="transition-transform duration-500 group-hover:scale-110" style={{ color: 'var(--itr-primary)' }} strokeWidth={1.5} />
-            </div>
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg border whitespace-nowrap z-20" style={{ backgroundColor: 'var(--itr-primary)', borderColor: 'var(--itr-glow)' }}>
-              {realPatenteName}
-            </div>
-          </div>
-
-          <div className="flex-1 text-center md:text-left flex flex-col justify-center h-full w-full">
-            <AnimatePresence mode="wait">
-              {!isEditing ? (
-                <motion.div key="display" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3 pt-2">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 justify-center md:justify-start">
-                    <h1 className="text-4xl md:text-5xl font-black font-outfit text-white tracking-tight">{profile.name}</h1>
-                    <button onClick={() => setIsEditing(true)} className="text-slate-500 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800 self-center">
-                      <Edit3 size={18} />
-                    </button>
-                  </div>
-                  <p className="font-bold flex items-center justify-center md:justify-start gap-2" style={{ color: 'var(--itr-primary)' }}>
-                    <Gem size={16} /> Aluno Premium Método ITR
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div key="edit" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4 pt-2 w-full">
-                  <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="text-3xl font-bold bg-slate-950 border-2 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm text-center md:text-left text-white" style={{ borderColor: 'var(--itr-glow)' }} autoFocus />
-                  <div className="flex gap-3 justify-center md:justify-start">
-                    <button onClick={handleSave} className="text-white px-6 py-2 rounded-xl text-sm font-bold transition-all font-outfit" style={{ backgroundColor: 'var(--itr-primary)' }}>Salvar</button>
-                    <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {patenteInfo.next && (
-              <div className="mt-8 md:mt-6 pt-4 border-t border-slate-800/50 w-full max-w-sm mx-auto md:mx-0">
-                <div className="flex justify-between text-[11px] mb-1.5 font-bold">
-                  <span className="text-slate-400 uppercase tracking-widest">Poder de Fluência</span>
-                  <span style={{ color: 'var(--itr-primary)' }}>{masteredCount} / {patenteInfo.next.minWords}</span>
-                </div>
-                <div className="w-full h-2 bg-slate-950 border border-slate-800 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className="h-full transition-all duration-1000 rounded-full shadow-[0_0_15px_var(--itr-glow)]"
-                    style={{ 
-                      backgroundColor: 'var(--itr-primary)',
-                      width: `${Math.max(5, (masteredCount - patenteInfo.current.minWords) / ((patenteInfo.next.minWords - patenteInfo.current.minWords) || 1) * 100)}%` 
-                    }}
-                  />
-                </div>
-                <p className="text-[10px] text-slate-500 mt-2">
-                  <strong className="text-slate-300">{patenteInfo.wordsToNext} palavras</strong> para {patenteInfo.next.name}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        <ProfileFooter 
+          profile={profile}
+          isEditing={isEditing}
+          newName={newName}
+          setNewName={setNewName}
+          setIsEditing={setIsEditing}
+          handleSave={handleSave}
+          patenteInfo={patenteInfo}
+          PatenteIcon={PatenteIcon}
+          masteredCount={masteredCount}
+        />
 
         <div className="w-full border-t border-slate-800/80 pt-10">
-          <EvolutionRoadMap masteredCount={masteredCount} />
+          <MaestriaRoadmap masteredCount={masteredCount} />
         </div>
       </motion.div>
 

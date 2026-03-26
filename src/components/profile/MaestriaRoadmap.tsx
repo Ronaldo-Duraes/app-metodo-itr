@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { PATENTES, getUserPatente } from '@/lib/srs';
-import { Sprout, Leaf, Activity, Shrub, Trees, Lock } from 'lucide-react';
+import { Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 
 const ICON_MAP: Record<string, any> = {
@@ -14,18 +14,17 @@ const ICON_MAP: Record<string, any> = {
   'Trees': Trees,
 };
 
-interface EvolutionRoadMapProps {
+interface MaestriaRoadmapProps {
   masteredCount: number;
 }
 
-export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProps) {
+export default function MaestriaRoadmap({ masteredCount }: MaestriaRoadmapProps) {
   const patenteInfo = getUserPatente(masteredCount);
   const { activeThemeName, setThemeByName } = useTheme();
 
-  // Calcula a porcentagem real de progresso na jornada (níveis 1 a 5) sem atraso
+  // Calcula a porcentagem real de progresso na jornada (níveis 1 a 5)
   const realProgressPercent = ((patenteInfo.current.level - 1) / (PATENTES.length - 1)) * 100;
 
-  // Estado para efeito hover ultra-rápido sincronizado com a linha
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
@@ -38,7 +37,7 @@ export default function EvolutionRoadMap({ masteredCount }: EvolutionRoadMapProp
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Linha da Jornada (Industrial Minimalist) */}
+        {/* Linha da Jornada (Industrial Minimalist - Dourado Lendário) */}
         <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[2px] -translate-y-1/2 z-0 overflow-visible rounded-full">
           {/* Fundo da Linha (Base Escura) */}
           <div className="absolute inset-0 bg-zinc-800 rounded-full" />
