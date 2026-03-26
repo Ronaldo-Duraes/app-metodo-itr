@@ -101,13 +101,13 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
                 style={{
                   borderColor: isGold ? '#fbbf24' : (isRuby ? '#ef4444' : 'var(--itr-primary)'),
                   borderWidth: isLegendary ? '2px' : '1px',
-                  backgroundColor: '#0f172a',
+                  backgroundColor: '#050505',
                   color: (reached || isCollecting) ? (isGold ? '#fbbf24' : (isRuby ? '#ef4444' : '#fff')) : (isNext ? 'rgba(255,255,255,0.7)' : 'var(--itr-primary)'),
                   background: reached 
                     ? (isCollecting ? 'var(--itr-primary)' : (isLegendary ? '#050505' : 'var(--itr-primary)'))
                     : (isNext 
                         ? `linear-gradient(to top, var(--itr-primary) ${fillPercent}%, transparent ${fillPercent}%)`
-                        : '#0f172a'
+                        : '#0a0a0a'
                       )
                 }}
                 whileHover={reached ? { 

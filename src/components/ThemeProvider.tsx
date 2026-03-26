@@ -11,7 +11,7 @@ export const THEMES: Record<string, ThemeColor> = {
   'Semente ITR': { primary: '#3b82f6', glow: 'rgba(59,130,246,0.3)' }, // Blue
   'Broto de Fluência': { primary: '#f97316', glow: 'rgba(249,115,22,0.3)' }, // Orange
   'Raiz Forte': { primary: '#ef4444', glow: 'rgba(239,68,68,0.3)' }, // Red
-  'Arbusto de Diálogo': { primary: '#10b981', glow: 'rgba(16,185,129,0.3)' }, // Green
+  'Arbusto de Diálogo': { primary: '#BC13FE', glow: 'rgba(188, 19, 254, 0.4)' }, // Cyber Purple
   'Árvore da Fluência': { primary: '#eab308', glow: 'rgba(234,179,8,0.3)' }, // Subtle Gold (Yellow-600)
 };
 

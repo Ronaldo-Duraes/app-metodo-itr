@@ -36,7 +36,7 @@ export default function ActivitiesRoadmap() {
 
       {/* ROBUST NEON BACKBONE with CORRECT FADE (mask-image) */}
       <div 
-        className="absolute left-1/2 -translate-x-1/2 top-[300px] bottom-40 w-[6px] z-0"
+        className="absolute left-1/2 -translate-x-1/2 top-[280px] bottom-40 w-[6px] z-0"
         style={{ 
           maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)',
           WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)'

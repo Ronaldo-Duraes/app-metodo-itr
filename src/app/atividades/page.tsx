@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import ActivitiesRoadmap from '@/components/activities/ActivitiesRoadmap';
+import ActivitiesRoadmap from '@/components/roadmap/ActivitiesRoadmap';
 
 export default function ActivitiesPage() {
   return (

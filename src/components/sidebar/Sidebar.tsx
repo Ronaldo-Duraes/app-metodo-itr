@@ -3,16 +3,26 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Zap, BookOpen, User } from 'lucide-react';
+import { getUserProfile } from '@/lib/srs';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [profile, setProfile] = React.useState({ name: "RONALDO DURAES" });
 
-  // Mock de estado do usuário (Pode ser substituído por Auth Context do Firebase)
-  const user = {
-    name: "RONALDO DURAES",
-    avatar: "/user-placeholder.png", // ou null para usar o ícone
+  React.useEffect(() => {
+    const p = getUserProfile();
+    if (p && p.name) setProfile(p);
+  }, []);
+
+  const handleProfileClick = (e: React.MouseEvent) => {
+    if (pathname === '/perfil') {
+      e.preventDefault();
+      // Force refresh or trigger animation by adding a temporary query param or just pushing the same route
+      router.push('/perfil?refresh=' + Date.now());
+    }
   };
 
   const menuItems = [
@@ -34,7 +44,7 @@ const Sidebar = () => {
                 alt='Logo ITR' 
                 fill
                 priority
-                className='object-contain invert-0 drop-shadow-[0_0_15px_rgba(0,255,128,0.2)] hover:scale-105 transition-transform' 
+                className='object-contain invert brightness-200 drop-shadow-[0_0_15px_rgba(0,255,128,0.2)] hover:scale-105 transition-transform' 
               />
             </Link>
         </div>
@@ -72,7 +82,7 @@ const Sidebar = () => {
 
         {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
         <div className="px-4 mt-auto pt-8 border-t border-white/5">
-          <Link href="/perfil">
+          <Link href="/perfil" onClick={handleProfileClick}>
             <div className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
@@ -84,7 +94,7 @@ const Sidebar = () => {
               
               <div className="flex flex-col hidden md:block overflow-hidden">
                 <span className="text-[11px] font-black text-white truncate uppercase tracking-tighter group-hover:text-emerald-400 transition-colors">
-                  {user.name}
+                  {profile.name}
                 </span>
                 <span className="text-[9px] text-slate-600 font-bold tracking-widest uppercase">
                   Nível de Elite
