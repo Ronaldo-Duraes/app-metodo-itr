@@ -37,7 +37,7 @@ export default function MaestriaRoadmap({ masteredCount }: MaestriaRoadmapProps)
 
       <div className="relative w-full max-w-4xl mx-auto px-6 md:px-12 h-32">
         
-        {/* Linha da Jornada (Industrial Minimalist - Dourado Lendário) */}
+        {/* --- ANCORA: LINHA JORNADA --- */}
         <div className="absolute left-[10%] right-[10%] top-[24px] md:top-[28px] h-[2px] -translate-y-1/2 z-0 overflow-visible rounded-full">
           {/* Fundo da Linha (Base Escura) */}
           <div className="absolute inset-0 bg-zinc-800 rounded-full" />
@@ -59,6 +59,7 @@ export default function MaestriaRoadmap({ masteredCount }: MaestriaRoadmapProps)
              <div className="absolute inset-0 bg-white/20" />
           </motion.div>
         </div>
+        {/* --- FIM ANCORA: LINHA JORNADA --- */}
 
         <div className="flex flex-row justify-between items-start relative w-full h-full">
           {PATENTES.map((patente, i) => {
