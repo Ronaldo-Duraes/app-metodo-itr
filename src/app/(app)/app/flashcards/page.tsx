@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown } from 'lucide-react';
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
@@ -92,12 +92,38 @@ export default function FlashcardsPage() {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // --- EFEITO: CLIQUE FORA E ESC PARA FECHAR MENU ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Se clicar fora do menu, fecha
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveMenuId(null);
+      }
+    };
+
+    if (activeMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [activeMenuId]);
   const [newDeckName, setNewDeckName] = useState('');
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
   const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '' });
   
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // DECK EDITOR STATE
@@ -324,56 +350,46 @@ export default function FlashcardsPage() {
                       </button>
 
                       {activeMenuId === deck.id && (
-                        <>
-                          {/* Camada de bloqueio global para fechar ao clicar fora e impedir cliques no card pai */}
-                          <div 
-                            className="fixed inset-0 z-[100]" 
+                        <div 
+                          ref={menuRef}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
+                        >
+                          <button 
                             onClick={(e) => {
                               e.stopPropagation();
+                              setViewingDeck(deck);
+                              setSearchTerm('');
                               setActiveMenuId(null);
                             }}
-                          />
-                          
-                          <div 
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
                           >
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setViewingDeck(deck);
-                                setSearchTerm('');
-                                setActiveMenuId(null);
-                              }}
-                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
-                            >
-                              <Edit2 size={12} /> Editar Cards
-                            </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDeck(deck);
-                                setNewDeckName(deck.name);
-                                setIsRenameModalOpen(true);
-                                setActiveMenuId(null);
-                              }}
-                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
-                            >
-                              <ArrowRight size={12} /> Renomear
-                            </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDeck(deck);
-                                setIsDeleteModalOpen(true);
-                                setActiveMenuId(null);
-                              }}
-                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
-                            >
-                              <Trash2 size={12} /> Excluir
-                            </button>
-                          </div>
-                        </>
+                            <Edit2 size={12} /> Editar Cards
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDeck(deck);
+                              setNewDeckName(deck.name);
+                              setIsRenameModalOpen(true);
+                              setActiveMenuId(null);
+                            }}
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                          >
+                            <ArrowRight size={12} /> Renomear
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDeck(deck);
+                              setIsDeleteModalOpen(true);
+                              setActiveMenuId(null);
+                            }}
+                            className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
+                          >
+                            <Trash2 size={12} /> Excluir
+                          </button>
+                        </div>
                       )}
                     </div>
                   </motion.div>
