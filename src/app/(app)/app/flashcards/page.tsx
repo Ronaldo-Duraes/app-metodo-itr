@@ -156,9 +156,11 @@ export default function FlashcardsPage() {
     setIsLoading(false);
   };
 
+  const isDuplicateDeck = newDeckName.trim() !== '' && decks.some(d => d.name.trim().toLowerCase() === newDeckName.trim().toLowerCase());
+
   const handleCreateDeck = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDeckName.trim()) return;
+    if (!newDeckName.trim() || isDuplicateDeck) return;
     addDeck(newDeckName);
     setNewDeckName('');
     setIsModalOpen(false);
@@ -634,9 +636,20 @@ export default function FlashcardsPage() {
               <form onSubmit={handleCreateDeck} className="space-y-6">
                 <div>
                   <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Nome da Coleção</label>
-                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: PHRASAL VERBS..." className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest focus:border-emerald-500/50 outline-none transition-colors" />
+                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: PHRASAL VERBS..." className={`w-full bg-white/5 border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} />
+                  {isDuplicateDeck && (
+                    <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      ESTE NOME JÁ EXISTE. ESCOLHA UM NOME EXCLUSIVO PARA O SEU DECK.
+                    </p>
+                  )}
                 </div>
-                <button type="submit" className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-400 transition-all">Salvar Baralho</button>
+                <button 
+                  type="submit" 
+                  disabled={isDuplicateDeck || !newDeckName.trim()}
+                  className={`w-full py-4 text-black font-black text-xs tracking-[0.2em] uppercase transition-all ${isDuplicateDeck || !newDeckName.trim() ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400'}`}
+                >
+                  Salvar Baralho
+                </button>
               </form>
             </motion.div>
           </div>
