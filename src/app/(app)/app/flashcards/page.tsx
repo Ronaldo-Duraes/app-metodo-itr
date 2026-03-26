@@ -134,6 +134,8 @@ export default function FlashcardsPage() {
   const [isEditCardModalOpen, setIsEditCardModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
   const [originalVocab, setOriginalVocab] = useState({ front: '', back: '' });
+  const [skipDictionary, setSkipDictionary] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     // RESET NUCLEAR (FORÇA 0 CARDS E 0 BARALHOS)
@@ -204,20 +206,28 @@ export default function FlashcardsPage() {
     const normalizedNew = newDeckName.toLowerCase().trim();
     const exists = decks.some(d => d.name.toLowerCase().trim() === normalizedNew);
     
-    if (!newDeckName.trim() || exists) return;
+    if (!newDeckName.trim() || exists) {
+      setShowErrors(true);
+      return;
+    }
     
     addDeck(newDeckName);
     setNewDeckName('');
+    setShowErrors(false);
     setIsModalOpen(false);
     loadData();
   };
 
   const handleRename = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeDeck || !newDeckName.trim() || isDuplicateDeck) return;
+    if (!activeDeck || !newDeckName.trim() || isDuplicateDeck) {
+      setShowErrors(true);
+      return;
+    }
     renameDeck(activeDeck.id, newDeckName);
     setNewDeckName('');
     setActiveDeck(null);
+    setShowErrors(false);
     setIsRenameModalOpen(false);
     loadData();
   };
@@ -236,16 +246,24 @@ export default function FlashcardsPage() {
     
     // Lógica de Segurança
     if (!deckName && decks.length === 0) {
-      if (!newDeckName.trim()) return;
+      if (!newDeckName.trim()) {
+        setShowErrors(true);
+        return;
+      }
       const d = addDeck(newDeckName);
-      addFullCard(front, back, association, d.name);
+      addFullCard(front, back, association, d.name, skipDictionary);
     } else {
-      if (!front || !back || !deckName) return;
-      addFullCard(front, back, association, deckName);
+      if (!front || !back || !deckName) {
+        setShowErrors(true);
+        return;
+      }
+      addFullCard(front, back, association, deckName, skipDictionary);
     }
 
     setNewCardData({ front: '', back: '', association: '', deckName: '' });
     setNewDeckName('');
+    setSkipDictionary(false);
+    setShowErrors(false);
     setIsCardModalOpen(false);
     loadData();
   };
@@ -273,13 +291,19 @@ export default function FlashcardsPage() {
   const handleUpdateCard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCard) return;
+    if (!editingCard.front || !editingCard.back) {
+       setShowErrors(true);
+       return;
+    }
     updateCard(editingCard.id, {
       front: editingCard.front,
       back: editingCard.back,
       association: editingCard.association
-    });
+    }, skipDictionary);
     setIsEditCardModalOpen(false);
     setEditingCard(null);
+    setSkipDictionary(false);
+    setShowErrors(false);
     loadData();
   };
 
@@ -310,6 +334,7 @@ export default function FlashcardsPage() {
             <button 
               onClick={() => {
                 setNewDeckName('');
+                setShowErrors(false);
                 setIsModalOpen(true);
               }}
               className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95"
@@ -587,6 +612,7 @@ export default function FlashcardsPage() {
                   <button 
                     onClick={() => {
                       setNewCardData({ ...newCardData, deckName: viewingDeck.name });
+                      setShowErrors(false);
                       setIsCardModalOpen(true);
                     }}
                     className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
@@ -682,7 +708,17 @@ export default function FlashcardsPage() {
               <form onSubmit={handleCreateDeck} className="space-y-6">
                 <div>
                   <label className="block text-[8px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-3">Nome da Coleção</label>
-                  <input autoFocus type="text" value={newDeckName} onChange={(e) => setNewDeckName(e.target.value)} placeholder="EX: Phrasal Verbs..." className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} />
+                  <input 
+                    autoFocus 
+                    type="text" 
+                    value={newDeckName} 
+                    onChange={(e) => {
+                      setNewDeckName(e.target.value);
+                      if (showErrors) setShowErrors(false);
+                    }} 
+                    placeholder="EX: Phrasal Verbs..." 
+                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${(showErrors && !newDeckName.trim()) || isDuplicateDeck ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/50'}`} 
+                  />
                   {isDuplicateDeck && (
                     <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
                       ESTE NOME JÁ EXISTE. ESCOLHA UM NOME EXCLUSIVO PARA O SEU DECK.
@@ -719,8 +755,11 @@ export default function FlashcardsPage() {
                     autoFocus 
                     type="text" 
                     value={newDeckName} 
-                    onChange={(e) => setNewDeckName(e.target.value)} 
-                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${isDuplicateDeck ? 'border-orange-500' : 'border-white/10 focus:border-emerald-500/50'}`} 
+                    onChange={(e) => {
+                      setNewDeckName(e.target.value);
+                      if (showErrors) setShowErrors(false);
+                    }} 
+                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${(showErrors && !newDeckName.trim()) || isDuplicateDeck ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/50'}`} 
                     style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
                   />
                   {isDuplicateDeck && (
@@ -806,11 +845,30 @@ export default function FlashcardsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
-                      <input autoFocus type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="INGLÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                      <input 
+                        autoFocus 
+                        type="text" 
+                        value={newCardData.front} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, front: e.target.value});
+                          if (showErrors) setShowErrors(false);
+                        }} 
+                        placeholder="INGLÊS" 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.front ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
+                      />
                     </div>
                     <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
-                      <input type="text" value={newCardData.back} onChange={(e) => setNewCardData({...newCardData, back: e.target.value})} placeholder="PORTUGUÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                      <input 
+                        type="text" 
+                        value={newCardData.back} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, back: e.target.value});
+                          if (showErrors) setShowErrors(false);
+                        }} 
+                        placeholder="PORTUGUÊS" 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.back ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
+                      />
                     </div>
                   </div>
                   <div>
@@ -820,18 +878,29 @@ export default function FlashcardsPage() {
                 </div>
 
                 {isNewCardDuplicate && (
-                  <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
-                    <span className="text-orange-500 text-sm">⚠️</span>
-                    <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
-                      Este vocabulário (ou tradução) já existe no seu Dicionário.
-                    </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
+                      <span className="text-orange-500 text-sm">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                        Este vocabulário (ou tradução) já existe no seu Dicionário.
+                      </p>
+                    </div>
+                    
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div 
+                        onClick={() => setSkipDictionary(!skipDictionary)}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 group-hover:border-white/40'}`}
+                      >
+                        {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apenas criar flashcard (ignorar atualização do Dicionário)</span>
+                    </label>
                   </div>
                 )}
 
                 <button 
                   type="submit" 
-                  disabled={isNewCardDuplicate || !newCardData.front || !newCardData.back || (!viewingDeck && !newCardData.deckName && !newDeckName.trim())}
-                  className={`w-full py-5 font-black text-xs tracking-[0.3em] uppercase transition-all shadow-xl flex items-center justify-center gap-3 ${isNewCardDuplicate ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-white text-black hover:bg-emerald-500'}`}
+                  className="w-full py-5 bg-white text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-500 transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98]"
                 >
                   Salvar Flashcard <ArrowRight size={16} />
                 </button>
@@ -859,8 +928,11 @@ export default function FlashcardsPage() {
                     <input 
                       type="text" 
                       value={editingCard.front} 
-                      onChange={(e) => setEditingCard({...editingCard, front: e.target.value})} 
-                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-emerald-500/40" 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, front: e.target.value});
+                        if (showErrors) setShowErrors(false);
+                      }} 
+                      className={`w-full bg-white/[0.03] border p-4 text-white font-black uppercase tracking-widest outline-none transition-colors ${showErrors && !editingCard.front ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
                     />
                   </div>
                   <div>
@@ -868,8 +940,11 @@ export default function FlashcardsPage() {
                     <input 
                       type="text" 
                       value={editingCard.back} 
-                      onChange={(e) => setEditingCard({...editingCard, back: e.target.value})} 
-                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-emerald-500/40" 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, back: e.target.value});
+                        if (showErrors) setShowErrors(false);
+                      }} 
+                      className={`w-full bg-white/[0.03] border p-4 text-white font-black uppercase tracking-widest outline-none transition-colors ${showErrors && !editingCard.back ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
                     />
                   </div>
                   <div>
@@ -884,18 +959,29 @@ export default function FlashcardsPage() {
                 </div>
 
                 {isEditingCardDuplicate && (
-                  <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
-                    <span className="text-orange-500 text-sm">⚠️</span>
-                    <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
-                      Este vocabulário (ou tradução) já existe no seu Dicionário.
-                    </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/20 flex items-center gap-3">
+                      <span className="text-orange-500 text-sm">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                        Este vocabulário (ou tradução) já existe no seu Dicionário.
+                      </p>
+                    </div>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div 
+                        onClick={() => setSkipDictionary(!skipDictionary)}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/20 group-hover:border-white/40'}`}
+                      >
+                        {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apenas atualizar card (não sincronizar com Dicionário)</span>
+                    </label>
                   </div>
                 )}
 
                 <button 
                   type="submit" 
-                  disabled={isEditingCardDuplicate || !editingCard.front || !editingCard.back}
-                  className={`w-full py-5 font-black text-xs tracking-[0.3em] uppercase transition-all shadow-xl ${isEditingCardDuplicate ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-emerald-500 text-black hover:bg-emerald-400'}`}
+                  className="w-full py-5 bg-emerald-500 text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-emerald-400 transition-all shadow-xl active:scale-[0.98]"
                 >
                   ATUALIZAR CARD
                 </button>

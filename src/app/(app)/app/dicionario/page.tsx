@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Search, Filter, Gem } from 'lucide-react';
-import { getDictionary, updateDictionaryEntry } from '@/lib/srs';
+import { Book, Search, Filter, Gem, Edit2, X, Check, Trash2 } from 'lucide-react';
+import { getDictionary, updateDictionaryEntry, deleteDictionaryEntry } from '@/lib/srs';
 import { DictionaryEntry } from '@/lib/types';
-import { Edit2, X, Check } from 'lucide-react';
 
 export default function DicionarioPage() {
   const [dictionary, setDictionary] = useState<DictionaryEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingWord, setEditingWord] = useState<DictionaryEntry | null>(null);
   const [editForm, setEditForm] = useState({ word: '', translation: '' });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [wordToDelete, setWordToDelete] = useState<DictionaryEntry | null>(null);
 
   const loadData = () => {
     const data = getDictionary();
@@ -31,6 +32,15 @@ export default function DicionarioPage() {
     if (editingWord) {
       updateDictionaryEntry(editingWord.id, editForm.word, editForm.translation);
       setEditingWord(null);
+      loadData();
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (wordToDelete) {
+      deleteDictionaryEntry(wordToDelete.id);
+      setIsDeleteModalOpen(false);
+      setWordToDelete(null);
       loadData();
     }
   };
@@ -110,7 +120,7 @@ export default function DicionarioPage() {
               </p>
             </div>
             
-            {/* Status Badge */}
+            {/* Status & Actions */}
             <div className="w-full md:w-auto flex justify-start md:justify-end items-center gap-4">
               {item.isMemorized ? (
                 <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
@@ -122,6 +132,18 @@ export default function DicionarioPage() {
                 </div>
               )}
               
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWordToDelete(item);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="p-2 text-slate-600 hover:text-red-500 transition-colors"
+                title="Excluir Permanentemente"
+              >
+                <Trash2 size={16} />
+              </button>
+
               {/* Indicador Mobile de Edit */}
               <div className="md:hidden text-slate-700">
                 <Edit2 size={12} />
@@ -187,6 +209,49 @@ export default function DicionarioPage() {
                   className="w-full bg-emerald-500 hover:bg-emerald-400 text-black p-4 text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 mt-4"
                 >
                   <Check size={18} /> Salvar Alterações
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {isDeleteModalOpen && wordToDelete && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="absolute inset-0 bg-black/95 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-zinc-900 border border-red-500/20 p-10 w-full max-w-sm shadow-2xl text-center"
+            >
+              <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-8 rounded-full">
+                <Trash2 size={32} className="text-red-500" />
+              </div>
+              
+              <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 italic">Confirmar <span className="text-red-500">Exclusão</span></h2>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-10">
+                Deseja excluir este vocabulário permanentemente? Isso reduzirá seu progresso no perfil.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={handleConfirmDelete}
+                  className="w-full bg-red-500 hover:bg-red-400 text-black py-4 text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-red-500/10"
+                >
+                  EXCLUIR AGORA
+                </button>
+                <button 
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 text-xs font-black uppercase tracking-widest transition-all"
+                >
+                  CANCELAR
                 </button>
               </div>
             </motion.div>

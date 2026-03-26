@@ -86,7 +86,7 @@ export const deleteDeck = (deckId: string) => {
   saveCards(updatedCards);
 };
 
-export const addFullCard = (front: string, back: string, association: string, deckName: string) => {
+export const addFullCard = (front: string, back: string, association: string, deckName: string, skipDictionary: boolean = false) => {
   const cards = getCards();
   const newCard: Flashcard = {
     id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -101,7 +101,9 @@ export const addFullCard = (front: string, back: string, association: string, de
     deck: deckName,
   };
   saveCards([...cards, newCard]);
-  addOrUpdateDictionaryEntry(newCard); // Alimenta o dicionário ao criar
+  if (!skipDictionary) {
+    addOrUpdateDictionaryEntry(newCard); // Alimenta o dicionário ao criar
+  }
   return newCard;
 };
 
@@ -234,6 +236,12 @@ export const updateDictionaryEntry = (id: string, word: string, translation: str
   return false;
 };
 
+export const deleteDictionaryEntry = (id: string) => {
+  const dictionary = getDictionary();
+  const updatedDictionary = dictionary.filter(e => e.id !== id);
+  saveDictionary(updatedDictionary);
+};
+
 export const getDictionaryCount = (): number => {
   return getDictionary().length;
 };
@@ -244,9 +252,18 @@ export const deleteCard = (cardId: string) => {
   saveCards(updatedCards);
 };
 
-export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
+export const updateCard = (cardId: string, updates: Partial<Flashcard>, skipDictionary: boolean = false) => {
   const cards = getCards();
-  const updatedCards = cards.map(c => c.id === cardId ? { ...c, ...updates } : c);
+  const updatedCards = cards.map(c => {
+    if (c.id === cardId) {
+      const updated = { ...c, ...updates };
+      if (!skipDictionary) {
+        addOrUpdateDictionaryEntry(updated);
+      }
+      return updated;
+    }
+    return c;
+  });
   saveCards(updatedCards);
 };
 
