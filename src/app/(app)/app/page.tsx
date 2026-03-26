@@ -34,7 +34,7 @@ export default function HomePage() {
         transition={{ delay: 0.5, duration: 0.8 }}
         className="mt-16 w-full max-w-sm"
       >
-        <Link href="/estudar">
+        <Link href="/app/estudar">
           <button className="w-full group relative p-8 border-2 border-emerald-500 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 transition-all duration-500">
             <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
               <Zap size={32} className="text-emerald-500" />

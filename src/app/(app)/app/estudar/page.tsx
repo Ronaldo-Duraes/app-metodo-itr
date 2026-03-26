@@ -52,7 +52,7 @@ export default function EstudarPage() {
         <p className="text-slate-500 uppercase font-bold tracking-widest max-w-sm mb-12">
           Não há cards pendentes agora. Sua consistência é lendária.
         </p>
-        <Link href="/">
+        <Link href="/app">
           <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all">
             Voltar para Home
           </button>
@@ -81,7 +81,7 @@ export default function EstudarPage() {
           <p className="text-emerald-500 uppercase font-black tracking-[0.4em] mb-12">
             Pilha de Prioridade: 100% LIMPA
           </p>
-          <Link href="/">
+          <Link href="/app">
             <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]">
               Retornar ao QG
             </button>
@@ -97,7 +97,7 @@ export default function EstudarPage() {
       {/* HEADER */}
       <header className="w-full max-w-4xl flex items-center justify-between mb-12 relative z-10">
         <div className="flex items-center gap-6">
-          <Link href="/">
+          <Link href="/app">
             <button className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
           </Link>
           <div className="h-10 w-[1px] bg-white/10" />

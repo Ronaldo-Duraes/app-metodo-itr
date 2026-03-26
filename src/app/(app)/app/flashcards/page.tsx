@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown } from 'lucide-react';
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
+import Link from 'next/link';
 
 export default function FlashcardsPage() {
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -174,10 +175,12 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
-                <button className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all shadow-xl">
-                  <Play size={14} fill="currentColor" />
-                  Iniciar Estudo
-                </button>
+                <Link href="/app/estudar" className="w-full block">
+                  <button className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all shadow-xl">
+                    <Play size={14} fill="currentColor" />
+                    Iniciar Estudo
+                  </button>
+                </Link>
               </div>
             </motion.div>
 

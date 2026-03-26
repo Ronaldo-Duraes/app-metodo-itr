@@ -19,14 +19,14 @@ const Sidebar = () => {
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    router.push('/perfil?t=' + Date.now());
+    router.push('/app/perfil?t=' + Date.now());
   };
 
   const menuItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: Zap, label: 'Atividades', path: '/atividades' },
-    { icon: BookOpen, label: 'Flashcards', path: '/flashcards' },
-    { icon: User, label: 'Perfil', path: '/perfil' },
+    { icon: Home, label: 'Home', path: '/app' },
+    { icon: Zap, label: 'Atividades', path: '/app/atividades' },
+    { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards' },
+    { icon: User, label: 'Perfil', path: '/app/perfil' },
   ];
 
   return (
