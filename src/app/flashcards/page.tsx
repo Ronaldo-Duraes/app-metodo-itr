@@ -317,7 +317,12 @@ export default function FlashcardsPage() {
               <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div className="flex items-center gap-6">
                   <button 
-                    onClick={() => setViewingDeck(null)}
+                    onClick={() => {
+                      setViewingDeck(null);
+                      setSearchTerm('');
+                      setIsCardModalOpen(false);
+                      setIsEditCardModalOpen(false);
+                    }}
                     className="p-3 border border-white/10 text-white hover:bg-white/5 transition-all"
                   >
                     <ArrowRight size={20} className="rotate-180" />
@@ -328,15 +333,27 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
                 
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="BUSCAR CARDS NESTE DECK..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 text-white font-bold uppercase tracking-widest text-xs outline-none focus:border-emerald-500/50"
-                  />
+                <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
+                  <button 
+                    onClick={() => {
+                      setNewCardData({ ...newCardData, deckName: viewingDeck.name });
+                      setIsCardModalOpen(true);
+                    }}
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-emerald-500 text-black px-6 py-4 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                  >
+                    <Plus size={14} strokeWidth={3} />
+                    Adicionar Novo Card
+                  </button>
+                  <div className="relative flex-1 w-full max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="BUSCAR CARDS NESTE DECK..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 text-white font-bold uppercase tracking-widest text-xs outline-none focus:border-emerald-500/50 h-[52px]"
+                    />
+                  </div>
                 </div>
               </header>
 
@@ -395,7 +412,7 @@ export default function FlashcardsPage() {
         
         {/* MODAL: NOVO DECK */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm px-6">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm px-6">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-[#0a0a0a] border border-emerald-500/20 p-8 rounded-none shadow-2xl"
@@ -417,7 +434,7 @@ export default function FlashcardsPage() {
 
         {/* MODAL: RENOMEAR DECK */}
         {isRenameModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-[#0a0a0a] border border-emerald-500/20 p-8 rounded-none shadow-2xl"
@@ -439,7 +456,7 @@ export default function FlashcardsPage() {
 
         {/* MODAL: EXCLUIR DECK (CONFIRMAÇÃO) */}
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-[#0a0a0a] border border-red-500/30 p-10 rounded-none shadow-2xl text-center"
@@ -461,7 +478,7 @@ export default function FlashcardsPage() {
 
         {/* MODAL: NOVO CARD */}
         {isCardModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
               className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl overflow-y-auto max-h-[90vh]"
@@ -481,30 +498,37 @@ export default function FlashcardsPage() {
                 ) : (
                   <div>
                     <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Selecione o Baralho</label>
-                    <div className="grid grid-cols-1 gap-2">
-                       {decks.map(d => (
-                         <button 
-                           key={d.id} type="button" 
-                           onClick={() => setNewCardData({...newCardData, deckName: d.name})}
-                           className={`p-4 border text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${newCardData.deckName === d.name ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500' : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/20'}`}
-                         >
-                           {d.name}
-                           {newCardData.deckName === d.name && <Zap size={10} fill="currentColor" />}
-                         </button>
-                       ))}
-                    </div>
+                    {viewingDeck ? (
+                      <div className="p-4 border border-emerald-500 bg-emerald-500/10 text-emerald-500 flex items-center justify-between">
+                         <span className="text-[10px] font-black uppercase tracking-widest">{viewingDeck.name}</span>
+                         <div className="px-2 py-0.5 bg-emerald-500 text-black text-[8px] font-black uppercase tracking-tighter">Fixado</div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        {decks.map(d => (
+                          <button 
+                            key={d.id} type="button" 
+                            onClick={() => setNewCardData({...newCardData, deckName: d.name})}
+                            className={`p-4 border text-[10px] font-black uppercase tracking-widest transition-all text-left flex items-center justify-between ${newCardData.deckName === d.name ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500' : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/20'}`}
+                          >
+                            {d.name}
+                            {newCardData.deckName === d.name && <Zap size={10} fill="currentColor" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Versão em Inglês</label>
-                      <input type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="Term or phrase..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
+                      <input type="text" value={newCardData.front} onChange={(e) => setNewCardData({...newCardData, front: e.target.value})} placeholder="INGLÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
                     </div>
                     <div>
-                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Tradução (PT-BR)</label>
-                      <input type="text" value={newCardData.back} onChange={(e) => setNewCardData({...newCardData, back: e.target.value})} placeholder="Tradução ou sentido..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
+                      <input type="text" value={newCardData.back} onChange={(e) => setNewCardData({...newCardData, back: e.target.value})} placeholder="PORTUGUÊS" className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/40" />
                     </div>
                   </div>
                   <div>
@@ -523,7 +547,7 @@ export default function FlashcardsPage() {
 
         {/* MODAL: EDITAR CARD INDIVIDUAL */}
         {isEditCardModalOpen && editingCard && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl"
@@ -536,7 +560,7 @@ export default function FlashcardsPage() {
               <form onSubmit={handleUpdateCard} className="space-y-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Versão em Inglês</label>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
                     <input 
                       type="text" 
                       value={editingCard.front} 
@@ -545,7 +569,7 @@ export default function FlashcardsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Tradução (PT-BR)</label>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
                     <input 
                       type="text" 
                       value={editingCard.back} 
