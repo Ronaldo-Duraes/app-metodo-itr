@@ -149,54 +149,57 @@ export default function EstudarPage() {
             {/* THE CARD */}
             <div 
               onClick={() => !isRevealed && setIsRevealed(true)}
-              className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01] cursor-pointer'} transition-all duration-500 flex flex-col items-center justify-center p-12 overflow-hidden select-none`}
+              className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01] cursor-pointer'} transition-all duration-500 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden select-none`}
             >
               
               <div className="absolute top-0 right-0 p-8 opacity-5">
                 <Brain size={120} className="text-white" />
               </div>
 
-              {/* FRONT */}
-              <div className="text-center mb-8">
-                <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-6 block">Termo Original</span>
-                <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">
-                  {currentCard.front}
-                </h3>
-              </div>
+              {/* CONTENT WRAPPER (CENTER ALL) */}
+              <div className="w-full max-w-4xl flex flex-col items-center text-center">
+                {/* FRONT */}
+                <div className="mb-6">
+                  <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">Termo Original</span>
+                  <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">
+                    {currentCard.front}
+                  </h3>
+                </div>
 
-              {/* REVEAL BUTTON */}
-              {!isRevealed && (
-                <button 
-                  onClick={() => setIsRevealed(true)}
-                  className="mt-12 px-10 py-4 border-2 border-white/20 text-white font-black text-[10px] tracking-[0.4em] uppercase hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group"
-                >
-                  Revelar Tradução
-                </button>
-              )}
-
-              {/* BACK / REVEALED CONTENT */}
-              <AnimatePresence>
-                {isRevealed && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col items-center mt-8 text-center"
+                {/* REVEAL BUTTON */}
+                {!isRevealed && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setIsRevealed(true); }}
+                    className="mt-8 px-10 py-4 border-2 border-white/20 text-white font-black text-[10px] tracking-[0.4em] uppercase hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group"
                   >
-                    <div className="h-[1px] w-24 bg-emerald-500/30 mb-8" />
-                    <h4 className="text-3xl md:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-6">
-                      {currentCard.back}
-                    </h4>
-                    {currentCard.association && (
-                      <div className="max-w-md p-4 bg-white/5 border border-white/10">
-                         <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Mnemonic</span>
-                         <p className="text-[10px] font-bold text-white/60 uppercase leading-relaxed italic">
-                           "{currentCard.association}"
-                         </p>
-                      </div>
-                    )}
-                  </motion.div>
+                    Revelar Tradução
+                  </button>
                 )}
-              </AnimatePresence>
+
+                {/* BACK / REVEALED CONTENT */}
+                <AnimatePresence>
+                  {isRevealed && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center mt-4 gap-y-4"
+                    >
+                      <div className="h-[1px] w-24 bg-emerald-500/30 mb-2" />
+                      <h4 className="text-3xl md:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-2">
+                        {currentCard.back}
+                      </h4>
+                      {currentCard.association && (
+                        <div className="max-w-2xl p-6 bg-white/5 border border-white/10 mt-2">
+                           <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Mnemonic</span>
+                           <p className="text-lg md:text-xl font-bold text-white/60 uppercase leading-relaxed italic text-center">
+                             "{currentCard.association}"
+                           </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* ACTION CONTROLS */}
