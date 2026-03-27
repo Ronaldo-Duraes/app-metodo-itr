@@ -49,7 +49,8 @@ Comandos disponíveis:
         totalWordsAdded: valor,
         unlockedMilestones: newUnlocked
       });
-      console.log(`%c[ITR]%c Contador vitalício setado para ${valor}. O modal disparará em segundos.`, 'color: #fbbf24; font-weight: bold;', '');
+      console.log(`%c[ITR]%c Contador vitalício setado para ${valor}. Recarregando...`, 'color: #fbbf24; font-weight: bold;', '');
+      window.location.reload();
     },
 
     reset: () => {

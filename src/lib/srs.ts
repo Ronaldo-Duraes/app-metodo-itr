@@ -375,7 +375,10 @@ export const deleteDictionaryEntry = (id: string) => {
 };
 
 export const getDictionaryCount = (): number => {
-  return getDictionary().length;
+  const profile = getUserProfile();
+  const dictionaryLength = getDictionary().length;
+  // Retorna o maior para suportar o modo de teste (itr.test)
+  return Math.max(dictionaryLength, profile.totalWordsAdded || 0);
 };
 
 export const deleteCard = (cardId: string) => {
