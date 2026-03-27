@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Sidebar from "@/components/sidebar/Sidebar";
 import { motion, AnimatePresence } from 'framer-motion';
+import { getUserProfile, checkMasteryMilestone, playMasterySound } from '@/lib/srs';
+import MasteryModal from './MasteryModal';
 
 const WelcomeScreen = () => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
@@ -46,6 +48,29 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     }
   }, [showSplash, isInitialized]);
 
+  const [activeMilestone, setActiveMilestone] = useState<number | null>(null);
+
+  // --- MONITORAMENTO DE MAESTRIA (EPIC) ---
+  useEffect(() => {
+    if (showSplash || !isInitialized) return;
+    
+    const checkMastery = () => {
+      const profile = getUserProfile();
+      const count = profile.totalWordsAdded || 0;
+      const reached = checkMasteryMilestone(count);
+      
+      if (reached) {
+        setActiveMilestone(reached);
+        playMasterySound();
+      }
+    };
+
+    // Verifica inicialmente e depois a cada 2 seg
+    checkMastery();
+    const interval = setInterval(checkMastery, 2000);
+    return () => clearInterval(interval);
+  }, [showSplash, isInitialized]);
+
   // --- LÓGICA ANTI-FLASH: RETORNO ABSOLUTO ---
   // Se a splash deve aparecer, NÃO RENDERIZA NADA (Sidebar, Main, Conteúdo) além dela.
   if (showSplash && isInitialized) {
@@ -65,6 +90,15 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
           {children}
         </div>
       </main>
+
+      <AnimatePresence>
+        {activeMilestone && (
+          <MasteryModal 
+            milestone={activeMilestone} 
+            onClose={() => setActiveMilestone(null)} 
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

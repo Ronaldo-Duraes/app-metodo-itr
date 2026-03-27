@@ -8,7 +8,11 @@ const getAppData = (): AppData => {
   if (!stored) {
     const initialData: AppData = { 
       cards: [], 
-      profile: { name: 'Estudante ITR' },
+      profile: { 
+        name: 'Estudante ITR',
+        totalWordsAdded: 0,
+        unlockedMilestones: []
+      },
       decks: [] 
     };
     saveAppData(initialData);
@@ -208,7 +212,26 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
 // Função de limpeza total (Remover se quiser desabilitar o nuclear reset)
 export const clearAllData = () => {
   if (typeof window === 'undefined') return;
+  
+  const profile = getUserProfile();
+  const masteryData = {
+    totalWordsAdded: profile.totalWordsAdded,
+    unlockedMilestones: profile.unlockedMilestones
+  };
+  
   localStorage.clear();
+  
+  // Restaura o progresso de maestria após o clear
+  const newData: AppData = {
+    cards: [],
+    profile: { 
+      name: profile.name || 'Estudante ITR',
+      ...masteryData
+    },
+    decks: []
+  };
+  saveAppData(newData);
+  
   window.location.reload();
 };
 
@@ -243,8 +266,81 @@ export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
     usageFrequency: 1
   });
   
+  const data = getAppData();
+  const profile = data.profile;
+  const currentTotal = (profile.totalWordsAdded || 0) + 1;
+  
+  // Atualiza o perfil com o novo total
+  saveUserProfile({
+    ...profile,
+    totalWordsAdded: currentTotal
+  });
+
   saveDictionary(dictionary);
   return newId;
+};
+
+export const checkMasteryMilestone = (count: number): number | null => {
+  const milestones = [100, 300, 700, 1500];
+  const profile = getUserProfile();
+  const unlocked = profile.unlockedMilestones || [];
+  
+  if (milestones.includes(count) && !unlocked.includes(count)) {
+    // Registra como desbloqueado
+    saveUserProfile({
+      ...profile,
+      unlockedMilestones: [...unlocked, count]
+    });
+    return count;
+  }
+  return null;
+};
+
+export const playMasterySound = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    const playEpicNode = (freq: number, startTime: number, duration: number, volume = 0.2) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const reverb = ctx.createConvolver(); // Simulado com delay para eco
+      
+      osc.type = 'sawtooth';
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + startTime + duration);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+      
+      osc.start(ctx.currentTime + startTime);
+      osc.stop(ctx.currentTime + startTime + duration);
+      
+      // Echo / Feedback delay
+      const delay = ctx.createDelay();
+      const feedback = ctx.createGain();
+      delay.delayTime.value = 0.3;
+      feedback.gain.value = 0.4;
+      
+      gain.connect(delay);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(ctx.destination);
+    };
+
+    // Epic Mastery Impact - Profundo e com eco
+    playEpicNode(220, 0, 1.5, 0.3); // A3 Profundo
+    playEpicNode(440, 0.2, 1.0, 0.2); // A4 Impacto
+    playEpicNode(880, 0.4, 0.8, 0.15); // A5 Brilho
+  } catch (e) {
+    console.error('Audio mastery playback failed', e);
+  }
 };
 
 export const updateDictionaryEntry = (id: string, word: string, translation: string) => {

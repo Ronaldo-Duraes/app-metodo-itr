@@ -16,6 +16,8 @@ export interface Flashcard {
 export interface UserProfile {
   name: string;
   avatar?: string;
+  totalWordsAdded?: number; // Contador vitalício (não reseta ao limpar dicionário)
+  unlockedMilestones?: number[]; // [100, 300, 700, 1500]
 }
 
 export interface Deck {
