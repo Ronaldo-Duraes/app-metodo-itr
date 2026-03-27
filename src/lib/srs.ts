@@ -3,31 +3,44 @@ import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry 
 const STORAGE_KEY = 'itr_app_data';
 
 export const getAppData = (): AppData => {
-  if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [], dictionary: [] };
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    const initialData: AppData = { 
-      cards: [], 
-      profile: { 
-        name: 'Estudante ITR',
-        totalWordsAdded: 0,
-        unlockedMilestones: [],
-        soundEnabled: true
-      },
-      decks: [] 
-    };
-    saveAppData(initialData);
-    return initialData;
+  const defaultData: AppData = { 
+    cards: [], 
+    profile: { 
+      name: 'Estudante ITR',
+      totalWordsAdded: 0,
+      unlockedMilestones: [],
+      soundEnabled: true
+    },
+    decks: [],
+    dictionary: []
+  };
+
+  if (typeof window === 'undefined') return defaultData;
+
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      saveAppData(defaultData);
+      return defaultData;
+    }
+    const data = JSON.parse(stored);
+    if (!data.decks) data.decks = [];
+    if (!data.dictionary) data.dictionary = [];
+    if (!data.profile) data.profile = defaultData.profile;
+    return data;
+  } catch (e) {
+    console.error("Failed to parse AppData from localStorage", e);
+    return defaultData;
   }
-  const data = JSON.parse(stored);
-  if (!data.decks) data.decks = [];
-  if (!data.dictionary) data.dictionary = [];
-  return data;
 };
 
 export const saveAppData = (data: AppData) => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Failed to save AppData to localStorage", e);
+  }
 };
 
 export const getCards = (): Flashcard[] => getAppData().cards;
