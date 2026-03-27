@@ -1,0 +1,65 @@
+'use client';
+
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import Sidebar from "@/components/sidebar/Sidebar";
+import { motion, AnimatePresence } from 'framer-motion';
+
+const WelcomeScreen = () => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
+    <div className="text-center">
+      <span className="text-[10px] font-black text-emerald-500 tracking-[0.6em] uppercase mb-4 block animate-pulse text-center w-full">Ambiente de Elite</span>
+      <h1 className="text-7xl md:text-9xl font-black text-emerald-500 tracking-[-0.05em] uppercase drop-shadow-[0_0_50px_rgba(16,185,129,0.4)] leading-none px-4 text-center">
+        Boas-vindas
+      </h1>
+    </div>
+  </div>
+);
+
+export default function AppWrapper({ children }: { children: React.ReactNode }) {
+  const [showSplash, setShowSplash] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useLayoutEffect(() => {
+    // Sincronizar estado com o sessionStorage IMEDIATAMENTE antes da pintura
+    const welcomeShown = sessionStorage.getItem('welcomeShown');
+    
+    if (welcomeShown) {
+      setShowSplash(false);
+    }
+    
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    // Fechar a splash após o tempo cinematográfico
+    if (showSplash && isInitialized) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('welcomeShown', 'true');
+      }, 1600); 
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash, isInitialized]);
+
+  // --- LÓGICA ANTI-FLASH: RETORNO ABSOLUTO ---
+  // Se a splash deve aparecer, NÃO RENDERIZA NADA (Sidebar, Main, Conteúdo) além dela.
+  if (showSplash && isInitialized) {
+    return <WelcomeScreen />;
+  }
+
+  // Prevenção de flash durante inicialização do sessionStorage
+  if (!isInitialized) {
+    return <div className="min-h-screen bg-black" />;
+  }
+
+  return (
+    <>
+      <Sidebar />
+      <main className="flex-1 ml-0 md:ml-64 p-8 relative overflow-y-auto h-screen scroll-smooth transition-all duration-300">
+        <div className="max-w-6xl mx-auto">
+          {children}
+        </div>
+      </main>
+    </>
+  );
+}
