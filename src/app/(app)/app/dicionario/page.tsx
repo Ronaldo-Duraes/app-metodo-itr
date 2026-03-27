@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Search, Filter, Gem, Edit2, X, Check, Trash2 } from 'lucide-react';
-import { getDictionary, updateDictionaryEntry, deleteDictionaryEntry } from '@/lib/srs';
+import { Book, Search, Filter, Gem, Edit2, X, Check, Trash2, Trash, AlertTriangle } from 'lucide-react';
+import { getDictionary, updateDictionaryEntry, deleteDictionaryEntry, saveDictionary } from '@/lib/srs';
 import { DictionaryEntry } from '@/lib/types';
 
 export default function DicionarioPage() {
@@ -13,6 +13,8 @@ export default function DicionarioPage() {
   const [editForm, setEditForm] = useState({ word: '', translation: '' });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [wordToDelete, setWordToDelete] = useState<DictionaryEntry | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   const loadData = () => {
     const data = getDictionary();
@@ -49,6 +51,21 @@ export default function DicionarioPage() {
     item.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.translation.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = () => {
+    const fullDict = getDictionary();
+    const updated = fullDict.filter(item => !selectedIds.includes(item.id));
+    saveDictionary(updated);
+    setSelectedIds([]);
+    setIsBulkDeleteModalOpen(false);
+    loadData();
+  };
 
   return (
     <div className="min-h-screen bg-black text-white p-6 md:p-12 select-none">
@@ -112,7 +129,18 @@ export default function DicionarioPage() {
       </div>
 
       {/* LIST HEADERS (DESKTOP) */}
-      <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
+      <div className="hidden md:grid grid-cols-[50px_1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
+        <div className="flex justify-center">
+          <div 
+            onClick={() => {
+              if (selectedIds.length === filteredWords.length) setSelectedIds([]);
+              else setSelectedIds(filteredWords.map(w => w.id));
+            }}
+            className={`w-4 h-4 border transition-all cursor-pointer flex items-center justify-center ${selectedIds.length === filteredWords.length && filteredWords.length > 0 ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 hover:border-white/30'}`}
+          >
+             {selectedIds.length === filteredWords.length && filteredWords.length > 0 && <Check size={10} className="text-black" strokeWidth={4} />}
+          </div>
+        </div>
         <div>Português</div>
         <div>Inglês</div>
         <div className="text-right">Status</div>
@@ -126,9 +154,26 @@ export default function DicionarioPage() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.01 }}
+            className={`group relative flex flex-col md:grid md:grid-cols-[50px_1.5fr_1.5fr_120px] items-center p-4 md:px-8 md:py-5 border transition-all cursor-pointer ${
+              selectedIds.includes(item.id) 
+                ? 'bg-emerald-500/5 border-emerald-500/30' 
+                : 'bg-zinc-900 border-white/5 hover:border-emerald-500/30 hover:bg-zinc-800/60'
+            }`}
             onClick={() => handleEditClick(item)}
-            className="group relative flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_120px] items-center p-4 md:px-8 md:py-5 bg-zinc-900 border border-white/5 hover:border-emerald-500/30 hover:bg-zinc-800/60 transition-all cursor-pointer"
           >
+            {/* SELECTION CHECKBOX */}
+            <div 
+              onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+              className="flex justify-center md:justify-start mb-4 md:mb-0"
+            >
+              <div className={`w-5 h-5 border-2 transition-all flex items-center justify-center ${
+                selectedIds.includes(item.id) 
+                  ? 'border-emerald-500 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                  : 'border-white/10 group-hover:border-white/30'
+              }`}>
+                {selectedIds.includes(item.id) && <Check size={12} className="text-black" strokeWidth={4} />}
+              </div>
+            </div>
             {/* Português (Destaque) */}
             <div className="w-full md:w-auto mb-2 md:mb-0">
               <h3 className="text-sm md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
@@ -281,6 +326,62 @@ export default function DicionarioPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* AO FUNDO: BARRA DE AÇÕES FLUTUANTE */}
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, x: '-50%', opacity: 0 }}
+            animate={{ y: 0, x: '-50%', opacity: 1 }}
+            exit={{ y: 100, x: '-50%', opacity: 0 }}
+            className="fixed bottom-12 left-1/2 z-[100] bg-zinc-950 border-2 border-emerald-500/30 px-8 py-5 flex items-center gap-10 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+          >
+            <div className="flex items-center gap-4 border-r border-white/10 pr-10">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-black text-white uppercase tracking-[0.2em]">
+                {selectedIds.length} <span className="text-emerald-500">Selecionados</span>
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-8">
+              <button 
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-all text-[11px] font-black uppercase tracking-widest px-5 py-2 border border-red-500/20 hover:border-red-500 bg-red-500/5 active:scale-95"
+              >
+                <Trash size={16} /> APAGAR SELEÇÃO
+              </button>
+              <button 
+                onClick={() => setSelectedIds([])}
+                className="text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest border-b border-transparent hover:border-white/50"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO EM MASSA */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-[120] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#080808] border border-red-500/30 p-12 max-w-md w-full text-center shadow-2xl"
+          >
+            <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-8">
+              <AlertTriangle className="text-red-600" size={40} />
+            </div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-4 italic">Confirmar <span className="text-red-500">Exclusão</span></h2>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] leading-relaxed mb-10">
+              Deseja apagar os {selectedIds.length} vocabulários selecionados permanentemente? Esta ação reduzirá seu progresso global.
+            </p>
+            <div className="flex flex-col gap-4">
+              <button onClick={handleBulkDelete} className="w-full py-5 bg-red-600 text-white font-black text-xs uppercase tracking-[0.3em] hover:bg-red-500 transition-all shadow-xl shadow-red-500/10 active:scale-95">CONFIRMAR E APAGAR</button>
+              <button onClick={() => setIsBulkDeleteModalOpen(false)} className="w-full py-5 bg-white/5 text-slate-500 font-black text-xs uppercase tracking-[0.3em] hover:text-white transition-all">MANTER REGISTROS</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
