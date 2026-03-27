@@ -83,6 +83,16 @@ const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false, err
           background: #10b981;
           border-radius: 10px;
         }
+        * {
+          -webkit-tap-highlight-color: transparent;
+        }
+        .select-none {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        label {
+          cursor: pointer;
+        }
       `}</style>
     </div>
   );
@@ -808,7 +818,7 @@ export default function FlashcardsPage() {
           <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl overflow-y-auto max-h-[90vh] select-none"
             >
               <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/5">
                 <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Adicionar Flashcard</h2>
@@ -936,7 +946,7 @@ export default function FlashcardsPage() {
           <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl"
+              className="w-full max-w-lg bg-[#0a0a0a] border border-emerald-500/20 p-10 rounded-none shadow-2xl select-none"
             >
               <div className="flex justify-between items-center mb-10 pb-4 border-b border-white/5">
                 <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Editar Flashcard</h2>

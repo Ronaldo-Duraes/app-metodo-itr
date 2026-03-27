@@ -51,7 +51,16 @@ export default function DicionarioPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-12">
+    <div className="min-h-screen bg-black text-white p-6 md:p-12 select-none">
+      <style jsx global>{`
+        * {
+          -webkit-tap-highlight-color: transparent;
+        }
+        .select-none {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+      `}</style>
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 border-b border-white/5 pb-12">
         <div>
