@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Crown, Flame, Trees, Zap } from 'lucide-react';
 import { redeemReward } from '@/lib/firebase';
+import { MILESTONES_COMMON, MILESTONES_MASTERY } from '@/lib/srs';
 
 interface VocabularyMilestonesProps {
   masteredCount: number;
@@ -11,11 +12,7 @@ interface VocabularyMilestonesProps {
   unlockedRewards: string[];
 }
 
-const MILESTONES = [
-  10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-  150, 200, 250, 300, 400, 
-  500, 600, 700, 1100, 1500
-];
+const MILESTONES = [...MILESTONES_COMMON, ...MILESTONES_MASTERY].sort((a, b) => a - b);
 
 export default function VocabularyMilestones({ masteredCount, uid, unlockedRewards }: VocabularyMilestonesProps) {
   const [lastCollected, setLastCollected] = useState<number | null>(null);

@@ -29,6 +29,7 @@ export default function ActivitiesPage() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
+        className="mt-20"
       >
         <ActivitiesRoadmap />
       </motion.div>

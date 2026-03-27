@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Sidebar from "@/components/sidebar/Sidebar";
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserProfile, checkMasteryMilestone, playMasterySound } from '@/lib/srs';
+import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound } from '@/lib/srs';
 import MasteryModal from './MasteryModal';
 import { initDebugMode } from '@/lib/debug';
 
@@ -62,8 +62,12 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       const reached = checkMasteryMilestone(count);
       
       if (reached) {
-        setActiveMilestone(reached);
-        playMasterySound();
+        setActiveMilestone(reached.value);
+        if (reached.isMastery) {
+          playMasterySound();
+        } else {
+          playBlipSound();
+        }
       }
     };
 

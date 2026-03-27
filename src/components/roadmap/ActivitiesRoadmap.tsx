@@ -29,17 +29,24 @@ const MODULES: RoadmapModule[] = [
 
 export default function ActivitiesRoadmap() {
   return (
-    <div className="w-full py-28 px-4 bg-[#050505] shadow-2xl relative overflow-hidden min-h-[1400px] font-outfit">
+    <div className="w-full py-28 px-4 relative overflow-hidden min-h-[1400px] font-outfit"
+         style={{ 
+           maskImage: 'linear-gradient(to bottom, transparent 0%, black 150px, black calc(100% - 150px), transparent 100%)',
+           WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 150px, black calc(100% - 150px), transparent 100%)'
+         }}>
       
-      {/* BACKGROUND DEPTH GLOWS */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full pointer-events-none z-0" />
+      {/* GLOBAL ATMOSPHERIC GLOW (FEATHERED) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-950/20 to-transparent pointer-events-none -z-20" />
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/5 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[40%] left-[20%] w-[600px] h-[600px] bg-yellow-500/5 blur-[180px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[70%] right-[10%] w-[700px] h-[700px] bg-red-500/5 blur-[200px] rounded-full pointer-events-none z-0" />
 
       {/* ROBUST NEON BACKBONE with CORRECT FADE (mask-image) */}
       <div 
-        className="absolute left-1/2 -translate-x-1/2 top-[280px] bottom-40 w-[6px] z-0"
+        className="absolute left-1/2 -translate-x-1/2 top-[150px] bottom-40 w-[6px] z-0"
         style={{ 
-          maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)'
+          maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)'
         }}
       >
         <div 
@@ -68,10 +75,14 @@ export default function ActivitiesRoadmap() {
             <span className="text-[10px] font-black uppercase tracking-[0.8em] text-slate-500 mb-6 block opacity-40">
               Protocolo Industrial
             </span>
-            <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x
-              bg-gradient-to-r from-green-400 via-emerald-500 to-blue-600 drop-shadow-[0_0_30px_rgba(52,211,153,0.2)]">
-              Protocolo<br/>Atividades
-            </h1>
+            <div className="relative inline-block">
+              {/* Localized Header Glow */}
+              <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full -z-10 animate-pulse" />
+              <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x
+                bg-gradient-to-r from-green-400 via-emerald-500 to-blue-600 drop-shadow-[0_0_30px_rgba(52,211,153,0.2)]">
+                Protocolo<br/>Atividades
+              </h1>
+            </div>
           </motion.div>
         </header>
 
@@ -81,6 +92,7 @@ export default function ActivitiesRoadmap() {
             const isLeft = i % 2 !== 0; 
             const Icon = module.icon;
             const groupColor = i < 3 ? '#22c55e' : (i < 6 ? '#eab308' : '#ef4444');
+            const groupGlow = i < 3 ? 'rgba(34, 197, 94, 0.1)' : (i < 6 ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)');
 
             return (
               <motion.div
@@ -88,8 +100,11 @@ export default function ActivitiesRoadmap() {
                 initial={{ opacity: 0, x: isLeft ? -15 : 15 }}
                 whileInView={{ opacity: 1, x: isLeft ? -10 : 10 }}
                 viewport={{ once: true, margin: "-100px" }}
-                className={`flex w-full ${isLeft ? 'justify-start md:pl-0' : 'justify-end md:pr-0'} relative`}
+                className={`flex w-full ${isLeft ? 'justify-start md:pl-0' : 'justify-end md:pr-0'} relative py-4`}
               >
+                {/* Ambient Module Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] blur-[100px] rounded-full pointer-events-none -z-10 opacity-30" 
+                     style={{ background: groupGlow }} />
                 {/* SLENDER GLASSMORPHIC CARDS */}
                 <div 
                   className="relative w-44 md:w-56 p-6 rounded-none border-2 bg-white/[0.03] backdrop-blur-xl shadow-2xl flex flex-col items-center group

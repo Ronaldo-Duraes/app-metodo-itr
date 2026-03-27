@@ -287,18 +287,23 @@ export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
   return newId;
 };
 
-export const checkMasteryMilestone = (count: number): number | null => {
-  const milestones = [100, 300, 700, 1500];
+export const MILESTONES_COMMON = [10, 20, 30, 40, 50, 60, 70, 80, 90, 150, 200, 250, 400, 500, 600, 1100];
+export const MILESTONES_MASTERY = [100, 300, 700, 1500];
+
+export const checkMasteryMilestone = (count: number): { value: number, isMastery: boolean } | null => {
   const profile = getUserProfile();
   const unlocked = profile.unlockedMilestones || [];
   
-  if (milestones.includes(count) && !unlocked.includes(count)) {
+  const isMastery = MILESTONES_MASTERY.includes(count);
+  const isCommon = MILESTONES_COMMON.includes(count);
+
+  if ((isMastery || isCommon) && !unlocked.includes(count)) {
     // Registra como desbloqueado
     saveUserProfile({
       ...profile,
       unlockedMilestones: [...unlocked, count]
     });
-    return count;
+    return { value: count, isMastery };
   }
   return null;
 };
@@ -343,10 +348,10 @@ export const playMasterySound = () => {
       delay.connect(ctx.destination);
     };
 
-    // Maestria Encorpada mas Curta (Max 1s)
-    playLushNote(329.63, 0, 0.8, 0.1);  // E4
-    playLushNote(440.00, 0.1, 0.7, 0.08); // A4
-    playLushNote(659.25, 0.2, 0.6, 0.05); // E5
+    // Maestria Encorpada (Max 1s) - Timbre abafado tipo Piano Elétrico
+    playLushNote(329.63, 0, 0.9, 0.08);  // E4
+    playLushNote(493.88, 0.15, 0.8, 0.06); // B4
+    playLushNote(659.25, 0.3, 0.7, 0.04); // E5
   } catch (e) {
     console.error('Audio mastery playback failed', e);
   }
@@ -484,22 +489,24 @@ export const playVictorySound = () => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
-      osc.type = 'sine'; // Senoidal para ser suave
+      osc.type = 'sine'; // Suave
       osc.connect(gain);
       gain.connect(ctx.destination);
       
       osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
       
       gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(volume * 0.7, ctx.currentTime + startTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 0.3);
+      gain.gain.linearRampToValueAtTime(volume * 0.5, ctx.currentTime + startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 0.4);
       
       osc.start(ctx.currentTime + startTime);
-      osc.stop(ctx.currentTime + startTime + 0.3);
+      osc.stop(ctx.currentTime + startTime + 0.4);
     };
 
-    playNote(523.25, 0, 0.1); // C5
-    playNote(659.25, 0.08, 0.08); // E5
+    // Acorde Sutil - Harmonia tipo Slack / Apple
+    playNote(523.25, 0, 0.08); // C5
+    playNote(783.99, 0.05, 0.06); // G5 
+    playNote(1046.50, 0.1, 0.05); // C6
   } catch (e) {
     console.error('Audio playback failed', e);
   }
@@ -519,17 +526,17 @@ export const playBlipSound = () => {
     osc.connect(gain);
     gain.connect(ctx.destination);
     
-    // "Click" Digital Limpo e Minimalista
+    // "Pop" Elegante e Curto
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1000, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.03);
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.02);
     
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+    gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
     
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.03);
+    osc.stop(ctx.currentTime + 0.02);
   } catch (e) {
     console.error('Blip sound failed', e);
   }
