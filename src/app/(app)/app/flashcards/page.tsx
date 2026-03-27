@@ -14,9 +14,10 @@ interface DeckSelectorProps {
   selectedDeckName: string;
   onSelect: (name: string) => void;
   disabled?: boolean;
+  error?: boolean;
 }
 
-const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false }: DeckSelectorProps) => {
+const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false, error = false }: DeckSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -25,6 +26,7 @@ const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false }: D
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`w-full p-4 flex items-center justify-between border-2 transition-all cursor-pointer ${
           disabled ? 'bg-white/5 border-white/5 opacity-50' : 
+          error ? 'bg-red-500/5 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)]' :
           isOpen ? 'bg-black border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/[0.03] border-white/10 hover:border-white/20'
         }`}
       >
@@ -822,11 +824,17 @@ export default function FlashcardsPage() {
                       autoFocus 
                       type="text" 
                       value={newDeckName} 
-                      onChange={(e) => setNewDeckName(e.target.value)} 
+                      onChange={(e) => {
+                        setNewDeckName(e.target.value);
+                        if (showErrors && e.target.value.trim()) setShowErrors(false);
+                      }} 
                       placeholder="EX: FRASES DO DIA..." 
-                      className="w-full bg-white/5 border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-emerald-500/50" 
+                      className={`w-full bg-white/5 border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newDeckName.trim() ? 'border-red-600' : 'border-white/10 focus:border-emerald-500/50'}`} 
                       style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
                     />
+                    {showErrors && !newDeckName.trim() && (
+                      <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -834,9 +842,16 @@ export default function FlashcardsPage() {
                     <DeckSelector 
                       decks={decks}
                       selectedDeckName={viewingDeck ? viewingDeck.name : newCardData.deckName}
-                      onSelect={(name) => setNewCardData({...newCardData, deckName: name})}
+                      onSelect={(name) => {
+                        setNewCardData({...newCardData, deckName: name});
+                        if (showErrors) setShowErrors(false);
+                      }}
                       disabled={!!viewingDeck}
+                      error={showErrors && !newCardData.deckName && !viewingDeck}
                     />
+                    {showErrors && !newCardData.deckName && !viewingDeck && (
+                      <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                    )}
                   </div>
                 )}
 
@@ -853,8 +868,11 @@ export default function FlashcardsPage() {
                           if (showErrors) setShowErrors(false);
                         }} 
                         placeholder="INGLÊS" 
-                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.front ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.front ? 'border-red-600' : 'border-white/10 focus:border-emerald-500/40'}`} 
                       />
+                      {showErrors && !newCardData.front && (
+                        <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
@@ -866,8 +884,11 @@ export default function FlashcardsPage() {
                           if (showErrors) setShowErrors(false);
                         }} 
                         placeholder="PORTUGUÊS" 
-                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.back ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.back ? 'border-red-600' : 'border-white/10 focus:border-emerald-500/40'}`} 
                       />
+                      {showErrors && !newCardData.back && (
+                        <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -885,15 +906,17 @@ export default function FlashcardsPage() {
                       </p>
                     </div>
                     
-                    <label className="flex items-center gap-3 cursor-pointer group">
+                    <div 
+                      onClick={() => setSkipDictionary(!skipDictionary)}
+                      className="flex items-center gap-3 cursor-pointer group py-1"
+                    >
                       <div 
-                        onClick={() => setSkipDictionary(!skipDictionary)}
                         className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 group-hover:border-white/30'}`}
                       >
                         {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
                       </div>
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Não enviar para o dicionário</span>
-                    </label>
+                    </div>
                   </div>
                 )}
 
