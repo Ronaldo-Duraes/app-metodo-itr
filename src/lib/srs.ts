@@ -3,7 +3,7 @@ import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry 
 const STORAGE_KEY = 'itr_app_data';
 
 export const getAppData = (): AppData => {
-  if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [] };
+  if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [], dictionary: [] };
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
     const initialData: AppData = { 
@@ -26,6 +26,7 @@ export const getAppData = (): AppData => {
 };
 
 export const saveAppData = (data: AppData) => {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
@@ -226,20 +227,24 @@ export const clearAllData = () => {
     unlockedMilestones: profile.unlockedMilestones
   };
   
-  localStorage.clear();
-  
-  // Restaura o progresso de maestria após o clear
-  const newData: AppData = {
-    cards: [],
-    profile: { 
-      name: profile.name || 'Estudante ITR',
-      ...masteryData
-    },
-    decks: []
-  };
-  saveAppData(newData);
-  
-  window.location.reload();
+  try {
+    localStorage.clear();
+    
+    // Restaura o progresso de maestria após o clear
+    const newData: AppData = {
+      cards: [],
+      profile: { 
+        name: profile.name || 'Estudante ITR',
+        ...masteryData
+      },
+      decks: []
+    };
+    saveAppData(newData);
+    
+    window.location.reload();
+  } catch (e) {
+    console.error('Error clearing data', e);
+  }
 };
 
 export const updateCardAssociation = (cardId: string, association: string) => {
@@ -541,7 +546,7 @@ export const playBlipSound = () => {
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.02);
   } catch (e) {
-    console.error('Blip sound failed', e);
+    // Silencioso em fallback para não quebrar fluxo UI
   }
 };
 

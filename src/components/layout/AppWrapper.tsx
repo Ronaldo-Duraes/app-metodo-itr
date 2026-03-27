@@ -28,6 +28,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   const [isInitialized, setIsInitialized] = useState(false);
 
   useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
     // Sincronizar estado com o sessionStorage IMEDIATAMENTE antes da pintura
     const welcomeShown = sessionStorage.getItem('welcomeShown');
     
@@ -44,7 +45,9 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     if (showSplash && isInitialized) {
       const timer = setTimeout(() => {
         setShowSplash(false);
-        sessionStorage.setItem('welcomeShown', 'true');
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('welcomeShown', 'true');
+        }
       }, 1500); 
       return () => clearTimeout(timer);
     }
