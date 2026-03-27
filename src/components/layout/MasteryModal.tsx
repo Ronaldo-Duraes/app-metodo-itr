@@ -1,6 +1,4 @@
-'use client';
-
-import React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, Zap, CheckCircle2 } from 'lucide-react';
 
@@ -10,6 +8,12 @@ interface MasteryModalProps {
 }
 
 const MasteryModal = ({ milestone, onClose }: MasteryModalProps) => {
+  const router = useRouter();
+
+  const handleClaim = () => {
+    onClose();
+    router.push(`/app/perfil?highlight=${milestone}`);
+  };
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-hidden">
       {/* Background Particles/Sparkles simulation */}
@@ -83,7 +87,7 @@ const MasteryModal = ({ milestone, onClose }: MasteryModalProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            onClick={onClose}
+            onClick={handleClaim}
             className="group relative w-full py-6 uppercase font-black text-xs tracking-[0.4em] text-black overflow-hidden"
           >
             {/* Shimmer Button Effect */}

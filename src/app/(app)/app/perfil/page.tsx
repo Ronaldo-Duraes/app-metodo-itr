@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getUserProfile, saveUserProfile, getCards, getUserPatente, getDictionaryCount } from '@/lib/srs';
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,9 @@ const ICON_MAP: Record<string, any> = {
 function ProfileContent() {
   const searchParams = useSearchParams();
   const trigger = searchParams.get('t') || 'initial';
+  const highlight = searchParams.get('highlight');
   const [profile, setProfile] = useState<UserProfile>({ name: '' });
+  const journeyRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [masteredCount, setMasteredCount] = useState(0);
@@ -61,6 +63,15 @@ function ProfileContent() {
     
     syncData();
   }, [uid, setThemeByName]);
+
+  // --- LÓGICA DE FOCO NA JORNADA ---
+  useEffect(() => {
+    if (highlight && journeyRef.current) {
+      setTimeout(() => {
+        journeyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500); // Delay buffer para carregamento de componentes
+    }
+  }, [highlight]);
 
   const handleSave = () => {
     const updated = { ...profile, name: newName };
@@ -125,8 +136,8 @@ function ProfileContent() {
           masteredCount={masteredCount}
         />
 
-        <div className="w-full border-t border-slate-800/80 pt-10">
-          <MaestriaRoadmap masteredCount={masteredCount} />
+        <div ref={journeyRef} className="w-full border-t border-slate-800/80 pt-10">
+          <MaestriaRoadmap masteredCount={masteredCount} highlightedMilestone={highlight ? parseInt(highlight) : undefined} />
         </div>
       </motion.div>
 
