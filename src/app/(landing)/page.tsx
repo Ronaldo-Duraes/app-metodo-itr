@@ -7,7 +7,7 @@ export default function LandingPage() {
     const router = useRouter();
 
     useEffect(() => {
-        router.push('/app/flashcards');
+        router.push('/app');
     }, [router]);
 
     return (

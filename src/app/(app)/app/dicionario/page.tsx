@@ -63,10 +63,24 @@ export default function DicionarioPage() {
           </h1>
         </div>
         
-        <div className="bg-zinc-900/50 border border-white/10 p-6 flex flex-col items-center justify-center min-w-[200px]">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Total de Vocabulário</span>
-          <div className="text-4xl font-black text-white leading-none">
-            {dictionary.length} <span className="text-sm text-emerald-500 uppercase tracking-tighter">palavras</span>
+        <div className="flex flex-col gap-4 min-w-[240px]">
+          {/* TOTAL VOCABULÁRIO */}
+          <div className="bg-zinc-900/50 border border-white/10 p-6 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Total de Vocabulário</span>
+            <div className="text-4xl font-black text-white leading-none">
+              {dictionary.length} <span className="text-sm text-emerald-500 uppercase tracking-tighter">palavras</span>
+            </div>
+          </div>
+
+          {/* MEMORIZADOS (LENDÁRIO) */}
+          <div className="bg-zinc-900/80 border border-yellow-500/30 p-6 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(234,179,8,0.05)] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Gem size={32} className="text-yellow-500" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-600 mb-2">Memorizados</span>
+            <div className="text-4xl font-black text-yellow-500 leading-none drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+              {dictionary.filter(item => item.isMemorized).length} <span className="text-sm text-yellow-700 uppercase tracking-tighter italic">mastery</span>
+            </div>
           </div>
         </div>
       </div>
