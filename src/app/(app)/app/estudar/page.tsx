@@ -19,19 +19,27 @@ export default function EstudarPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFreeStudy, setIsFreeStudy] = useState(false);
   const [deckName, setDeckName] = useState<string | null>(null);
 
   useEffect(() => {
     const cards = getCards();
-    const sorted = getPriorityCards(cards, deckId || undefined);
+    const isFree = !!deckId;
+    setIsFreeStudy(isFree);
+
+    let sorted: Flashcard[] = [];
+    if (isFree) {
+      const { getSortedDeckCards, getDecks } = require('@/lib/srs');
+      sorted = getSortedDeckCards(cards, deckId!);
+      const decks = getDecks();
+      const deck = decks.find((d: any) => d.id === deckId || d.name === deckId);
+      if (deck) setDeckName(deck.name);
+    } else {
+      sorted = getPriorityCards(cards);
+    }
+
     setPile(sorted);
     setIsLoading(false);
-
-    if (deckId) {
-      const decks = getDecks();
-      const deck = decks.find(d => d.id === deckId || d.name === deckId);
-      if (deck) setDeckName(deck.name);
-    }
   }, [deckId]);
 
   const currentCard = pile[currentIndex];
@@ -59,13 +67,15 @@ export default function EstudarPage() {
         <div className="mb-8 p-6 bg-white/[0.02] border border-white/10 rounded-full">
           <CheckCircle2 size={64} className="text-emerald-500" />
         </div>
-        <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Limpa</h1>
+        <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Vazia</h1>
         <p className="text-slate-500 uppercase font-bold tracking-widest max-w-sm mb-12">
-          Não há cards pendentes agora. Sua consistência é lendária.
+          {isFreeStudy 
+            ? "Não há cards neste baralho para praticar." 
+            : "Não há cards pendentes agora. Sua consistência é lendária."}
         </p>
-        <Link href="/app">
+        <Link href="/app/flashcards">
           <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all">
-            Voltar para Home
+            Voltar
           </button>
         </Link>
       </div>
@@ -81,22 +91,36 @@ export default function EstudarPage() {
           className="mb-8"
         >
           <div className="relative">
-             <Trophy size={100} className="text-emerald-500 mb-8" />
+             <Trophy size={100} className="text-emerald-500 mb-8 mx-auto" />
              <motion.div 
                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
                transition={{ repeat: Infinity, duration: 2 }}
                className="absolute inset-0 bg-emerald-500/20 blur-[100px] -z-10"
              />
           </div>
-          <h1 className="text-6xl font-black text-white uppercase tracking-tighter mb-4">Missão Cumprida</h1>
+          <h1 className="text-6xl font-black text-white uppercase tracking-tighter mb-4">Sessão Concluída</h1>
           <p className="text-emerald-500 uppercase font-black tracking-[0.4em] mb-12">
-            Pilha de Prioridade: 100% LIMPA
+            {isFreeStudy ? 'ESTUDO LIVRE FINALIZADO' : 'PILHA DE PRIORIDADE: 100% LIMPA'}
           </p>
-          <Link href="/app">
-            <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-              Retornar ao QG
-            </button>
-          </Link>
+          <div className="flex flex-col md:flex-row gap-4 justify-center">
+            {isFreeStudy && (
+              <button 
+                onClick={() => {
+                  setCurrentIndex(0);
+                  setIsFinished(false);
+                  setIsRevealed(false);
+                }}
+                className="px-12 py-4 bg-emerald-500 text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-[0_0_50px_rgba(16,185,129,0.2)]"
+              >
+                Estudar Novamente
+              </button>
+            )}
+            <Link href="/app/flashcards">
+              <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                {isFreeStudy ? 'Sair do Estudo' : 'Retornar ao QG'}
+              </button>
+            </Link>
+          </div>
         </motion.div>
       </div>
     );

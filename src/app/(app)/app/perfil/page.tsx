@@ -69,6 +69,12 @@ function ProfileContent() {
     setIsEditing(false);
   };
 
+  const handleToggleSound = (enabled: boolean) => {
+    const updated = { ...profile, soundEnabled: enabled };
+    saveUserProfile(updated);
+    setProfile(updated);
+  };
+
   const patenteInfo = getUserPatente(masteredCount);
   const realPatenteName = patenteInfo.current.name;
   const PatenteIcon = ICON_MAP[realPatenteName === 'Semente ITR' ? 'Sprout' : realPatenteName === 'Broto de Fluência' ? 'Leaf' : realPatenteName === 'Raiz Forte' ? 'Activity' : realPatenteName === 'Arbusto de Diálogo' ? 'Shrub' : 'Trees'] || Trophy;
@@ -113,6 +119,7 @@ function ProfileContent() {
           setNewName={setNewName}
           setIsEditing={setIsEditing}
           handleSave={handleSave}
+          onToggleSound={handleToggleSound}
           patenteInfo={patenteInfo}
           PatenteIcon={PatenteIcon}
           masteredCount={masteredCount}

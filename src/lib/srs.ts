@@ -2,7 +2,7 @@ import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry 
 
 const STORAGE_KEY = 'itr_app_data';
 
-const getAppData = (): AppData => {
+export const getAppData = (): AppData => {
   if (typeof window === 'undefined') return { cards: [], profile: { name: 'Estudante ITR' }, decks: [] };
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
@@ -11,7 +11,8 @@ const getAppData = (): AppData => {
       profile: { 
         name: 'Estudante ITR',
         totalWordsAdded: 0,
-        unlockedMilestones: []
+        unlockedMilestones: [],
+        soundEnabled: true
       },
       decks: [] 
     };
@@ -24,7 +25,7 @@ const getAppData = (): AppData => {
   return data;
 };
 
-const saveAppData = (data: AppData) => {
+export const saveAppData = (data: AppData) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
@@ -35,7 +36,13 @@ export const saveCards = (cards: Flashcard[]) => {
   saveAppData({ ...data, cards });
 };
 
-export const getUserProfile = (): UserProfile => getAppData().profile;
+export const getUserProfile = (): UserProfile => {
+  const profile = getAppData().profile;
+  if (profile.soundEnabled === undefined) {
+    return { ...profile, soundEnabled: true };
+  }
+  return profile;
+};
 
 export const saveUserProfile = (profile: UserProfile) => {
   const data = getAppData();
@@ -298,35 +305,37 @@ export const checkMasteryMilestone = (count: number): number | null => {
 
 export const playMasterySound = () => {
   if (typeof window === 'undefined') return;
+  const profile = getUserProfile();
+  if (profile.soundEnabled === false) return;
+
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
     
-    const playEpicNode = (freq: number, startTime: number, duration: number, volume = 0.2) => {
+    const playLushNote = (freq: number, startTime: number, duration: number, volume = 0.15) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      const reverb = ctx.createConvolver(); // Simulado com delay para eco
       
-      osc.type = 'sawtooth';
+      osc.type = 'sine';
       osc.connect(gain);
       gain.connect(ctx.destination);
       
       osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + startTime + duration);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.01, ctx.currentTime + startTime + duration);
       
       gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.1);
+      gain.gain.linearRampToValueAtTime(volume * 0.7, ctx.currentTime + startTime + 0.1);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
       
       osc.start(ctx.currentTime + startTime);
       osc.stop(ctx.currentTime + startTime + duration);
-      
-      // Echo / Feedback delay
+
+      // Eco sutil para corpo
       const delay = ctx.createDelay();
       const feedback = ctx.createGain();
-      delay.delayTime.value = 0.3;
-      feedback.gain.value = 0.4;
+      delay.delayTime.value = 0.15;
+      feedback.gain.value = 0.2;
       
       gain.connect(delay);
       delay.connect(feedback);
@@ -334,10 +343,10 @@ export const playMasterySound = () => {
       delay.connect(ctx.destination);
     };
 
-    // Epic Mastery Impact - Profundo e com eco
-    playEpicNode(220, 0, 1.5, 0.3); // A3 Profundo
-    playEpicNode(440, 0.2, 1.0, 0.2); // A4 Impacto
-    playEpicNode(880, 0.4, 0.8, 0.15); // A5 Brilho
+    // Maestria Encorpada mas Curta (Max 1s)
+    playLushNote(329.63, 0, 0.8, 0.1);  // E4
+    playLushNote(440.00, 0.1, 0.7, 0.08); // A4
+    playLushNote(659.25, 0.2, 0.6, 0.05); // E5
   } catch (e) {
     console.error('Audio mastery playback failed', e);
   }
@@ -461,33 +470,36 @@ export const getUserPatente = (masteredCount: number) => {
 
 export const playVictorySound = () => {
   if (typeof window === 'undefined') return;
+  const profile = getUserProfile();
+  if (profile.soundEnabled === false) return;
+
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
     
-    const playTechNode = (freq: number, type: OscillatorType, startTime: number, duration: number, volume = 0.2) => {
+    // Sucesso Sutil - Inspirado em notificação moderna (Slack-like)
+    // Dois tons harmônicos curtos e suaves
+    const playNote = (freq: number, startTime: number, volume: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = type;
+      
+      osc.type = 'sine'; // Senoidal para ser suave
       osc.connect(gain);
       gain.connect(ctx.destination);
       
       osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + startTime + duration);
       
       gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+      gain.gain.linearRampToValueAtTime(volume * 0.7, ctx.currentTime + startTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 0.3);
       
       osc.start(ctx.currentTime + startTime);
-      osc.stop(ctx.currentTime + startTime + duration);
+      osc.stop(ctx.currentTime + startTime + 0.3);
     };
 
-    // Industrial Tech Chime - Seco, metálico e futurista
-    playTechNode(880, 'square', 0, 0.1, 0.1);    // A5
-    playTechNode(1318.51, 'sine', 0.05, 0.2, 0.15); // E6
-    playTechNode(1760, 'triangle', 0.1, 0.4, 0.1);  // A6
+    playNote(523.25, 0, 0.1); // C5
+    playNote(659.25, 0.08, 0.08); // E5
   } catch (e) {
     console.error('Audio playback failed', e);
   }
@@ -495,6 +507,9 @@ export const playVictorySound = () => {
 
 export const playBlipSound = () => {
   if (typeof window === 'undefined') return;
+  const profile = getUserProfile();
+  if (profile.soundEnabled === false) return;
+
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
@@ -504,17 +519,17 @@ export const playBlipSound = () => {
     osc.connect(gain);
     gain.connect(ctx.destination);
     
-    // "Metallic Click" - Curto e seco
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.04);
+    // "Click" Digital Limpo e Minimalista
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1000, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.03);
     
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
     
     osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.04);
+    osc.stop(ctx.currentTime + 0.03);
   } catch (e) {
     console.error('Blip sound failed', e);
   }

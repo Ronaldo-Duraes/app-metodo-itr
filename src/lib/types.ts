@@ -18,6 +18,7 @@ export interface UserProfile {
   avatar?: string;
   totalWordsAdded?: number; // Contador vitalício (não reseta ao limpar dicionário)
   unlockedMilestones?: number[]; // [100, 300, 700, 1500]
+  soundEnabled?: boolean; // Toggle de efeitos sonoros
 }
 
 export interface Deck {

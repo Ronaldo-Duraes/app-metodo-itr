@@ -5,6 +5,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import { motion, AnimatePresence } from 'framer-motion';
 import { getUserProfile, checkMasteryMilestone, playMasterySound } from '@/lib/srs';
 import MasteryModal from './MasteryModal';
+import { initDebugMode } from '@/lib/debug';
 
 const WelcomeScreen = () => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
@@ -35,6 +36,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     }
     
     setIsInitialized(true);
+    initDebugMode();
   }, []);
 
   useEffect(() => {

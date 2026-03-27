@@ -12,6 +12,7 @@ interface ProfileFooterProps {
   setNewName: (name: string) => void;
   setIsEditing: (isEditing: boolean) => void;
   handleSave: () => void;
+  onToggleSound: (enabled: boolean) => void;
   patenteInfo: any;
   PatenteIcon: any;
   masteredCount: number;
@@ -24,6 +25,7 @@ const ProfileFooter = ({
   setNewName,
   setIsEditing,
   handleSave,
+  onToggleSound,
   patenteInfo,
   PatenteIcon,
   masteredCount
@@ -55,6 +57,24 @@ const ProfileFooter = ({
               <p className="font-bold flex items-center justify-center md:justify-start gap-2" style={{ color: 'var(--itr-primary)' }}>
                 <Gem size={16} /> Aluno Premium Método ITR
               </p>
+              
+              {/* TOGGLE DE SOM (INDUSTRIAL) */}
+              <div className="flex items-center gap-4 justify-center md:justify-start pt-4">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Efeitos Sonoros</span>
+                  <p className="text-[9px] text-slate-600 hidden md:block uppercase font-bold">Feedback auditivo de progresso</p>
+                </div>
+                <button 
+                  onClick={() => onToggleSound(!profile.soundEnabled)}
+                  className={`relative w-12 h-6 rounded-full transition-all duration-300 border ${profile.soundEnabled ? 'border-[var(--itr-primary)] shadow-[0_0_10px_var(--itr-glow)]' : 'border-slate-800 bg-slate-950'}`}
+                  style={{ backgroundColor: profile.soundEnabled ? 'var(--itr-primary)' : 'transparent' }}
+                >
+                  <motion.div 
+                    animate={{ x: profile.soundEnabled ? 26 : 2 }}
+                    className={`absolute top-1 w-3.5 h-3.5 rounded-full transition-colors ${profile.soundEnabled ? 'bg-white' : 'bg-slate-700'}`}
+                  />
+                </button>
+              </div>
             </motion.div>
           ) : (
             <motion.div key="edit" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4 pt-2 w-full">
