@@ -39,4 +39,4 @@ export interface AppData {
   dictionary?: DictionaryEntry[];
 }
 
-export type ReviewInterval = '10m' | '1d' | '7d' | '30d' | 'memorized';
+export type ReviewInterval = '10m' | '1d' | '4d' | '7d' | '30d' | 'memorized';

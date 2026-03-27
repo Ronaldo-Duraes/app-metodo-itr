@@ -144,6 +144,7 @@ export const calculateNextReview = (interval: ReviewInterval): Date => {
   switch (interval) {
     case '10m': return new Date(now.getTime() + 10 * 60 * 1000);
     case '1d': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    case '4d': return new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
     case '7d': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     case '30d': return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     case 'memorized': return new Date(now.getTime() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 anos no futuro
@@ -160,6 +161,7 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   switch (intervalType) {
     case '10m': intervalMinutes = 10; break;
     case '1d': intervalMinutes = 1440; break;
+    case '4d': intervalMinutes = 5760; break;
     case '7d': intervalMinutes = 10080; break;
     case '30d': intervalMinutes = 43200; break;
     case 'memorized': isMemorized = true; break;
@@ -305,10 +307,28 @@ export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
     }
   }
   return filtered
-    .filter(card => !card.isMemorized) // Exclui cards memorizados
+    .filter(card => !card.isMemorized) // NUNCA exibe memorizados
     .filter(card => {
-      // Se nunca foi revisado, está pendente se o nextReview já passou
-      return new Date(card.nextReview) <= now;
+      // Critério: STATUS NOVO (reviewedCount === 0) OU TEMPO VENCIDO (nextReview <= agora)
+      const isNew = card.reviewedCount === 0;
+      const isOverdue = new Date(card.nextReview) <= now;
+      return isNew || isOverdue;
+    })
+    .sort((a, b) => {
+      // ORDENAÇÃO: VENCIDOS primeiro (mais atrasados), depois NOVOS
+      const isANew = a.reviewedCount === 0;
+      const isBNew = b.reviewedCount === 0;
+
+      if (!isANew && !isBNew) {
+        // Ambos vencidos: o mais atrasado primeiro
+        return new Date(a.nextReview).getTime() - new Date(b.nextReview).getTime();
+      }
+      if (isANew && isBNew) {
+        // Ambos novos: manter ordem (ou por id/data de criação se houvesse)
+        return a.id.localeCompare(b.id);
+      }
+      // Vencidos antes de Novos
+      return isANew ? 1 : -1;
     });
 };
 

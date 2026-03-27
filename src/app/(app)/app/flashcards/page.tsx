@@ -286,7 +286,14 @@ export default function FlashcardsPage() {
   };
 
   const getTimeLeft = (card: Flashcard): { text: string, color: string, dot: string, bg: string, border: string, width: string } => {
-    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500/80', dot: '', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20', width: 'min-w-[120px]' };
+    if (card.isMemorized) return { 
+      text: 'Memorizado', 
+      color: 'text-yellow-400 [text-shadow:0_0_8px_rgba(250,204,21,0.5)]', 
+      dot: '', 
+      bg: 'bg-zinc-950', 
+      border: 'border-yellow-500/60', 
+      width: 'min-w-[120px]' 
+    };
     
     const diffMs = new Date(card.nextReview).getTime() - Date.now();
     const diffMin = diffMs / (1000 * 60);
@@ -655,7 +662,7 @@ export default function FlashcardsPage() {
                       <div className="flex justify-center">
                         <div className={`flex items-center gap-2.5 ${getTimeLeft(card).width} h-10 px-4 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} justify-start shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
                           {card.isMemorized ? (
-                             <Check size={12} className="text-emerald-500 shrink-0" strokeWidth={4} />
+                             <Check size={12} className="text-yellow-400 shrink-0" strokeWidth={4} />
                           ) : (
                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot}`} />
                           )}
