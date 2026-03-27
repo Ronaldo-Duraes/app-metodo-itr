@@ -88,6 +88,22 @@ export const deleteDeck = (deckId: string) => {
 
 export const addFullCard = (front: string, back: string, association: string, deckName: string, skipDictionary: boolean = false) => {
   const cards = getCards();
+  let dictionaryId: string | undefined = undefined;
+  
+  if (!skipDictionary) {
+    const dictionary = getDictionary();
+    const existingEntry = dictionary.find(e => 
+      e.word.toLowerCase().trim() === front.toLowerCase().trim() && 
+      e.translation.toLowerCase().trim() === back.toLowerCase().trim()
+    );
+
+    if (existingEntry) {
+      dictionaryId = existingEntry.id;
+    } else {
+      dictionaryId = addOrUpdateDictionaryEntry({ front, back, isMemorized: false } as Flashcard);
+    }
+  }
+
   const newCard: Flashcard = {
     id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     front,
@@ -97,13 +113,12 @@ export const addFullCard = (front: string, back: string, association: string, de
     interval: 0,
     nextReview: new Date().toISOString(),
     reviewedCount: 0,
-    isLearned: false, // Novos cards começam como não aprendidos
+    isLearned: false,
     deck: deckName,
+    dictionaryId
   };
+  
   saveCards([...cards, newCard]);
-  if (!skipDictionary) {
-    addOrUpdateDictionaryEntry(newCard); // Alimenta o dicionário ao criar
-  }
   return newCard;
 };
 
@@ -168,10 +183,23 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   
   saveCards(updatedCards);
 
-  // Se foi memorizado, atualiza no dicionário
+  // Se foi memorizado, atualiza no dicionário de forma sincronizada
   if (isMemorized) {
     const card = updatedCards.find(c => c.id === cardId);
-    if (card) addOrUpdateDictionaryEntry(card);
+    if (card) {
+      if (card.dictionaryId) {
+        const dictionary = getDictionary();
+        const index = dictionary.findIndex(e => e.id === card.dictionaryId);
+        if (index >= 0) {
+          dictionary[index].isMemorized = true;
+          saveDictionary(dictionary);
+        }
+      } else {
+        const dId = addOrUpdateDictionaryEntry(card);
+        const finalCards = updatedCards.map(c => c.id === cardId ? { ...c, dictionaryId: dId } : c);
+        saveCards(finalCards);
+      }
+    }
   }
 };
 
@@ -202,17 +230,19 @@ export const saveDictionary = (dictionary: DictionaryEntry[]) => {
 
 export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
   const dictionary = getDictionary();
-  // SEMPRE cria uma nova linha com ID único, 
-  // permitindo duplicidades independentes no inventário
+  const newId = `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
   dictionary.push({
-    id: `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: newId,
     word: card.front,
     translation: card.back,
     dateAdded: new Date().toISOString(),
     isMemorized: card.isMemorized || false,
     usageFrequency: 1
   });
+  
   saveDictionary(dictionary);
+  return newId;
 };
 
 export const updateDictionaryEntry = (id: string, word: string, translation: string) => {
@@ -247,9 +277,12 @@ export const updateCard = (cardId: string, updates: Partial<Flashcard>, skipDict
   const updatedCards = cards.map(c => {
     if (c.id === cardId) {
       const updated = { ...c, ...updates };
-      if (!skipDictionary) {
-        addOrUpdateDictionaryEntry(updated);
+      
+      // Sincronização com o Dicionário (Estrito via ID)
+      if (!skipDictionary && updated.dictionaryId) {
+        updateDictionaryEntry(updated.dictionaryId, updated.front, updated.back);
       }
+      
       return updated;
     }
     return c;

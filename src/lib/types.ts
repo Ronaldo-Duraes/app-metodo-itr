@@ -10,6 +10,7 @@ export interface Flashcard {
   isLearned: boolean; // Aprendido no longo prazo
   isMemorized?: boolean; // Pessoal: Parar de revisar totalmente
   deck?: string; // Baralho para agrupamento
+  dictionaryId?: string; // Referência para a linha no dicionário
 }
 
 export interface UserProfile {
