@@ -273,18 +273,18 @@ export default function FlashcardsPage() {
     loadData();
   };
 
-  const getTimeLeft = (card: Flashcard) => {
-    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500/80', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' };
+  const getTimeLeft = (card: Flashcard): { text: string, color: string, dot: string, bg: string, border: string, width: string } => {
+    if (card.isMemorized) return { text: 'Memorizado', color: 'text-emerald-500/80', dot: '', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20', width: 'w-[110px]' };
     
     const diffMs = new Date(card.nextReview).getTime() - Date.now();
     const diffMin = diffMs / (1000 * 60);
 
-    if (diffMin <= 0) return { text: 'Revisar Agora', color: 'text-red-500', bg: 'bg-zinc-900', border: 'border-red-500/50' };
+    if (diffMin <= 0) return { text: 'Revisar Agora', color: 'text-red-500', dot: 'bg-red-500', bg: 'bg-zinc-900', border: 'border-red-500/50', width: 'w-[140px]' };
     
-    if (diffMin < 10) return { text: '< 10 MIN', color: 'text-red-500', bg: 'bg-zinc-900', border: 'border-red-500/30' };
-    if (diffMin < 1440) return { text: '< 1 DIA', color: 'text-emerald-500', bg: 'bg-zinc-900', border: 'border-emerald-500/30' };
-    if (diffMin < 10080) return { text: '< 7 DIAS', color: 'text-blue-500', bg: 'bg-zinc-900', border: 'border-blue-500/30' };
-    return { text: '< 30 DIAS', color: 'text-yellow-500', bg: 'bg-zinc-900', border: 'border-yellow-500/30' };
+    if (diffMin < 10) return { text: '< 10 MIN', color: 'text-red-500', dot: 'bg-red-500', bg: 'bg-zinc-900', border: 'border-red-500/30', width: 'w-[110px]' };
+    if (diffMin < 1440) return { text: '< 1 DIA', color: 'text-emerald-500', dot: 'bg-emerald-500', bg: 'bg-zinc-900', border: 'border-emerald-500/30', width: 'w-[110px]' };
+    if (diffMin < 10080) return { text: '< 7 DIAS', color: 'text-blue-500', dot: 'bg-blue-500', bg: 'bg-zinc-900', border: 'border-blue-500/30', width: 'w-[110px]' };
+    return { text: '< 30 DIAS', color: 'text-yellow-500', dot: 'bg-yellow-500', bg: 'bg-zinc-900', border: 'border-yellow-500/30', width: 'w-[110px]' };
   };
 
   const handleUpdateCard = (e: React.FormEvent) => {
@@ -639,15 +639,15 @@ export default function FlashcardsPage() {
                         <p className="text-emerald-500 font-bold uppercase text-base tracking-tight truncate">{card.back}</p>
                       </div>
 
-                      {/* COLUNA 3: STATUS (ESPAÇO PRESERVADO) */}
+                      {/* COLUNA 3: STATUS (LARGURA DINÂMICA) */}
                       <div className="flex justify-center">
-                        <div className={`flex items-center gap-2 px-4 py-2 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} min-w-[120px] justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
+                        <div className={`flex items-center gap-2.5 ${getTimeLeft(card).width} h-10 px-4 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} justify-start shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
                           {card.isMemorized ? (
                              <Check size={12} className="text-emerald-500" strokeWidth={4} />
                           ) : (
-                             <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${getTimeLeft(card).color.replace('text-', 'bg-')}`} />
+                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot}`} />
                           )}
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${getTimeLeft(card).color}`}>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${getTimeLeft(card).color} truncate`}>
                             {getTimeLeft(card).text}
                           </span>
                         </div>
