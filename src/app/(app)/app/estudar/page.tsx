@@ -147,7 +147,10 @@ export default function EstudarPage() {
               className="w-full"
             >
             {/* THE CARD */}
-            <div className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01]'} transition-all duration-500 flex flex-col items-center justify-center p-12 overflow-hidden`}>
+            <div 
+              onClick={() => !isRevealed && setIsRevealed(true)}
+              className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01] cursor-pointer'} transition-all duration-500 flex flex-col items-center justify-center p-12 overflow-hidden select-none`}
+            >
               
               <div className="absolute top-0 right-0 p-8 opacity-5">
                 <Brain size={120} className="text-white" />
