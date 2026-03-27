@@ -65,7 +65,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="w-full h-12 bg-emerald-500 flex items-center justify-center gap-3 group-hover:bg-emerald-400 transition-colors">
-                  <Play size={14} fill="black" />
+                  <Play size={14} fill="black" stroke="black" />
                   <span className="text-black font-black text-xs tracking-[0.2em] uppercase">Iniciar Sessão</span>
                 </div>
               </div>

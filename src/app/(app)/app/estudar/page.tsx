@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, ArrowRight, CheckCircle2, Trophy, Clock, Brain } from 'lucide-react';
-import { getCards, getSortedDeckCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
+import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
 import { Flashcard, ReviewInterval } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function EstudarPage() {
 
   useEffect(() => {
     const cards = getCards();
-    const sorted = getSortedDeckCards(cards, deckId || undefined);
+    const sorted = getPriorityCards(cards, deckId || undefined);
     setPile(sorted);
     setIsLoading(false);
 
