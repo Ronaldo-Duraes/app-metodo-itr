@@ -31,13 +31,13 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Se a splash estiver ativa, agendar o fechamento com tempo dobrado (3200ms)
+    // Se a splash estiver ativa, agendar o fechamento com tempo reduzido (1600ms)
     if (showSplash && isInitialized) {
       const timer = setTimeout(() => {
         setShowSplash(false);
         setIsReady(true);
         sessionStorage.setItem('welcomeShown', 'true');
-      }, 3200); 
+      }, 1600); 
       return () => clearTimeout(timer);
     }
   }, [showSplash, isInitialized]);
@@ -58,7 +58,7 @@ export default function HomePage() {
             initial={{ opacity: 1, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.05, filter: 'blur(20px)' }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} // Transição mais lenta
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
           >
             <div className="text-center">

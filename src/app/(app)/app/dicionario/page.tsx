@@ -53,7 +53,7 @@ export default function DicionarioPage() {
   return (
     <div className="min-h-screen bg-black text-white p-6 md:p-12">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 border-b border-white/5 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 border-b border-white/5 pb-12">
         <div>
           <span className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em] mb-4 block">
             Repositório de Inteligência
