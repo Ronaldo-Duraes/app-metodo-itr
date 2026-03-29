@@ -16,6 +16,10 @@ export default function DicionarioPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [sortMode, setSortMode] = useState<'recent' | 'oldest' | 'alphabetical'>('recent');
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
+  const [clearStep, setClearStep] = useState(1);
+  const [confirmText, setConfirmText] = useState('');
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const loadData = () => {
     const data = getDictionary();
@@ -87,6 +91,16 @@ export default function DicionarioPage() {
     loadData();
   };
 
+  const handleClearAll = () => {
+    saveDictionary([]);
+    setIsClearAllModalOpen(false);
+    setClearStep(1);
+    setConfirmText('');
+    loadData();
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white p-6 md:p-12 select-none">
       <style jsx global>{`
@@ -107,6 +121,17 @@ export default function DicionarioPage() {
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
             Dicionário <span className="text-emerald-500">Pessoal</span>
           </h1>
+          <button 
+            onClick={() => {
+              setClearStep(1);
+              setConfirmText('');
+              setIsClearAllModalOpen(true);
+            }}
+            className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 transition-colors group"
+          >
+            <Trash size={14} className="group-hover:animate-bounce" />
+            Limpar Dicionário
+          </button>
         </div>
         
         <div className="flex flex-col gap-4 min-w-[240px]">
@@ -410,6 +435,105 @@ export default function DicionarioPage() {
           </motion.div>
         </div>
       )}
+      {/* MODAL DE LIMPEZA TOTAL (DUPLA CONFIRMAÇÃO) */}
+      <AnimatePresence>
+        {isClearAllModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsClearAllModalOpen(false)}
+              className="absolute inset-0 bg-black/98 backdrop-blur-xl"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="relative bg-zinc-950 border border-red-500/40 p-10 w-full max-w-md shadow-[0_0_100px_rgba(239,68,68,0.1)] text-center"
+            >
+              <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-8 rounded-full">
+                <AlertTriangle size={36} className="text-red-500 animate-pulse" />
+              </div>
+
+              {clearStep === 1 ? (
+                <>
+                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 italic text-white">Excluir todo o <span className="text-red-500">progresso?</span></h2>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-10">
+                    Atenção: Isso apagará permanentemente todas as suas palavras e dados de repetição. Esta ação não pode ser desfeita.
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    <button 
+                      onClick={() => setClearStep(2)}
+                      className="w-full bg-red-500 hover:bg-red-400 text-black py-4 text-xs font-black uppercase tracking-widest transition-all"
+                    >
+                      Prosseguir para Confirmação
+                    </button>
+                    <button 
+                      onClick={() => setIsClearAllModalOpen(false)}
+                      className="w-full bg-white/5 border border-white/10 text-white py-4 text-xs font-black uppercase tracking-widest"
+                    >
+                      CANCELAR
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 italic text-white underline decoration-red-500/50">Confirmação Final</h2>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">
+                    Para prosseguir, digite <span className="text-red-500">confirmar</span> abaixo:
+                  </p>
+                  
+                  <input 
+                    type="text"
+                    autoFocus
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value.toLowerCase())}
+                    className="w-full bg-black border-2 border-red-500/20 focus:border-red-500 p-4 mb-8 text-center text-sm font-black tracking-[0.3em] uppercase transition-all outline-none"
+                    placeholder="DIGITE AQUI..."
+                  />
+
+                  <div className="flex flex-col gap-3">
+                    <button 
+                      disabled={confirmText !== 'confirmar'}
+                      onClick={handleClearAll}
+                      className={`w-full py-4 text-xs font-black uppercase tracking-widest transition-all shadow-xl ${
+                        confirmText === 'confirmar' 
+                          ? 'bg-red-600 text-white hover:bg-red-500 cursor-pointer shadow-red-500/20' 
+                          : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                      }`}
+                    >
+                      EXCLUIR TUDO DEFINITIVAMENTE
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setClearStep(1);
+                        setIsClearAllModalOpen(false);
+                      }}
+                      className="w-full text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors mt-2"
+                    >
+                      MUDEI DE IDEIA
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* SUCCESS TOAST */}
+      <AnimatePresence>
+        {showSuccessToast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-10 right-10 z-[250] bg-emerald-500 text-black px-8 py-4 font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3"
+          >
+            <Check size={18} strokeWidth={3} />
+            Dicionário resetado com sucesso
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
