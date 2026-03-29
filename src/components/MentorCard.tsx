@@ -42,19 +42,20 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
 
       <div className={`flex flex-col ${!isModal ? 'md:flex-row' : ''} items-stretch`}>
         {/* Mentor Image Section */}
-        <div className={`relative w-full ${!isModal ? 'md:w-2/5 min-h-[350px] md:min-h-[450px]' : 'h-64'} overflow-hidden`}>
+        <div className={`relative w-full ${!isModal ? 'md:w-1/3 h-72 md:h-auto' : 'h-64'} overflow-hidden aspect-square md:aspect-auto`}>
           <Image
             src="/assets/ronaldo.jpeg"
             alt="Ronaldo - Mentor do Método ITR"
             fill
             priority
-            className="object-cover object-center grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
-            sizes={isModal ? "400px" : "(max-width: 768px) 100vw, 40vw"}
+            className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
+            sizes={isModal ? "400px" : "(max-width: 768px) 100vw, 33vw"}
           />
           {/* Gradients to blend or accent */}
-          <div className={`absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent ${!isModal ? 'md:bg-gradient-to-r md:from-transparent md:to-[#0a0a0a]/40' : ''}`} />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10" />
+          
           {!isModal && (
-            <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-l-[2rem] hidden md:block" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-l-[2rem] hidden md:block z-20" />
           )}
         </div>
 
@@ -68,7 +69,7 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
             <p className={`text-slate-400 ${isModal ? 'text-sm' : 'text-lg'} leading-relaxed max-w-lg`}>
               Estudante de medicina e criador do método ITR. Preparando-se para o USMLE nos EUA. 
               <br className={isModal ? 'hidden' : 'hidden md:block'} />
-              <span className={`inline-block mt-4 text-emerald-400 font-medium italic border-l-2 border-emerald-500/30 pl-4 py-1`}>
+              <span className={`inline-block mt-4 text-emerald-400 font-medium italic border-l-4 border-emerald-500 pl-4 py-1`}>
                 "A alta performance exige reflexos, não traduções."
               </span>
             </p>
@@ -88,10 +89,17 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
               <span className={`font-semibold tracking-wide ${isModal ? 'text-xs' : ''}`}>Instagram</span>
             </motion.a>
 
-            <div className={`flex items-center justify-center gap-2 ${isModal ? 'px-6 py-3' : 'px-8 py-4'} bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl text-slate-500 cursor-not-allowed transition-all duration-300 shadow-none opacity-60`}>
-              <MessageCircle size={isModal ? 18 : 20} className="text-slate-600" />
+            <motion.a
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group/btn flex items-center justify-center gap-2 ${isModal ? 'px-6 py-3' : 'px-8 py-4'} bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 rounded-2xl text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 shadow-xl`}
+            >
+              <MessageCircle size={isModal ? 18 : 20} className="text-emerald-500 group-hover/btn:scale-110 transition-transform" />
               <span className={`font-semibold tracking-wide ${isModal ? 'text-xs' : ''}`}>Fale com o Mentor</span>
-            </div>
+            </motion.a>
           </div>
         </div>
       </div>
