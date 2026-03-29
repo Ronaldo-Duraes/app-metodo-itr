@@ -146,8 +146,7 @@ function ProfileContent() {
         </div>
 
         <div className="lg:sticky lg:top-8">
-          <MentorCard />
-          <div className="mt-6 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+          <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-4">Dica do Mestre</span>
             <p className="text-xs text-slate-400 leading-relaxed">
               "Foque nos gatilhos de ação PAC hoje. O cérebro aprende 3x mais rápido quando associamos movimento ao som."
@@ -161,6 +160,10 @@ function ProfileContent() {
         uid={uid} 
         unlockedRewards={unlockedRewards} 
       />
+
+      <div className="mt-12 w-full">
+        <MentorCard />
+      </div>
     </div>
   );
 }
