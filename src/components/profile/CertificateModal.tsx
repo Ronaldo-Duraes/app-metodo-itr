@@ -51,21 +51,30 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
 
         const canvas = await html2canvas(certificateRef.current, {
           backgroundColor: null,
-          scale: 2,
-          logging: true, // Habilitado para diagnóstico
+          scale: 3, // Ultra-High Definition
+          logging: true,
           useCORS: true,
           allowTaint: true,
           foreignObjectRendering: true,
-          imageTimeout: 0, // Esperar indefinidamente pelo carregamento das imagens
+          imageTimeout: 0,
           width: certificateRef.current.offsetWidth,
           height: certificateRef.current.offsetHeight,
           onclone: (clonedDoc) => {
             const el = clonedDoc.getElementById('certificate-content');
             if (el) {
-              el.style.display = 'flex'; // Garante visibilidade
-              el.style.opacity = '1';
-              el.style.transform = 'none'; // Remove escalas/animações que quebram o html2canvas
+              // Blindagem total contra invisibilidade
+              el.style.display = 'block'; 
               el.style.visibility = 'visible';
+              el.style.opacity = '1';
+              el.style.transform = 'none';
+              
+              // Garante que o container interno também esteja visível
+              const inner = el.querySelector('.text-center');
+              if (inner instanceof HTMLElement) {
+                inner.style.display = 'block';
+                inner.style.visibility = 'visible';
+                inner.style.opacity = '1';
+              }
             }
           }
         });
