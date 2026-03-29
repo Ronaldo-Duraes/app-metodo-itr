@@ -1,96 +1,82 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Shield, Star, Award, Zap, ExternalLink, User } from 'lucide-react';
 import Image from 'next/image';
+import { Instagram, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-interface MentorCardProps {
-  onClose?: () => void;
-  isModal?: boolean;
-}
+/**
+ * MentorCard Component
+ * 
+ * A premium, glassmorphism-styled card showcasing the mentor behind the Method.
+ * Features a responsive layout (Desktop: Horizontal, Mobile: Vertical) with a 
+ * "Black & Green Premium" aesthetic.
+ * 
+ * @returns JSX.Element
+ */
+export default function MentorCard() {
+  const WHATSAPP_LINK = 'https://wa.me/5511999999999'; // TODO: Update with actual mentor number
+  const INSTAGRAM_LINK = 'https://instagram.com/im.ronaldod';
 
-const MentorCard = ({ onClose, isModal = false }: MentorCardProps) => {
   return (
-    <motion.div
-      initial={isModal ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-[#0a0a0a] shadow-2xl ${
-        isModal ? 'max-w-md w-full p-8' : 'w-full p-6'
-      }`}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="w-full max-w-4xl mx-auto overflow-hidden bg-[#0a0a0a] border border-emerald-500/20 rounded-[2rem] shadow-2xl shadow-emerald-950/20 group hover:border-emerald-500/40 transition-all duration-500"
     >
-      {/* BACKGROUND GLOW */}
-      <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]" />
-      <div className="absolute -left-20 -bottom-20 h-48 w-48 rounded-full bg-emerald-500/5 blur-[60px]" />
-
-      {/* HEADER / RANK */}
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-          <Shield size={12} className="text-emerald-500" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Mestre ITR</span>
+      <div className="flex flex-col md:flex-row items-stretch">
+        {/* Mentor Image Section */}
+        <div className="relative w-full md:w-2/5 min-h-[350px] md:min-h-[450px] overflow-hidden">
+          <Image
+            src="/assets/ronaldo.jpeg"
+            alt="Ronaldo - Mentor do Método ITR"
+            fill
+            priority
+            className="object-cover object-center grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, 40vw"
+          />
+          {/* Gradients to blend or accent */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0a0a0a]/40" />
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-l-[2rem] hidden md:block" />
         </div>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <Star key={s} size={10} className="fill-emerald-500 text-emerald-500" />
-          ))}
-        </div>
-      </div>
 
-      {/* PROFILE INFO */}
-      <div className="flex flex-col items-center text-center relative z-10">
-        <div className="relative mb-6">
-          <div className="w-24 h-24 rounded-full border-2 border-emerald-500/30 p-1.5 bg-gradient-to-tr from-emerald-500/20 to-transparent">
-            <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border border-white/10">
-              <User size={48} className="text-slate-700" />
+        {/* Content Section */}
+        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center gap-8 bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#0a0a0a]">
+          <div className="space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
+              Quem está por trás do <span className="text-emerald-500">Método?</span>
+            </h2>
+            <div className="w-12 h-1 bg-emerald-500/40 rounded-full" />
+            <p className="text-slate-400 text-lg leading-relaxed max-w-lg">
+              Médico e criador do algoritmo ITR. Preparando-se para o USMLE nos EUA. 
+              <br className="hidden md:block" />
+              <span className="inline-block mt-4 text-emerald-400 font-medium italic border-l-2 border-emerald-500/30 pl-4 py-1">
+                "A alta performance exige reflexos, não traduções."
+              </span>
+            </p>
+          </div>
+
+          {/* Glass Style Buttons */}
+          <div className="flex flex-wrap gap-4 mt-2">
+            <motion.a
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              href={INSTAGRAM_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group/btn flex items-center gap-2 px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-white hover:bg-white/10 hover:border-emerald-500/40 transition-all duration-300 shadow-xl"
+            >
+              <Instagram size={20} className="text-emerald-500 group-hover/btn:scale-110 transition-transform" />
+              <span className="font-semibold tracking-wide">Instagram</span>
+            </motion.a>
+
+            <div className="flex items-center gap-2 px-8 py-4 bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl text-slate-500 cursor-not-allowed transition-all duration-300 shadow-none opacity-60">
+              <MessageCircle size={20} className="text-slate-600" />
+              <span className="font-semibold tracking-wide">Fale com o Mentor</span>
             </div>
           </div>
-          <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1.5 shadow-lg border-2 border-[#0a0a0a]">
-            <Zap size={14} className="text-black fill-black" />
-          </div>
         </div>
-
-        <h3 className="text-2xl font-black uppercase tracking-tighter text-white mb-1">
-          Ronaldo Duraes
-        </h3>
-        <p className="text-[11px] font-bold text-emerald-500 uppercase tracking-[0.3em] mb-6 opaticy-80">
-          Fundador • Mentor de Elite
-        </p>
-
-        {/* STATS MINI GRID */}
-        <div className="grid grid-cols-2 gap-4 w-full mb-8">
-          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center">
-            <Award size={18} className="text-emerald-400 mb-2" />
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Alunos</span>
-            <span className="text-lg font-black text-white">+1.200</span>
-          </div>
-          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col items-center">
-            <Zap size={18} className="text-emerald-400 mb-2" />
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Impacto</span>
-            <span className="text-lg font-black text-white">Global</span>
-          </div>
-        </div>
-
-        <p className="text-sm text-slate-400 leading-relaxed italic mb-8 font-medium">
-          "A fluência não é sobre perfeição gramatical, é sobre liberdade e conexão real."
-        </p>
-
-        {/* CTA BUTTON */}
-        <button className="w-full group flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-[0.2em] transition-all rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_45px_rgba(16,185,129,0.5)]">
-          Falar com Mentor
-          <ExternalLink size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-        </button>
-
-        {isModal && onClose && (
-          <button 
-            onClick={onClose}
-            className="mt-6 text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors"
-          >
-            Fechar Janela
-          </button>
-        )}
       </div>
     </motion.div>
   );
-};
-
-export default MentorCard;
+}
