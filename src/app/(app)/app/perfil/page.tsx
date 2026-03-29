@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { getUserProfile, saveUserProfile, getCards, getUserPatente, getDictionaryCount } from '@/lib/srs';
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, Gem, Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
+import { Trophy, Sprout, Leaf, Activity, Shrub, Trees } from 'lucide-react';
 import VocabularyMilestones from '@/components/profile/VocabularyMilestones';
 import ProfileFooter from '@/components/profile/ProfileFooter';
 import MaestriaRoadmap from '@/components/profile/MaestriaRoadmap';
@@ -112,48 +112,35 @@ function ProfileContent() {
         />
       </div>
 
-      {/* 2. SEÇÃO DE PERFIL COM MENTOR CARD INTEGRADO */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 items-start">
-        <div className="lg:col-span-2">
-          <motion.div 
-            key={trigger}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="premium-card p-6 md:p-10 bg-slate-900 border border-slate-800 relative overflow-hidden shadow-2xl flex flex-col items-center w-full"
-          >
-            <div 
-               className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none transition-colors duration-1000 opacity-20"
-               style={{ backgroundColor: 'var(--itr-primary)' }} 
-            />
+      {/* 2. SEÇÃO DE PERFIL */}
+      <motion.div 
+        key={trigger}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="premium-card p-6 md:p-10 bg-slate-900 border border-slate-800 relative overflow-hidden shadow-2xl flex flex-col items-center w-full mb-12"
+      >
+        <div 
+           className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none transition-colors duration-1000 opacity-20"
+           style={{ backgroundColor: 'var(--itr-primary)' }} 
+        />
 
-            <ProfileFooter 
-              profile={profile}
-              isEditing={isEditing}
-              newName={newName}
-              setNewName={setNewName}
-              setIsEditing={setIsEditing}
-              handleSave={handleSave}
-              onToggleSound={handleToggleSound}
-              patenteInfo={patenteInfo}
-              PatenteIcon={PatenteIcon}
-              masteredCount={masteredCount}
-            />
+        <ProfileFooter 
+          profile={profile}
+          isEditing={isEditing}
+          newName={newName}
+          setNewName={setNewName}
+          setIsEditing={setIsEditing}
+          handleSave={handleSave}
+          onToggleSound={handleToggleSound}
+          patenteInfo={patenteInfo}
+          PatenteIcon={PatenteIcon}
+          masteredCount={masteredCount}
+        />
 
-            <div ref={journeyRef} className="w-full border-t border-slate-800/80 pt-10">
-              <MaestriaRoadmap masteredCount={masteredCount} highlightedMilestone={highlight ? parseInt(highlight) : undefined} />
-            </div>
-          </motion.div>
+        <div ref={journeyRef} className="w-full border-t border-slate-800/80 pt-10">
+          <MaestriaRoadmap masteredCount={masteredCount} highlightedMilestone={highlight ? parseInt(highlight) : undefined} />
         </div>
-
-        <div className="lg:sticky lg:top-8">
-          <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-4">Dica do Mestre</span>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              "Foque nos gatilhos de ação PAC hoje. O cérebro aprende 3x mais rápido quando associamos movimento ao som."
-            </p>
-          </div>
-        </div>
-      </div>
+      </motion.div>
 
       <VocabularyMilestones 
         masteredCount={masteredCount} 
