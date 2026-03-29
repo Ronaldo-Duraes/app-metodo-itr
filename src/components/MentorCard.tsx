@@ -66,7 +66,7 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
             </h2>
             <div className={`w-12 h-1 bg-emerald-500/40 rounded-full`} />
             <p className={`text-slate-400 ${isModal ? 'text-sm' : 'text-lg'} leading-relaxed max-w-lg`}>
-              Médico e criador do algoritmo ITR. Preparando-se para o USMLE nos EUA. 
+              Estudante de medicina e criador do método ITR. Preparando-se para o USMLE nos EUA. 
               <br className={isModal ? 'hidden' : 'hidden md:block'} />
               <span className={`inline-block mt-4 text-emerald-400 font-medium italic border-l-2 border-emerald-500/30 pl-4 py-1`}>
                 "A alta performance exige reflexos, não traduções."
