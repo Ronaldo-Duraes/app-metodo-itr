@@ -12,14 +12,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [profile, setProfile] = React.useState({ name: "RONALDO DURAES" });
 
-  const [showMentorModal, setShowMentorModal] = React.useState(false);
+  // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
+  const [mounted, setMounted] = React.useState(false);
+  const [profile, setProfile] = React.useState({ name: "RONALDO DURAES" });
+  const [isMentorOpen, setIsMentorOpen] = React.useState(false);
 
   React.useEffect(() => {
+    setMounted(true);
     const p = getUserProfile();
     if (p && p.name) setProfile(p);
   }, []);
+
+  if (!mounted) return null;
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,7 +37,7 @@ const Sidebar = () => {
     { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario' },
-    { icon: Star, label: 'Suporte VIP', path: '#mentor', isAction: true },
+    { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 
   return (
@@ -63,7 +68,7 @@ const Sidebar = () => {
               return (
                 <div 
                   key={item.label}
-                  onClick={() => setShowMentorModal(true)}
+                  onClick={() => setIsMentorOpen(true)}
                   className="group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500"
                 >
                   <Icon size={20} className="transition-colors duration-200" />
@@ -123,19 +128,21 @@ const Sidebar = () => {
 
       </div>
 
-      {/* MENTOR MODAL OVERLAY */}
+      {/* MENTOR MODAL OVERLAY - BLINDAGEM VERCEL & PREMIUM STYLE */}
       <AnimatePresence>
-        {showMentorModal && (
+        {isMentorOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+            {/* Background Click to Close */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowMentorModal(false)}
+              onClick={() => setIsMentorOpen(false)}
               className="absolute inset-0 cursor-pointer"
             />
+            
             <div className="relative z-10 w-full max-w-md">
-              <MentorCard isModal onClose={() => setShowMentorModal(false)} />
+              <MentorCard isModal onClose={() => setIsMentorOpen(false)} />
             </div>
           </div>
         )}
