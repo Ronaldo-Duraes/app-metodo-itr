@@ -47,22 +47,41 @@ export default function PacActionsPage() {
           </p>
         </div>
 
-        {/* LIST OF ACTIONS - BLOCO DE NOTAS (MAIS JUNTO) */}
-        <div className="flex flex-col border-t border-white/5">
-          {PAC_ACTIONS.map((action, idx) => (
-            <motion.div
-              key={action}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.01 }}
-              className="group flex items-center py-2 border-b border-white/5 hover:bg-emerald-500/[0.04] transition-colors px-2"
-            >
-              {/* Action Name */}
-              <span className="text-lg md:text-xl font-medium tracking-tight text-white group-hover:text-emerald-400 transition-colors">
-                {action}
-              </span>
-            </motion.div>
-          ))}
+        {/* LIST OF ACTIONS - DUAS COLUNAS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 border-t border-white/5">
+          {/* COLUNA 1 */}
+          <div className="flex flex-col">
+            {PAC_ACTIONS.slice(0, 13).map((action, idx) => (
+              <motion.div
+                key={action}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.01 }}
+                className="group flex items-center py-2 border-b border-white/5 hover:bg-emerald-500/[0.04] transition-colors px-2"
+              >
+                <span className="text-lg md:text-xl font-medium tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+                  {action}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* COLUNA 2 (CENTRALIZADA EM RELAÇÃO AO ESPAÇO) */}
+          <div className="flex flex-col">
+            {PAC_ACTIONS.slice(13).map((action, idx) => (
+              <motion.div
+                key={action}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (idx + 13) * 0.01 }}
+                className="group flex items-center py-2 border-b border-white/5 hover:bg-emerald-500/[0.04] transition-colors px-2"
+              >
+                <span className="text-lg md:text-xl font-medium tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+                  {action}
+                </span>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* MOTIVATIONAL QUOTE / closing phrase */}
