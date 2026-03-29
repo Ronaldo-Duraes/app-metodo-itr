@@ -196,10 +196,27 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
 
   const nextReview = new Date(now.getTime() + intervalMinutes * 60 * 1000).toISOString();
   
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+
+  // Lógica de Sincronização e Ressurgência (Garante que a palavra esteja no dicionário)
+  const dictionaryId = ensureCardInDictionary(cardId);
+
+  if (isMemorized && dictionaryId) {
+    // Sincroniza o status no dicionário se for memorizado
+    const dictionary = getDictionary();
+    const index = dictionary.findIndex(e => e.id === dictionaryId);
+    if (index >= 0) {
+      dictionary[index].isMemorized = true;
+      saveDictionary(dictionary);
+    }
+  }
+
   const updatedCards = cards.map(c => 
     c.id === cardId 
       ? { 
           ...c, 
+          dictionaryId, // Garante o vínculo atualizado
           nextReview: isMemorized ? new Date(Date.now() + 100*365*24*60*60*1000).toISOString() : nextReview, 
           lastReviewed: now.toISOString(),
           interval: intervalMinutes,
@@ -211,25 +228,42 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   );
   
   saveCards(updatedCards);
+};
 
-  // Se foi memorizado, atualiza no dicionário de forma sincronizada
-  if (isMemorized) {
-    const card = updatedCards.find(c => c.id === cardId);
-    if (card) {
-      if (card.dictionaryId) {
-        const dictionary = getDictionary();
-        const index = dictionary.findIndex(e => e.id === card.dictionaryId);
-        if (index >= 0) {
-          dictionary[index].isMemorized = true;
-          saveDictionary(dictionary);
-        }
-      } else {
-        const dId = addOrUpdateDictionaryEntry(card);
-        const finalCards = updatedCards.map(c => c.id === cardId ? { ...c, dictionaryId: dId } : c);
-        saveCards(finalCards);
-      }
+/**
+ * Garante que o card estudado tenha uma entrada válida no dicionário.
+ * Se a palavra foi deletada, ela reaparece (ressurgência).
+ */
+export const ensureCardInDictionary = (cardId: string): string | undefined => {
+  const cards = getCards();
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return undefined;
+
+  const dictionary = getDictionary();
+  let dictionaryId = card.dictionaryId;
+  
+  // Verifica se o ID vinculado ainda existe de fato no dicionário
+  const exists = dictionaryId ? dictionary.some(e => e.id === dictionaryId) : false;
+
+  if (!dictionaryId || !exists) {
+    // Busca por texto para evitar duplicidade manual (caso tenha sido deletado e reencontrado por texto)
+    const existingEntry = dictionary.find(e => 
+      e.word.toLowerCase().trim() === card.front.toLowerCase().trim() && 
+      e.translation.toLowerCase().trim() === card.back.toLowerCase().trim()
+    );
+
+    if (existingEntry) {
+      dictionaryId = existingEntry.id;
+    } else {
+      // Ressurgência: Adiciona nova entrada no dicionário
+      dictionaryId = addOrUpdateDictionaryEntry({
+        ...card,
+        isMemorized: card.isMemorized || false
+      });
     }
   }
+
+  return dictionaryId;
 };
 
 // Função de limpeza total (Remover se quiser desabilitar o nuclear reset)

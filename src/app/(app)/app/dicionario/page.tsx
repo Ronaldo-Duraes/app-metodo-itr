@@ -15,15 +15,35 @@ export default function DicionarioPage() {
   const [wordToDelete, setWordToDelete] = useState<DictionaryEntry | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<'recent' | 'oldest' | 'alphabetical'>('recent');
 
   const loadData = () => {
     const data = getDictionary();
-    setDictionary([...data].sort((a, b) => a.translation.localeCompare(b.translation)));
+    let sorted = [...data];
+    
+    if (sortMode === 'recent') {
+      // Mais recentes primeiro (decrescente por data)
+      sorted.sort((a, b) => new Date(b.dateAdded || 0).getTime() - new Date(a.dateAdded || 0).getTime());
+    } else if (sortMode === 'oldest') {
+      // Mais antigas primeiro (crescente por data)
+      sorted.sort((a, b) => new Date(a.dateAdded || 0).getTime() - new Date(b.dateAdded || 0).getTime());
+    } else if (sortMode === 'alphabetical') {
+      // Ordem Alfabética (A-Z)
+      sorted.sort((a, b) => a.translation.localeCompare(b.translation));
+    }
+    
+    setDictionary(sorted);
+  };
+
+  const cycleSortMode = () => {
+    if (sortMode === 'recent') setSortMode('oldest');
+    else if (sortMode === 'oldest') setSortMode('alphabetical');
+    else setSortMode('recent');
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [sortMode]);
 
   const handleEditClick = (item: DictionaryEntry) => {
     setEditingWord(item);
@@ -123,8 +143,16 @@ export default function DicionarioPage() {
             className="w-full bg-white/5 border border-white/10 p-4 pl-12 text-sm font-bold tracking-widest focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-700 shadow-inner"
           />
         </div>
-        <button className="bg-white/5 border border-white/10 px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-emerald-500/30 transition-all flex items-center gap-3">
-          <Filter size={16} /> Filtros
+        <button 
+          onClick={cycleSortMode}
+          className={`px-8 py-4 text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 border ${
+            sortMode === 'alphabetical' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 
+            sortMode === 'oldest' ? 'bg-white/10 border-white/20 text-white' : 
+            'bg-white/5 border-white/10 text-slate-400'
+          } hover:border-emerald-500/30`}
+        >
+          <Filter size={16} /> 
+          <span>ORDEM: {sortMode === 'recent' ? 'RECENTES' : sortMode === 'oldest' ? 'ANTIGAS' : 'A-Z'}</span>
         </button>
       </div>
 

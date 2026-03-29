@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, ArrowRight, CheckCircle2, Trophy, Clock, Brain } from 'lucide-react';
-import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound } from '@/lib/srs';
+import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound, ensureCardInDictionary } from '@/lib/srs';
 import { Flashcard, ReviewInterval } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -46,6 +46,10 @@ export default function EstudarPage() {
 
   const handleReview = (interval: ReviewInterval) => {
     if (!currentCard) return;
+    
+    // Lógica Obrigatória: Sincronização Hand-off (Resgate se deletado)
+    console.log('Sincronizando com dicionário:', currentCard.front);
+    ensureCardInDictionary(currentCard.id);
     
     updateCardReview(currentCard.id, interval);
     playBlipSound();
