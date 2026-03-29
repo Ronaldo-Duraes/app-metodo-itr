@@ -2,16 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, ArrowRight, CheckCircle2, Trophy, Clock, Brain, BookOpen, Repeat, ShieldCheck, ZapOff } from 'lucide-react';
+import { X, CheckCircle2, Trophy, Clock, Brain, ShieldCheck, ZapOff } from 'lucide-react';
 import { getCards, getPriorityCards, updateCardReview, playBlipSound, playVictorySound, ensureCardInDictionary, getDecks } from '@/lib/srs';
 import { Flashcard, ReviewInterval } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import StudyModeModal from '@/components/study/StudyModeModal';
 
 export default function EstudarPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const deckId = searchParams.get('deck');
+  const initialMode = searchParams.get('mode') as 'srs' | 'manual' | null;
   
   const [pile, setPile] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -20,7 +22,9 @@ export default function EstudarPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFreeStudy, setIsFreeStudy] = useState(false);
   const [deckName, setDeckName] = useState<string | null>(null);
-  const [studyMode, setStudyMode] = useState<'srs' | 'manual' | null>(null);
+  
+  // O modo de estudo agora pode vir via query param ou ser selecionado no modal interno (fallback)
+  const [studyMode, setStudyMode] = useState<'srs' | 'manual' | null>(initialMode);
 
   useEffect(() => {
     const isFree = !!deckId;
@@ -28,14 +32,9 @@ export default function EstudarPage() {
 
     try {
       const allCards = getCards();
-      // getPriorityCards já lida internamente com o filtro de memorizado
       const sorted = getPriorityCards(allCards, deckId || undefined);
       
-      if (!sorted || sorted.length === 0) {
-        setPile([]);
-      } else {
-        setPile(sorted);
-      }
+      setPile(sorted || []);
 
       const decks = getDecks();
       const deck = decks.find((d: any) => d.id === deckId || d.name === deckId);
@@ -48,25 +47,30 @@ export default function EstudarPage() {
     setIsLoading(false);
   }, [deckId]);
 
+  // Sincronizar studyMode se o searchParam mudar (embora improvável no fluxo normal)
+  useEffect(() => {
+    if (initialMode && studyMode !== initialMode) {
+      setStudyMode(initialMode);
+    }
+  }, [initialMode]);
+
   const currentCard = pile[currentIndex];
 
   const handleReview = (interval: ReviewInterval) => {
     if (!currentCard) return;
     
-    // Modo Manual: Não persiste no banco
+    // MODO MANUAL: Não persiste no banco de dados e repete o card se for Difícil
     if (studyMode === 'manual') {
-      if (interval === '1h') { // DIFÍCIL
+      if (interval === '1h') { 
         const newPile = [...pile];
         const card = newPile.splice(currentIndex, 1)[0];
         setPile([...newPile, card]);
-        // Não incrementamos o currentIndex porque o próximo card "sobe" para a posição atual
         setIsRevealed(false);
         playBlipSound();
         return; 
       }
-      // Fácil apenas prossegue (será considerado concluído ao final)
     } else {
-      // Modo SRS Inteligente: Persiste progresso
+      // MODO SRS: Inteligente com persistência
       ensureCardInDictionary(currentCard.id);
       updateCardReview(currentCard.id, interval);
     }
@@ -82,7 +86,7 @@ export default function EstudarPage() {
     }
   };
 
-  // 1. ESTADO DE CARREGAMENTO
+  // 1. CARREGAMENTO INICIAL
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center font-black text-white uppercase tracking-[0.5em]">
@@ -91,78 +95,7 @@ export default function EstudarPage() {
     );
   }
 
-  // 2. PILHA VAZIA (SÓ SE NÃO TIVER TERMINADO)
-  if (pile.length === 0 && !isFinished) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 text-center font-outfit">
-        <div className="mb-8 p-6 bg-white/[0.02] border border-white/10 rounded-full">
-          <CheckCircle2 size={64} className="text-emerald-500" />
-        </div>
-        <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Vazia</h1>
-        <p className="text-slate-500 uppercase font-bold tracking-widest max-w-sm mb-12">
-          {isFreeStudy 
-            ? "Não há cards neste baralho para praticar." 
-            : "Não há cards pendentes agora. Sua consistência é lendária."}
-        </p>
-        <Link href="/app">
-          <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all">
-            Voltar ao QG
-          </button>
-        </Link>
-      </div>
-    );
-  }
-
-  // 3. SELEÇÃO DE MODO (ANTES DE COMEÇAR)
-  if (!studyMode && !isFinished) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 font-outfit relative overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-2xl text-center z-10"
-        >
-          <div className="mb-12">
-            <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.5em] mb-4">Configuração de Foco</h2>
-            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">O que vamos treinar hoje?</h1>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            <button 
-              onClick={() => { playBlipSound(); setStudyMode('srs'); }}
-              className="group p-8 border-2 border-emerald-500/30 bg-white/[0.02] hover:bg-emerald-500/10 hover:border-emerald-500 transition-all flex flex-col items-center text-center"
-            >
-              <ShieldCheck size={48} className="text-emerald-500 mb-6 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xl font-black text-white uppercase mb-2">SRS Inteligente</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                Usa o algoritmo ITR para memorização definitiva e salva seu progresso.
-              </p>
-            </button>
-
-            <button 
-              onClick={() => { playBlipSound(); setStudyMode('manual'); }}
-              className="group p-8 border-2 border-white/10 bg-white/[0.01] hover:bg-white/[0.05] hover:border-white/30 transition-all flex flex-col items-center text-center"
-            >
-              <ZapOff size={48} className="text-slate-500 mb-6 group-hover:scale-110 transition-transform group-hover:text-white" />
-              <h3 className="text-xl font-black text-white uppercase mb-2">Modo Manual</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                Para revisão rápida sem alteração técnica. Não salva dados no banco.
-              </p>
-            </button>
-          </div>
-
-          <button 
-            onClick={() => router.push('/app')}
-            className="mt-12 text-[10px] font-black text-slate-600 hover:text-white uppercase tracking-[0.4em] transition-colors"
-          >
-            Cancelar Treinamento
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // 4. SESSÃO CONCLUÍDA
+  // 2. CONTEXTO DE SESSÃO ENCERRADA (VITÓRIA)
   if (isFinished) {
     return (
       <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 text-center font-outfit">
@@ -185,14 +118,15 @@ export default function EstudarPage() {
                 setCurrentIndex(0);
                 setIsFinished(false);
                 setIsRevealed(false);
-                setStudyMode(null);
+                // NOTA: Se viemos com modo fixo via URL, mantemos. Se era fallback local, limpamos.
+                if (!initialMode) setStudyMode(null);
               }}
               className="px-12 py-4 bg-emerald-500 text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-[0_0_50px_rgba(16,185,129,0.2)]"
             >
-              Voltar ao Início
+              Reiniciar Estudo
             </button>
             <Link href="/app">
-              <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+              <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all">
                 Retornar ao QG
               </button>
             </Link>
@@ -202,7 +136,41 @@ export default function EstudarPage() {
     );
   }
 
-  // 5. INTERFACE DE ESTUDO ATIVA
+  // 3. SEM CARDS PARA ESTUDAR
+  if (pile.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 text-center font-outfit">
+        <div className="mb-8 p-6 bg-white/[0.02] border border-white/10 rounded-full">
+          <CheckCircle2 size={64} className="text-emerald-500" />
+        </div>
+        <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Vazia</h1>
+        <p className="text-slate-500 uppercase font-bold tracking-widest max-w-sm mb-12">
+          {isFreeStudy 
+            ? "Não há cards neste baralho para praticar no momento." 
+            : "Sua fila de revisão está limpa. Maestria alcançada."}
+        </p>
+        <Link href="/app">
+          <button className="px-12 py-4 bg-white text-black font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all">
+            Voltar ao Dashboard
+          </button>
+        </Link>
+      </div>
+    );
+  }
+
+  // 4. FALLBACK: MODAL DE SELEÇÃO (SE NÃO VEIO VIA URL)
+  if (!studyMode) {
+    return (
+      <StudyModeModal 
+        isOpen={true}
+        onClose={() => router.push('/app')}
+        onSelect={(mode) => setStudyMode(mode)}
+        title={deckName ? `Estudar: ${deckName}` : "O que vamos treinar hoje?"}
+      />
+    );
+  }
+
+  // 5. INTERFACE DE ESTUDO (MAESTRIA)
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center p-8 md:p-12 font-outfit relative overflow-hidden">
       
@@ -215,7 +183,7 @@ export default function EstudarPage() {
           <div className="h-10 w-[1px] bg-white/10" />
           <div>
             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
-              Foco: {deckName || 'Geral'} ({studyMode?.toUpperCase()})
+              Foco: {deckName || 'Geral'} ({studyMode.toUpperCase()})
             </span>
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
@@ -231,7 +199,7 @@ export default function EstudarPage() {
         </div>
         
         <div className="hidden md:block">
-           <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Protocolo ITR v2.2</span>
+           <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest opacity-40">Protocolo de Maestria ITR</span>
         </div>
       </header>
 
@@ -258,7 +226,7 @@ export default function EstudarPage() {
               <div className="w-full max-w-4xl flex flex-col items-center text-center">
                 <div className="mb-6">
                   <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">Termo Original</span>
-                  <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">
+                  <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
                     {currentCard.front}
                   </h3>
                 </div>
@@ -285,7 +253,7 @@ export default function EstudarPage() {
                       </h4>
                       {currentCard.association && (
                         <div className="max-w-2xl p-6 bg-white/5 border border-white/10 mt-2">
-                           <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Mnemonic</span>
+                           <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Associação Sugerida</span>
                            <p className="text-lg md:text-xl font-bold text-white/60 uppercase leading-relaxed italic text-center">
                              "{currentCard.association}"
                            </p>
@@ -312,14 +280,14 @@ export default function EstudarPage() {
                           className="flex-1 flex flex-col items-center justify-center py-8 border-2 border-red-500/20 bg-white/[0.02] hover:bg-red-500/10 transition-all group"
                         >
                           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white">DIFÍCIL</span>
-                          <span className="text-lg font-black uppercase text-red-500 group-hover:text-white">Repetir Depois</span>
+                          <span className="text-lg font-black uppercase text-red-500 group-hover:text-white leading-none">Repetir</span>
                         </button>
                         <button 
                           onClick={() => handleReview('1d')}
                           className="flex-1 flex flex-col items-center justify-center py-8 border-2 border-emerald-500/20 bg-white/[0.02] hover:bg-emerald-500/10 transition-all group"
                         >
                           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white">FÁCIL</span>
-                          <span className="text-lg font-black uppercase text-emerald-500 group-hover:text-white">Entendido</span>
+                          <span className="text-lg font-black uppercase text-emerald-500 group-hover:text-white leading-none">Dominei</span>
                         </button>
                       </>
                     ) : (
@@ -328,7 +296,7 @@ export default function EstudarPage() {
                           { top: '< 1 HORA', bottom: 'REVISAR', interval: '1h' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
                           { top: '< 1 DIA', bottom: 'PRATICAR', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
                           { top: '< 4 DIAS', bottom: 'FIXAR', interval: '4d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
-                          { top: 'MEMORIZADO', bottom: 'MASTER', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
+                          { top: 'MEMORIZADO', bottom: 'MAESTRIA', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
                         ].map((opt) => (
                           <button 
                             key={opt.interval}
@@ -353,10 +321,10 @@ export default function EstudarPage() {
       <footer className="w-full max-w-4xl mt-12 pt-8 border-t border-white/5 relative z-10 flex justify-between items-center opacity-30">
         <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-slate-500">
           <Clock size={12} />
-          {studyMode === 'manual' ? 'Manual review session' : 'Spaced Repetition Motor active'}
+          {studyMode === 'manual' ? 'MODO MANUAL ATIVO' : 'SISTEMA SRS ATIVO'}
         </div>
         <div className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-500">
-           Método ITR © 2026
+           Método ITR v2.2
         </div>
       </footer>
     </div>

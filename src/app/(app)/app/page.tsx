@@ -5,10 +5,14 @@ import { motion } from 'framer-motion';
 import { getCards, getPriorityCards } from '@/lib/srs';
 import { Play, Zap, CheckCircle2, Shield, Book, BookOpen as BookIcon, Video, Lightbulb, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Flashcard } from '@/lib/types';
+import StudyModeModal from '@/components/study/StudyModeModal';
 
 export default function HomePage() {
+  const router = useRouter();
   const [allCards, setAllCards] = useState<Flashcard[]>([]);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
  
   useEffect(() => {
     // Carregar dados de cards
@@ -48,8 +52,11 @@ export default function HomePage() {
 
           {/* AÇÃO PRIORITÁRIA BUTTON / EMPTY STATE */}
           {pendingCount > 0 ? (
-            <Link href="/app/estudar" className="w-full">
-              <button className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+            <div className="w-full">
+              <button 
+                onClick={() => setIsModeModalOpen(true)}
+                className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]"
+              >
                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                   <Zap size={48} className="text-emerald-500" />
                 </div>
@@ -75,7 +82,13 @@ export default function HomePage() {
                   </div>
                 </div>
               </button>
-            </Link>
+
+              <StudyModeModal 
+                isOpen={isModeModalOpen}
+                onClose={() => setIsModeModalOpen(false)}
+                onSelect={(mode) => router.push(`/app/estudar?mode=${mode}`)}
+              />
+            </div>
           ) : (
             <div className="w-full p-16 border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center">
               <div className="mb-8 p-6 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">

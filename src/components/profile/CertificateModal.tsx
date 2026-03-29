@@ -43,11 +43,31 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
   const handleDownload = async () => {
     if (certificateRef.current) {
       try {
+        // Garantir que todas as fontes foram carregadas antes da captura
+        await document.fonts.ready;
+        
+        // Delay estratégico para sincronização de renderização (layout e estilos Tailwind)
+        await new Promise(resolve => setTimeout(resolve, 150));
+
         const canvas = await html2canvas(certificateRef.current, {
-          backgroundColor: '#000',
-          scale: 2, // High quality
-          logging: false,
-          useCORS: true
+          backgroundColor: null,
+          scale: 2,
+          logging: true, // Habilitado para diagnóstico
+          useCORS: true,
+          allowTaint: true,
+          foreignObjectRendering: true,
+          imageTimeout: 0, // Esperar indefinidamente pelo carregamento das imagens
+          width: certificateRef.current.offsetWidth,
+          height: certificateRef.current.offsetHeight,
+          onclone: (clonedDoc) => {
+            const el = clonedDoc.getElementById('certificate-content');
+            if (el) {
+              el.style.display = 'flex'; // Garante visibilidade
+              el.style.opacity = '1';
+              el.style.transform = 'none'; // Remove escalas/animações que quebram o html2canvas
+              el.style.visibility = 'visible';
+            }
+          }
         });
         const image = canvas.toDataURL("image/png");
         const link = document.createElement('a');
@@ -125,6 +145,7 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
         {/* Certificate Container (The part to be captured) */}
         <div 
           ref={certificateRef}
+          id="certificate-content"
           className={`w-full h-full flex flex-col items-center justify-center p-12 border-4 ${current.border} ${current.bg} ${current.glow} relative overflow-hidden`}
         >
           {/* Decorative Corner Details */}

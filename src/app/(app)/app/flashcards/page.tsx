@@ -7,6 +7,7 @@ import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDe
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import StudyModeModal from '@/components/study/StudyModeModal';
 
 // --- COMPONENTE: DECK SELECTOR CUSTOM (INDUSTRIAL) ---
 interface DeckSelectorProps {
@@ -139,6 +140,8 @@ export default function FlashcardsPage() {
   const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '' });
   
   const [isLoading, setIsLoading] = useState(true);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [targetStudyDeckId, setTargetStudyDeckId] = useState<string | null>(null);
   
   // DECK EDITOR STATE
   const [viewingDeck, setViewingDeck] = useState<Deck | null>(null);
@@ -490,7 +493,8 @@ export default function FlashcardsPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (deckCards.length > 0) {
-                                router.push(`/app/estudar?deck=${deck.id}`);
+                                setTargetStudyDeckId(deck.id);
+                                setIsModeModalOpen(true);
                               }
                             }}
                             className={`absolute inset-0 w-full h-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center opacity-0 group-hover/play:opacity-100 transition-all scale-75 group-hover/play:scale-100 cursor-pointer ${deckCards.length === 0 ? 'cursor-not-allowed opacity-0 group-hover/play:opacity-40 grayscale' : ''}`}
@@ -641,7 +645,10 @@ export default function FlashcardsPage() {
                 <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
                   {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
                     <button 
-                      onClick={() => router.push(`/app/estudar?deck=${viewingDeck.id}`)}
+                      onClick={() => {
+                        setTargetStudyDeckId(viewingDeck.id);
+                        setIsModeModalOpen(true);
+                      }}
                       className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
                     >
                       <Play size={14} fill="currentColor" />
@@ -1053,6 +1060,23 @@ export default function FlashcardsPage() {
 
 
       </AnimatePresence>
+      
+      {/* MODAL: SELEÇÃO DE MODO (UNIFICADO) */}
+      <StudyModeModal 
+        isOpen={isModeModalOpen}
+        onClose={() => {
+          setIsModeModalOpen(false);
+          setTargetStudyDeckId(null);
+        }}
+        onSelect={(mode) => {
+          const url = targetStudyDeckId 
+            ? `/app/estudar?deck=${targetStudyDeckId}&mode=${mode}`
+            : `/app/estudar?mode=${mode}`;
+          router.push(url);
+          setIsModeModalOpen(false);
+          setTargetStudyDeckId(null);
+        }}
+      />
     </div>
   );
 }
