@@ -20,6 +20,7 @@ export default function HomePage() {
   }, [allCards]);
 
   const pendingCount = priorityCards.length;
+  const activeCount = allCards.length; // allCards já vem de getCards() que lê o dicionário
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col items-center py-8 md:py-16 font-outfit relative overflow-hidden">
@@ -87,6 +88,17 @@ export default function HomePage() {
               </p>
             </div>
           )}
+
+          <div className="mt-12 flex items-center justify-center gap-12 border-t border-white/5 pt-12 w-full">
+            <div className="text-center">
+              <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase block mb-2">Cards Ativos</span>
+              <h3 className="text-4xl font-black text-white tracking-tighter">{activeCount}</h3>
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase block mb-2">Sprints Concluídas</span>
+              <h3 className="text-4xl font-black text-white tracking-tighter">02</h3>
+            </div>
+          </div>
 
           <div className="mt-12 text-center opacity-10 hover:opacity-100 transition-opacity cursor-default w-full">
             <p className="text-[9px] font-black text-white uppercase tracking-[1em]">Sistema SRS de Elite v2.2</p>

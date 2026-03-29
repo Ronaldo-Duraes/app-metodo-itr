@@ -14,6 +14,7 @@ import {
   setVocabularySprint,
   resetSprintProgress
 } from '@/lib/srs';
+import ResetSprintModal from '@/components/ResetSprintModal';
 
 export default function VocabularyPage() {
   const router = useRouter(); 
@@ -21,6 +22,7 @@ export default function VocabularyPage() {
   const [progress, setProgress] = useState<string[]>([]);
   const [activeSprint, setActiveSprint] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   
   // Drag-to-scroll logic
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -93,13 +95,14 @@ export default function VocabularyPage() {
   };
 
   const handleResetSprint = () => {
-    if (confirm(`Deseja resetar o progresso do Sprint ${activeSprint}? Isso removerá as palavras deste sprint do seu dicionário pessoal.`)) {
-      const wordIds = currentSprintWords.map(w => w.id);
-      const wordData = currentSprintWords.map(w => ({ en: w.en, pt: w.pt }));
-      resetSprintProgress(wordIds, wordData);
-      setProgress(getVocabularyProgress());
-      alert(`Progresso do Sprint ${activeSprint} resetado.`);
-    }
+    setIsResetModalOpen(true);
+  };
+
+  const confirmReset = () => {
+    const wordIds = currentSprintWords.map(w => w.id);
+    const wordData = currentSprintWords.map(w => ({ en: w.en, pt: w.pt }));
+    resetSprintProgress(wordIds, wordData);
+    setProgress(getVocabularyProgress());
   };
 
   const changeSprint = (s: number) => {
@@ -260,6 +263,12 @@ export default function VocabularyPage() {
           </AnimatePresence>
         </div>
       </div>
+      <ResetSprintModal 
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={confirmReset}
+        sprintNumber={activeSprint}
+      />
     </div>
   );
 }

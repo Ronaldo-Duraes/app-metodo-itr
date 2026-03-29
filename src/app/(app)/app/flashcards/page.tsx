@@ -265,13 +265,13 @@ export default function FlashcardsPage() {
         return;
       }
       const d = addDeck(newDeckName);
-      addFullCard(front, back, association, d.name, skipDictionary);
+      addFullCard(front, back, association, d.name);
     } else {
       if (!front || !back || !deckName) {
         setShowErrors(true);
         return;
       }
-      addFullCard(front, back, association, deckName, skipDictionary);
+      addFullCard(front, back, association, deckName);
     }
 
     setNewCardData({ front: '', back: '', association: '', deckName: '' });
@@ -331,7 +331,7 @@ export default function FlashcardsPage() {
       front: editingCard.front,
       back: editingCard.back,
       association: editingCard.association
-    }, skipDictionary);
+    });
     setIsEditCardModalOpen(false);
     setEditingCard(null);
     setSkipDictionary(false);

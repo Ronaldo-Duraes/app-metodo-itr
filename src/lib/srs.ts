@@ -12,7 +12,9 @@ export const getAppData = (): AppData => {
       soundEnabled: true
     },
     decks: [],
-    dictionary: []
+    dictionary: [],
+    vocabularyProgress: [],
+    currentSprint: 1
   };
 
   if (typeof window === 'undefined') return defaultData;
@@ -24,9 +26,55 @@ export const getAppData = (): AppData => {
       return defaultData;
     }
     const data = JSON.parse(stored);
+    
+    // Safety checks for missing fields
     if (!data.decks) data.decks = [];
     if (!data.dictionary) data.dictionary = [];
     if (!data.profile) data.profile = defaultData.profile;
+    if (!data.vocabularyProgress) data.vocabularyProgress = [];
+
+    // --- MIGRATION: cards -> dictionary (Legacy Cleanup) ---
+    if (data.cards && data.cards.length > 0) {
+      data.cards.forEach((card: Flashcard) => {
+        const existingIndex = data.dictionary.findIndex((e: DictionaryEntry) => 
+          e.word.toLowerCase().trim() === card.front.toLowerCase().trim()
+        );
+        
+        if (existingIndex >= 0) {
+          const entry = data.dictionary[existingIndex];
+          // Merge SRS data if the legacy card has more progress
+          if (!entry.nextReview || (card.lastReviewed && (!entry.lastReviewed || new Date(card.lastReviewed) > new Date(entry.lastReviewed)))) {
+            data.dictionary[existingIndex] = {
+              ...entry,
+              nextReview: card.nextReview,
+              lastReviewed: card.lastReviewed,
+              interval: card.interval,
+              reviewedCount: card.reviewedCount,
+              deck: card.deck,
+              association: card.association || entry.association
+            };
+          }
+        } else {
+          data.dictionary.push({
+            id: card.dictionaryId || `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            word: card.front,
+            translation: card.back,
+            dateAdded: new Date().toISOString(),
+            isMemorized: card.isMemorized || false,
+            usageFrequency: 1,
+            nextReview: card.nextReview,
+            lastReviewed: card.lastReviewed,
+            interval: card.interval,
+            reviewedCount: card.reviewedCount,
+            deck: card.deck,
+            association: card.association
+          });
+        }
+      });
+      data.cards = []; // Clear migrated data
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
     return data;
   } catch (e) {
     console.error("Failed to parse AppData from localStorage", e);
@@ -43,467 +91,264 @@ export const saveAppData = (data: AppData) => {
   }
 };
 
-export const getCards = (): Flashcard[] => getAppData().cards;
+// --- CORE SRS SELECTORS (DICTIONARY-BASED) ---
+
+export const getCards = (): Flashcard[] => {
+  const dictionary = getDictionary();
+  return dictionary.map(e => ({
+    id: e.id,
+    front: e.word,
+    back: e.translation,
+    association: e.association,
+    nextReview: e.nextReview || new Date().toISOString(),
+    lastReviewed: e.lastReviewed || null,
+    interval: e.interval || 0,
+    reviewedCount: e.reviewedCount || 0,
+    isLearned: e.isMemorized || (e.reviewedCount || 0) > 5,
+    isMemorized: e.isMemorized,
+    deck: e.deck,
+    dictionaryId: e.id
+  }));
+};
 
 export const saveCards = (cards: Flashcard[]) => {
-  const data = getAppData();
-  saveAppData({ ...data, cards });
+  console.warn("saveCards is deprecated. Use updateCard or dictionary functions directly.");
 };
+
+export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
+  const now = new Date();
+  const dictionary = getDictionary();
+  let filtered = dictionary.filter(e => !e.isMemorized);
+
+  if (deckID) {
+    const decks = getDecks();
+    const targetDeck = decks.find(d => d.id === deckID || d.name === deckID);
+    if (targetDeck) {
+      filtered = filtered.filter(e => e.deck === targetDeck.name || e.deck === targetDeck.id);
+    } else {
+      filtered = filtered.filter(e => e.deck === deckID);
+    }
+  }
+
+  return filtered
+    .filter(e => {
+      const isNew = !e.lastReviewed || !e.reviewedCount;
+      const isOverdue = e.nextReview ? new Date(e.nextReview) <= now : true;
+      return isNew || isOverdue;
+    })
+    .sort((a, b) => {
+      const isANew = !a.lastReviewed;
+      const isBNew = !b.lastReviewed;
+      if (!isANew && !isBNew) return new Date(a.nextReview!).getTime() - new Date(b.nextReview!).getTime();
+      if (isANew && isBNew) return a.id.localeCompare(b.id);
+      return isANew ? 1 : -1;
+    })
+    .map(e => ({
+      id: e.id,
+      front: e.word,
+      back: e.translation,
+      association: e.association,
+      nextReview: e.nextReview || now.toISOString(),
+      lastReviewed: e.lastReviewed || null,
+      interval: e.interval || 0,
+      reviewedCount: e.reviewedCount || 0,
+      isLearned: e.isMemorized || (e.reviewedCount || 0) > 5,
+      isMemorized: e.isMemorized,
+      deck: e.deck,
+      dictionaryId: e.id
+    }));
+};
+
+export const getTodayPendingCards = (cards: Flashcard[]) => getPriorityCards(cards);
+
+// --- UPDATERS ---
+
+export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
+  const dictionary = getDictionary();
+  const updated = dictionary.map(e => {
+    if (e.id === cardId) {
+      return {
+        ...e,
+        word: updates.front || e.word,
+        translation: updates.back || e.translation,
+        deck: updates.deck || e.deck,
+        association: updates.association || e.association,
+        isMemorized: updates.isMemorized !== undefined ? updates.isMemorized : e.isMemorized,
+        nextReview: updates.nextReview || e.nextReview,
+        lastReviewed: updates.lastReviewed || e.lastReviewed,
+        interval: updates.interval || e.interval,
+        reviewedCount: updates.reviewedCount || e.reviewedCount
+      };
+    }
+    return e;
+  });
+  saveDictionary(updated);
+};
+
+export const updateCardReview = (cardId: string, intervalType: ReviewInterval) => {
+  const dictionary = getDictionary();
+  const now = new Date();
+  
+  let mins = 0;
+  let isMemorized = false;
+  switch (intervalType) {
+    case '10m': mins = 10; break;
+    case '1h': mins = 60; break;
+    case '1d': mins = 1440; break;
+    case '4d': mins = 5760; break;
+    case '7d': mins = 10080; break;
+    case '30d': mins = 43200; break;
+    case 'memorized': isMemorized = true; break;
+  }
+
+  const nextDate = isMemorized 
+    ? new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000) 
+    : new Date(now.getTime() + mins * 60 * 1000);
+
+  const updated = dictionary.map(e => {
+    if (e.id === cardId) {
+      return {
+        ...e,
+        isMemorized: isMemorized || e.isMemorized,
+        nextReview: nextDate.toISOString(),
+        lastReviewed: now.toISOString(),
+        interval: mins,
+        reviewedCount: (e.reviewedCount || 0) + 1
+      };
+    }
+    return e;
+  });
+  saveDictionary(updated);
+};
+
+export const updateCardAssociation = (cardId: string, association: string) => {
+  updateCard(cardId, { association } as any);
+};
+
+export const addFullCard = (front: string, back: string, association: string, deckName: string) => {
+  const dictionary = getDictionary();
+  const existingIndex = dictionary.findIndex(e => e.word.toLowerCase().trim() === front.toLowerCase().trim());
+
+  if (existingIndex >= 0) {
+    const entry = dictionary[existingIndex];
+    dictionary[existingIndex] = { ...entry, translation: back, deck: deckName, association, isMemorized: false };
+    saveDictionary(dictionary);
+    return entry;
+  } else {
+    const newEntry: DictionaryEntry = {
+      id: `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      word: front,
+      translation: back,
+      dateAdded: new Date().toISOString(),
+      isMemorized: false,
+      usageFrequency: 1,
+      nextReview: new Date().toISOString(),
+      lastReviewed: null,
+      interval: 0,
+      reviewedCount: 0,
+      deck: deckName,
+      association: association
+    };
+    saveDictionary([...dictionary, newEntry]);
+    
+    const profile = getUserProfile();
+    saveUserProfile({ ...profile, totalWordsAdded: (profile.totalWordsAdded || 0) + 1 });
+    return newEntry;
+  }
+};
+
+export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {
+  return addFullCard(front, back, association, deck);
+};
+
+export const deleteCard = (cardId: string) => deleteDictionaryEntry(cardId);
+
+// --- DICTIONARY & PROGRESS ---
+
+export const getDictionary = (): DictionaryEntry[] => getAppData().dictionary || [];
+
+export const getDictionaryCount = (): number => getDictionary().length;
+
+export const saveDictionary = (dictionary: DictionaryEntry[]) => {
+  const data = getAppData();
+  saveAppData({ ...data, dictionary });
+};
+
+export const updateDictionaryEntry = (id: string, word: string, translation: string) => {
+  const dictionary = getDictionary();
+  const updated = dictionary.map(e => (e.id === id ? { ...e, word, translation } : e));
+  saveDictionary(updated);
+};
+
+export const deleteDictionaryEntry = (id: string) => {
+  const dictionary = getDictionary();
+  saveDictionary(dictionary.filter(e => e.id !== id));
+};
+
+export const getVocabularyProgress = (): string[] => {
+  return getDictionary().filter(e => e.isMemorized).map(e => e.id);
+};
+
+export const toggleVocabularyMemorized = (word: { id: string, en: string, pt: string }) => {
+  const dictionary = getDictionary();
+  const existing = dictionary.find(e => e.word.toLowerCase().trim() === word.en.toLowerCase().trim());
+  
+  if (existing) {
+    if (existing.isMemorized) {
+      updateCard(existing.id, { isMemorized: false } as any);
+      return false;
+    } else {
+      updateCard(existing.id, { isMemorized: true } as any);
+      return true;
+    }
+  } else {
+    addFullCard(word.en, word.pt, '', 'Vocabulário Essencial');
+    const newlyAdded = getDictionary().find(e => e.word.toLowerCase().trim() === word.en.toLowerCase().trim());
+    if (newlyAdded) updateCard(newlyAdded.id, { isMemorized: true } as any);
+    return true;
+  }
+};
+
+export const getCurrentSprint = (): number => getAppData().currentSprint || 1;
+
+export const setVocabularySprint = (sprint: number) => {
+  const data = getAppData();
+  saveAppData({ ...data, currentSprint: sprint });
+};
+
+export const generateSprintCards = (words: { en: string, pt: string, category: string }[], sprintIndex: number) => {
+  const decks = getDecks();
+  const baseName = `Vocabulário ITR - Sprint ${sprintIndex}`;
+  let deckName = baseName;
+  let counter = 2;
+  while (decks.some(d => d.name === deckName)) {
+    deckName = `${baseName} - ${counter}`;
+    counter++;
+  }
+  addDeck(deckName);
+  words.forEach(word => addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName));
+  return deckName; 
+};
+
+export const resetSprintProgress = (wordIds: string[], words: { en: string, pt: string }[]) => {
+  const dictionary = getDictionary();
+  const filtered = dictionary.filter(e => {
+    return !words.some(w => e.word.toLowerCase().trim() === w.en.toLowerCase().trim());
+  });
+  saveDictionary(filtered);
+};
+
+// --- PROFILE & PATENTES ---
 
 export const getUserProfile = (): UserProfile => {
   const profile = getAppData().profile;
-  if (profile.soundEnabled === undefined) {
-    return { ...profile, soundEnabled: true };
-  }
-  return profile;
+  return { ...profile, soundEnabled: profile.soundEnabled ?? true };
 };
 
 export const saveUserProfile = (profile: UserProfile) => {
   const data = getAppData();
   saveAppData({ ...data, profile });
 };
-
-export const getDecks = (): Deck[] => getAppData().decks;
-
-export const saveDecks = (decks: Deck[]) => {
-  const data = getAppData();
-  saveAppData({ ...data, decks });
-};
-
-export const addDeck = (name: string) => {
-  const decks = getDecks();
-  const newDeck: Deck = {
-    id: `deck-${Date.now()}`,
-    name
-  };
-  saveDecks([...decks, newDeck]);
-  return newDeck;
-};
-
-export const renameDeck = (deckId: string, newName: string) => {
-  const decks = getDecks();
-  const updatedDecks = decks.map(d => d.id === deckId ? { ...d, name: newName } : d);
-  saveDecks(updatedDecks);
-
-  // Opcional: Atualizar o nome do deck nos cards se estiver usando o nome como referência?
-  // Atualmente o filtro no UI usa 'deck.name || deck.id'. 
-  // É melhor manter a consistência.
-  const cards = getCards();
-  const updatedCards = cards.map(c => {
-    const deck = decks.find(d => d.id === deckId);
-    if (c.deck === deck?.name) return { ...c, deck: newName };
-    return c;
-  });
-  saveCards(updatedCards);
-};
-
-export const deleteDeck = (deckId: string) => {
-  const decks = getDecks();
-  const deckToDelete = decks.find(d => d.id === deckId);
-  if (!deckToDelete) return;
-
-  const updatedDecks = decks.filter(d => d.id !== deckId);
-  saveDecks(updatedDecks);
-
-  // IMPORTANTE: Remover todos os cards deste deck
-  const cards = getCards();
-  const updatedCards = cards.filter(c => c.deck !== deckToDelete.name && c.deck !== deckToDelete.id);
-  saveCards(updatedCards);
-};
-
-export const addFullCard = (front: string, back: string, association: string, deckName: string, skipDictionary: boolean = false) => {
-  const cards = getCards();
-  let dictionaryId: string | undefined = undefined;
-  
-  if (!skipDictionary) {
-    const dictionary = getDictionary();
-    const existingEntry = dictionary.find(e => 
-      e.word.toLowerCase().trim() === front.toLowerCase().trim() && 
-      e.translation.toLowerCase().trim() === back.toLowerCase().trim()
-    );
-
-    if (existingEntry) {
-      dictionaryId = existingEntry.id;
-    } else {
-      dictionaryId = addOrUpdateDictionaryEntry({ front, back, isMemorized: false } as Flashcard);
-    }
-  }
-
-  const newCard: Flashcard = {
-    id: `card-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    front,
-    back,
-    association,
-    lastReviewed: null,
-    interval: 0,
-    nextReview: new Date().toISOString(),
-    reviewedCount: 0,
-    isLearned: false,
-    deck: deckName,
-    dictionaryId
-  };
-  
-  saveCards([...cards, newCard]);
-  return newCard;
-};
-
-export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {
-  const cards = getCards();
-  const newCard: Flashcard = {
-    id: Math.random().toString(36).substr(2, 9),
-    front,
-    back,
-    association,
-    nextReview: new Date().toISOString(),
-    lastReviewed: null,
-    interval: 0,
-    reviewedCount: 0,
-    isLearned: true, // Já conta como masterizada para evolução da patente
-    deck,
-  };
-  saveCards([...cards, newCard]);
-};
-
-export const calculateNextReview = (interval: ReviewInterval): Date => {
-  const now = new Date();
-  switch (interval) {
-    case '10m': return new Date(now.getTime() + 10 * 60 * 1000);
-    case '1h': return new Date(now.getTime() + 60 * 60 * 1000);
-    case '1d': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    case '4d': return new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
-    case '7d': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    case '30d': return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    case 'memorized': return new Date(now.getTime() + 100 * 365 * 24 * 60 * 60 * 1000); // 100 anos no futuro
-    default: return now;
-  }
-};
-
-export const updateCardReview = (cardId: string, intervalType: ReviewInterval) => {
-  const cards = getCards();
-  const now = new Date();
-  
-  let intervalMinutes = 0;
-  let isMemorized = false;
-  switch (intervalType) {
-    case '10m': intervalMinutes = 10; break;
-    case '1h': intervalMinutes = 60; break;
-    case '1d': intervalMinutes = 1440; break;
-    case '4d': intervalMinutes = 5760; break;
-    case '7d': intervalMinutes = 10080; break;
-    case '30d': intervalMinutes = 43200; break;
-    case 'memorized': isMemorized = true; break;
-  }
-
-  const nextReview = new Date(now.getTime() + intervalMinutes * 60 * 1000).toISOString();
-  
-  const card = cards.find(c => c.id === cardId);
-  if (!card) return;
-
-  // Lógica de Sincronização e Ressurgência (Garante que a palavra esteja no dicionário)
-  const dictionaryId = ensureCardInDictionary(cardId);
-
-  if (isMemorized && dictionaryId) {
-    // Sincroniza o status no dicionário se for memorizado
-    const dictionary = getDictionary();
-    const index = dictionary.findIndex(e => e.id === dictionaryId);
-    if (index >= 0) {
-      dictionary[index].isMemorized = true;
-      saveDictionary(dictionary);
-    }
-  }
-
-  const updatedCards = cards.map(c => 
-    c.id === cardId 
-      ? { 
-          ...c, 
-          dictionaryId, // Garante o vínculo atualizado
-          nextReview: isMemorized ? new Date(Date.now() + 100*365*24*60*60*1000).toISOString() : nextReview, 
-          lastReviewed: now.toISOString(),
-          interval: intervalMinutes,
-          reviewedCount: c.reviewedCount + 1, 
-          isLearned: isMemorized || intervalType === '7d' || intervalType === '30d' || c.isLearned,
-          isMemorized: isMemorized || c.isMemorized
-        } 
-      : c
-  );
-  
-  saveCards(updatedCards);
-};
-
-/**
- * Garante que o card estudado tenha uma entrada válida no dicionário.
- * Se a palavra foi deletada, ela reaparece (ressurgência).
- */
-export const ensureCardInDictionary = (cardId: string): string | undefined => {
-  const cards = getCards();
-  const card = cards.find(c => c.id === cardId);
-  if (!card) return undefined;
-
-  const dictionary = getDictionary();
-  let dictionaryId = card.dictionaryId;
-  
-  // Verifica se o ID vinculado ainda existe de fato no dicionário
-  const exists = dictionaryId ? dictionary.some(e => e.id === dictionaryId) : false;
-
-  if (!dictionaryId || !exists) {
-    // Busca por texto para evitar duplicidade manual (caso tenha sido deletado e reencontrado por texto)
-    const existingEntry = dictionary.find(e => 
-      e.word.toLowerCase().trim() === card.front.toLowerCase().trim() && 
-      e.translation.toLowerCase().trim() === card.back.toLowerCase().trim()
-    );
-
-    if (existingEntry) {
-      dictionaryId = existingEntry.id;
-    } else {
-      // Ressurgência: Adiciona nova entrada no dicionário
-      dictionaryId = addOrUpdateDictionaryEntry({
-        ...card,
-        isMemorized: card.isMemorized || false
-      });
-    }
-  }
-
-  return dictionaryId;
-};
-
-// Função de limpeza total (Remover se quiser desabilitar o nuclear reset)
-export const clearAllData = () => {
-  if (typeof window === 'undefined') return;
-  
-  const profile = getUserProfile();
-  const masteryData = {
-    totalWordsAdded: profile.totalWordsAdded,
-    unlockedMilestones: profile.unlockedMilestones
-  };
-  
-  try {
-    localStorage.clear();
-    
-    // Restaura o progresso de maestria após o clear
-    const newData: AppData = {
-      cards: [],
-      profile: { 
-        name: profile.name || 'Estudante ITR',
-        ...masteryData
-      },
-      decks: []
-    };
-    saveAppData(newData);
-    
-    window.location.reload();
-  } catch (e) {
-    console.error('Error clearing data', e);
-  }
-};
-
-export const updateCardAssociation = (cardId: string, association: string) => {
-  const cards = getCards();
-  const updatedCards = cards.map(c => 
-    c.id === cardId ? { ...c, association } : c
-  );
-  saveCards(updatedCards);
-};
-
-export const getDictionary = (): DictionaryEntry[] => {
-  return getAppData().dictionary || [];
-};
-
-export const saveDictionary = (dictionary: DictionaryEntry[]) => {
-  const data = getAppData();
-  data.dictionary = dictionary;
-  saveAppData(data);
-};
-
-export const addOrUpdateDictionaryEntry = (card: Flashcard) => {
-  const dictionary = getDictionary();
-  const newId = `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  
-  dictionary.push({
-    id: newId,
-    word: card.front,
-    translation: card.back,
-    dateAdded: new Date().toISOString(),
-    isMemorized: card.isMemorized || false,
-    usageFrequency: 1
-  });
-  
-  const data = getAppData();
-  const profile = data.profile;
-  const currentTotal = (profile.totalWordsAdded || 0) + 1;
-  
-  // Atualiza o perfil com o novo total
-  saveUserProfile({
-    ...profile,
-    totalWordsAdded: currentTotal
-  });
-
-  saveDictionary(dictionary);
-  return newId;
-};
-
-export const MILESTONES_COMMON = [10, 20, 30, 40, 50, 60, 70, 80, 90, 150, 200, 250, 400, 500, 600, 1100];
-export const MILESTONES_MASTERY = [100, 300, 700, 1500];
-
-export const checkMasteryMilestone = (count: number): { value: number, isMastery: boolean } | null => {
-  const profile = getUserProfile();
-  const unlocked = profile.unlockedMilestones || [];
-  
-  const isMastery = MILESTONES_MASTERY.includes(count);
-  const isCommon = MILESTONES_COMMON.includes(count);
-
-  if ((isMastery || isCommon) && !unlocked.includes(count)) {
-    // Registra como desbloqueado
-    saveUserProfile({
-      ...profile,
-      unlockedMilestones: [...unlocked, count]
-    });
-    return { value: count, isMastery };
-  }
-  return null;
-};
-
-export const playMasterySound = () => {
-  if (typeof window === 'undefined') return;
-  const profile = getUserProfile();
-  if (profile.soundEnabled === false) return;
-
-  try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    
-    const playLushNote = (freq: number, startTime: number, duration: number, volume = 0.15) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = 'sine';
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.01, ctx.currentTime + startTime + duration);
-      
-      gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(volume * 0.7, ctx.currentTime + startTime + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
-      
-      osc.start(ctx.currentTime + startTime);
-      osc.stop(ctx.currentTime + startTime + duration);
-
-      // Eco sutil para corpo
-      const delay = ctx.createDelay();
-      const feedback = ctx.createGain();
-      delay.delayTime.value = 0.15;
-      feedback.gain.value = 0.2;
-      
-      gain.connect(delay);
-      delay.connect(feedback);
-      feedback.connect(delay);
-      delay.connect(ctx.destination);
-    };
-
-    // Maestria Encorpada (Max 1s) - Timbre abafado tipo Piano Elétrico
-    playLushNote(329.63, 0, 0.9, 0.08);  // E4
-    playLushNote(493.88, 0.15, 0.8, 0.06); // B4
-    playLushNote(659.25, 0.3, 0.7, 0.04); // E5
-  } catch (e) {
-    console.error('Audio mastery playback failed', e);
-  }
-};
-
-export const updateDictionaryEntry = (id: string, word: string, translation: string) => {
-  const dictionary = getDictionary();
-  const index = dictionary.findIndex(e => e.id === id);
-  if (index >= 0) {
-    dictionary[index] = { ...dictionary[index], word, translation };
-    saveDictionary(dictionary);
-    return true;
-  }
-  return false;
-};
-
-export const deleteDictionaryEntry = (id: string) => {
-  const dictionary = getDictionary();
-  const updatedDictionary = dictionary.filter(e => e.id !== id);
-  saveDictionary(updatedDictionary);
-};
-
-export const getDictionaryCount = (): number => {
-  const profile = getUserProfile();
-  const dictionaryLength = getDictionary().length;
-  // Retorna o maior para suportar o modo de teste (itr.test)
-  return Math.max(dictionaryLength, profile.totalWordsAdded || 0);
-};
-
-export const deleteCard = (cardId: string) => {
-  const cards = getCards();
-  const updatedCards = cards.filter(c => c.id !== cardId);
-  saveCards(updatedCards);
-};
-
-export const updateCard = (cardId: string, updates: Partial<Flashcard>, skipDictionary: boolean = false) => {
-  const cards = getCards();
-  const updatedCards = cards.map(c => {
-    if (c.id === cardId) {
-      const updated = { ...c, ...updates };
-      
-      // Sincronização com o Dicionário (Estrito via ID)
-      if (!skipDictionary && updated.dictionaryId) {
-        updateDictionaryEntry(updated.dictionaryId, updated.front, updated.back);
-      }
-      
-      return updated;
-    }
-    return c;
-  });
-  saveCards(updatedCards);
-};
-
-export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
-  const now = new Date();
-  let filtered = cards;
-  if (deckID) {
-    // Busca o nome do deck para garantir filtro por texto ou ID
-    const decks = getDecks();
-    const targetDeck = decks.find(d => d.id === deckID || d.name === deckID);
-    if (targetDeck) {
-      filtered = cards.filter(c => c.deck === targetDeck.name || c.deck === targetDeck.id);
-    } else {
-      // Fallback: tenta filtrar direto pelo deckID se o objeto deck não for encontrado
-      filtered = cards.filter(c => c.deck === deckID);
-    }
-  }
-  return filtered
-    .filter(card => !card.isMemorized) // NUNCA exibe memorizados
-    .filter(card => {
-      // Critério: STATUS NOVO (reviewedCount === 0) OU TEMPO VENCIDO (nextReview <= agora)
-      const isNew = card.reviewedCount === 0;
-      const isOverdue = new Date(card.nextReview) <= now;
-      return isNew || isOverdue;
-    })
-    .sort((a, b) => {
-      // ORDENAÇÃO: VENCIDOS primeiro (mais atrasados), depois NOVOS
-      const isANew = a.reviewedCount === 0;
-      const isBNew = b.reviewedCount === 0;
-
-      if (!isANew && !isBNew) {
-        // Ambos vencidos: o mais atrasado primeiro
-        return new Date(a.nextReview).getTime() - new Date(b.nextReview).getTime();
-      }
-      if (isANew && isBNew) {
-        // Ambos novos: manter ordem (ou por id/data de criação se houvesse)
-        return a.id.localeCompare(b.id);
-      }
-      // Vencidos antes de Novos
-      return isANew ? 1 : -1;
-    });
-};
-
-export const getTodayPendingCards = (cards: Flashcard[]) => {
-  return getPriorityCards(cards);
-};
-
-// Final do arquivo srs.ts
 
 export interface Patente {
   level: number;
@@ -526,199 +371,130 @@ export const getUserPatente = (masteredCount: number) => {
   const nextIndex = PATENTES.findIndex(p => p.level === current.level) + 1;
   const next = nextIndex < PATENTES.length ? PATENTES[nextIndex] : null;
   const wordsToNext = next ? next.minWords - masteredCount : 0;
-  
   return { current, next, wordsToNext };
 };
 
-export const playVictorySound = () => {
-  if (typeof window === 'undefined') return;
-  const profile = getUserProfile();
-  if (profile.soundEnabled === false) return;
+// --- DECKS ---
 
+export const getDecks = (): Deck[] => getAppData().decks;
+
+export const saveDecks = (decks: Deck[]) => {
+  const data = getAppData();
+  saveAppData({ ...data, decks });
+};
+
+export const addDeck = (name: string) => {
+  const decks = getDecks();
+  const newDeck: Deck = { id: `deck-${Date.now()}`, name };
+  saveDecks([...decks, newDeck]);
+  return newDeck;
+};
+
+export const deleteDeck = (deckId: string) => {
+  const decks = getDecks();
+  const deckToDelete = decks.find(d => d.id === deckId);
+  if (!deckToDelete) return;
+  saveDecks(decks.filter(d => d.id !== deckId));
+  const dictionary = getDictionary();
+  saveDictionary(dictionary.filter(e => e.deck !== deckToDelete.name && e.deck !== deckToDelete.id));
+};
+
+export const renameDeck = (deckId: string, newName: string) => {
+  const decks = getDecks();
+  const oldDeck = decks.find(d => d.id === deckId);
+  if (!oldDeck) return;
+  saveDecks(decks.map(d => d.id === deckId ? { ...d, name: newName } : d));
+  const dictionary = getDictionary();
+  saveDictionary(dictionary.map(e => e.deck === oldDeck.name ? { ...e, deck: newName } : e));
+};
+
+// --- AUDIO & UTILITIES ---
+
+export const playMasterySound = () => {
+  if (typeof window === 'undefined' || !getUserProfile().soundEnabled) return;
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    
-    // Sucesso Sutil - Inspirado em notificação moderna (Slack-like)
-    // Dois tons harmônicos curtos e suaves
-    const playNote = (freq: number, startTime: number, volume: number) => {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const playLush = (freq: number, start: number, dur: number, vol = 0.08) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      
-      osc.type = 'sine'; // Suave
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-      
-      gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-      gain.gain.linearRampToValueAtTime(volume * 0.5, ctx.currentTime + startTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 0.4);
-      
-      osc.start(ctx.currentTime + startTime);
-      osc.stop(ctx.currentTime + startTime + 0.4);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + dur);
     };
+    playLush(329.63, 0, 0.9); playLush(493.88, 0.15, 0.8); playLush(659.25, 0.3, 0.7);
+  } catch (e) {}
+};
 
-    // Acorde Sutil - Harmonia tipo Slack / Apple
-    playNote(523.25, 0, 0.08); // C5
-    playNote(783.99, 0.05, 0.06); // G5 
-    playNote(1046.50, 0.1, 0.05); // C6
-  } catch (e) {
-    console.error('Audio playback failed', e);
+export const MILESTONES_COMMON = [10, 20, 30, 40, 50, 60, 70, 80, 90, 150, 200, 250, 400, 500, 600, 1100];
+export const MILESTONES_MASTERY = [100, 300, 700, 1500];
+
+export const checkMasteryMilestone = (count: number): { value: number, isMastery: boolean } | null => {
+  const profile = getUserProfile();
+  const unlocked = profile.unlockedMilestones || [];
+  const isMastery = MILESTONES_MASTERY.includes(count);
+  const isCommon = MILESTONES_COMMON.includes(count);
+
+  if ((isMastery || isCommon) && !unlocked.includes(count)) {
+    saveUserProfile({ ...profile, unlockedMilestones: [...unlocked, count] });
+    return { value: count, isMastery };
   }
+  return null;
 };
 
 export const playBlipSound = () => {
-  if (typeof window === 'undefined') return;
-  const profile = getUserProfile();
-  if (profile.soundEnabled === false) return;
-
+  if (typeof window === 'undefined' || !getUserProfile().soundEnabled) return;
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    // "Pop" Elegante e Curto
+    osc.connect(gain); gain.connect(ctx.destination);
     osc.type = 'sine';
     osc.frequency.setValueAtTime(1200, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.02);
-    
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.002);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
-    
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.02);
-  } catch (e) {
-    // Silencioso em fallback para não quebrar fluxo UI
-  }
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.02);
+  } catch (e) {}
 };
 
-export const getSortedDeckCards = (cards: Flashcard[], deckID?: string) => {
-  let filtered = cards;
-  if (deckID) {
-    const decks = getDecks();
-    const targetDeck = decks.find(d => d.id === deckID || d.name === deckID);
-    if (targetDeck) {
-      filtered = cards.filter(c => c.deck === targetDeck.name || c.deck === targetDeck.id);
-    } else {
-      filtered = cards.filter(c => c.deck === deckID);
-    }
-  }
-
-  // Sort: Overdue cards first, then by earliest nextReview
-  return [...filtered].sort((a, b) => {
-    return new Date(a.nextReview).getTime() - new Date(b.nextReview).getTime();
-  });
+export const playVictorySound = () => {
+  if (typeof window === 'undefined' || !getUserProfile().soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const playNote = (freq: number, start: number, vol: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(vol * 0.5, ctx.currentTime + start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + 0.4);
+      osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + 0.4);
+    };
+    playNote(523.25, 0, 0.08); playNote(783.99, 0.05, 0.06); playNote(1046.50, 0.1, 0.05);
+  } catch (e) {}
 };
 
-// --- VOCABULÁRIOS ESSENCIAIS ---
-
-export const getVocabularyProgress = (): string[] => {
-  return getAppData().vocabularyProgress || [];
+export const clearAllData = () => {
+  if (typeof window === 'undefined') return;
+  const profile = getUserProfile();
+  localStorage.clear();
+  const newData: AppData = {
+    cards: [],
+    profile: { ...profile, totalWordsAdded: profile.totalWordsAdded, unlockedMilestones: profile.unlockedMilestones },
+    decks: [],
+    dictionary: [],
+    vocabularyProgress: [],
+    currentSprint: 1
+  };
+  saveAppData(newData);
+  window.location.reload();
 };
 
-export const getCurrentSprint = (): number => {
-  return getAppData().currentSprint || 1;
-};
-
-export const setVocabularySprint = (sprint: number) => {
-  const data = getAppData();
-  saveAppData({ ...data, currentSprint: sprint });
-};
-
-export const toggleVocabularyMemorized = (word: { id: string, en: string, pt: string }) => {
-  const data = getAppData();
-  const progress = data.vocabularyProgress || [];
-  const dictionary = data.dictionary || [];
-  const isMemorized = progress.includes(word.id);
-  
-  let newProgress;
-  let newDictionary = [...dictionary];
-
-  if (isMemorized) {
-    newProgress = progress.filter(id => id !== word.id);
-    
-    // Remover do dicionário se existir
-    newDictionary = dictionary.filter(e => 
-      !(e.word.toLowerCase().trim() === word.en.toLowerCase().trim() && 
-        e.translation.toLowerCase().trim() === word.pt.toLowerCase().trim())
-    );
-  } else {
-    newProgress = [...progress, word.id];
-    
-    // Se marcou como memorizado, envia para o dicionário pessoal
-    // Nota: Criamos um novo ID e atualizamos manualmente para manter atômico
-    const newId = `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    newDictionary.push({
-      id: newId,
-      word: word.en,
-      translation: word.pt,
-      dateAdded: new Date().toISOString(),
-      isMemorized: true,
-      usageFrequency: 1
-    });
-
-    // Atualiza o perfil (total de palavras)
-    data.profile.totalWordsAdded = (data.profile.totalWordsAdded || 0) + 1;
-  }
-  
-  saveAppData({ 
-    ...data, 
-    vocabularyProgress: newProgress,
-    dictionary: newDictionary
-  });
-
-  return !isMemorized;
-};
-
-export const generateSprintCards = (words: { en: string, pt: string, category: string }[], sprintIndex: number) => {
-  const decks = getDecks();
-  const baseName = `Vocabulário ITR - Sprint ${sprintIndex}`;
-  let deckName = baseName;
-  let counter = 2;
-  
-  // Encontra um nome de deck único de forma iterativa
-  while (decks.some(d => d.name === deckName)) {
-    deckName = `${baseName} - ${counter}`;
-    counter++;
-  }
-  
-  // CRIAÇÃO REAL DO DECK na coleção de baralhos
-  addDeck(deckName);
-  
-  // Adiciona cada palavra como um card no NOVO deck único com reviewedCount: 0
-  words.forEach(word => {
-    addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName);
-  });
-
-  return deckName; 
-};
-
-export const resetSprintProgress = (wordIds: string[], words: { en: string, pt: string }[]) => {
-  const data = getAppData();
-  const progress = data.vocabularyProgress || [];
-  const dictionary = data.dictionary || [];
-  
-  // Remove IDs do progresso
-  const newProgress = progress.filter(id => !wordIds.includes(id));
-  
-  // Remove do dicionário de forma atômica
-  const filteredDictionary = dictionary.filter(e => {
-    return !words.some(w => 
-      e.word.toLowerCase().trim() === w.en.toLowerCase().trim() && 
-      e.translation.toLowerCase().trim() === w.pt.toLowerCase().trim()
-    );
-  });
-  
-  saveAppData({ 
-    ...data, 
-    vocabularyProgress: newProgress,
-    dictionary: filteredDictionary
-  });
-};
+export const ensureCardInDictionary = (cardId: string) => cardId; // Stub for compatibility

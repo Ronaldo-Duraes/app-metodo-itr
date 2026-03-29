@@ -60,9 +60,13 @@ Comandos disponíveis:
         profile: { 
           name: 'Estudante ITR',
           totalWordsAdded: 0,
-          unlockedMilestones: []
+          unlockedMilestones: [],
+          soundEnabled: true
         },
-        decks: []
+        decks: [],
+        dictionary: [],
+        vocabularyProgress: [],
+        currentSprint: 1
       };
       saveAppData(initialData);
       window.location.reload();
@@ -79,7 +83,7 @@ Comandos disponíveis:
       const decks = getDecks();
       if (decks.length === 0) return console.error('Crie um deck primeiro.');
       for (let i = 0; i < qty; i++) {
-        addFullCard(`Test ${i}`, `Teste ${i}`, `Mne ${i}`, decks[0].name, true);
+        addFullCard(`Test ${i}`, `Teste ${i}`, `Mne ${i}`, decks[0].name);
       }
       window.location.reload();
     },

@@ -33,6 +33,13 @@ export interface DictionaryEntry {
   dateAdded: string;
   isMemorized: boolean;
   usageFrequency: number;
+  // SRS Fields (Unificação)
+  nextReview?: string;
+  lastReviewed?: string | null;
+  interval?: number;
+  reviewedCount?: number;
+  deck?: string;
+  association?: string;
 }
 
 export interface AppData {
