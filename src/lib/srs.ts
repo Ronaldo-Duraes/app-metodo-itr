@@ -645,7 +645,7 @@ export const toggleVocabularyMemorized = (word: { id: string, en: string, pt: st
 
 export const generateSprintCards = (words: { en: string, pt: string, category: string }[], sprintIndex: number) => {
   const decks = getDecks();
-  const baseName = `Sprint ${sprintIndex}`;
+  const baseName = `Vocabulário ITR - Sprint ${sprintIndex}`;
   let deckName = baseName;
   let counter = 2;
   
@@ -655,13 +655,15 @@ export const generateSprintCards = (words: { en: string, pt: string, category: s
     counter++;
   }
   
-  // Adiciona cada palavra como um card no NOVO deck único
+  // CRIAÇÃO REAL DO DECK na coleção de baralhos
+  addDeck(deckName);
+  
+  // Adiciona cada palavra como um card no NOVO deck único com reviewedCount: 0
   words.forEach(word => {
-    // Adiciona sem checar duplicatas globais para permitir que o usuário gere a mesma sprint em decks diferentes se quiser
     addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName);
   });
 
-  return deckName; // Retorna o nome final para o UI
+  return deckName; 
 };
 
 export const resetSprintProgress = (wordIds: string[], words: { en: string, pt: string }[]) => {

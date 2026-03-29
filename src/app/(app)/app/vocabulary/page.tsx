@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Zap, LayoutGrid, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { VOCABULARY_SPRINTS, EssentialWord } from '@/lib/vocabularyData';
 import { 
   getVocabularyProgress, 
@@ -15,6 +16,7 @@ import {
 } from '@/lib/srs';
 
 export default function VocabularyPage() {
+  const router = useRouter(); 
   const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState<string[]>([]);
   const [activeSprint, setActiveSprint] = useState(1);
@@ -81,8 +83,13 @@ export default function VocabularyPage() {
       .map(w => ({ en: w.en, pt: w.pt, category: w.category }));
     
     const finalDeckName = generateSprintCards(wordsToGenerate, activeSprint);
+    
+    // Pequeno delay extra para UX de conclusão
+    await new Promise(r => setTimeout(r, 500));
     setIsGenerating(false);
-    alert(`${wordsToGenerate.length} flashcards gerados no deck "${finalDeckName}"!`);
+    
+    // Redirecionamento automático
+    router.push('/app/flashcards');
   };
 
   const handleResetSprint = () => {
