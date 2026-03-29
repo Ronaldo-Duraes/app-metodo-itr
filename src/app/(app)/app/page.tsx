@@ -124,7 +124,7 @@ export default function HomePage() {
                   { icon: Book, text: '+500 vocabulários essenciais', color: 'text-blue-500', link: '#' },
                   { icon: BookIcon, text: '50 Gatilhos técnica do espelho', color: 'text-orange-500', link: '/app/mirror-triggers' },
                   { icon: Video, text: 'Ações para PAC', color: 'text-rose-500', link: '/app/pac-actions' },
-                  { icon: Lightbulb, text: 'PROMPTS - Para IA', color: 'text-yellow-500', link: '#' },
+                  { icon: Lightbulb, text: '💡 PROMPT - Para IA', color: 'text-yellow-500', link: '/app/prompts' },
                 ].map((item, idx) => (
                   <a 
                     key={idx} 
