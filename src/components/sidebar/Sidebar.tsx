@@ -4,18 +4,23 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library, Star, X } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
+import MentorCard from '@/components/MentorCard';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [profile, setProfile] = React.useState({ name: "RONALDO DURAES" });
 
+  const [showMentorModal, setShowMentorModal] = React.useState(false);
+
   React.useEffect(() => {
     const p = getUserProfile();
     if (p && p.name) setProfile(p);
   }, []);
+
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push('/app/perfil?t=' + Date.now());
@@ -27,6 +32,7 @@ const Sidebar = () => {
     { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario' },
+    { icon: Star, label: 'Suporte VIP', path: '#mentor', isAction: true },
   ];
 
   return (
@@ -52,6 +58,19 @@ const Sidebar = () => {
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
             const Icon = item.icon;
+
+            if (item.isAction) {
+              return (
+                <div 
+                  key={item.label}
+                  onClick={() => setShowMentorModal(true)}
+                  className="group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500"
+                >
+                  <Icon size={20} className="transition-colors duration-200" />
+                  <span className="font-black text-xs tracking-[0.1em] hidden md:block uppercase">{item.label}</span>
+                </div>
+              );
+            }
 
             return (
               <Link key={item.path} href={item.path}>
@@ -103,6 +122,24 @@ const Sidebar = () => {
         </div>
 
       </div>
+
+      {/* MENTOR MODAL OVERLAY */}
+      <AnimatePresence>
+        {showMentorModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMentorModal(false)}
+              className="absolute inset-0 cursor-pointer"
+            />
+            <div className="relative z-10 w-full max-w-md">
+              <MentorCard isModal onClose={() => setShowMentorModal(false)} />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </aside>
   );
 };
