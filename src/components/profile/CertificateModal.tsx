@@ -109,10 +109,10 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
       />
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-5xl h-full max-h-[90vh] flex flex-col items-center gap-6"
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 0.95, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+        className="relative w-full max-w-4xl h-full max-h-[85vh] flex flex-col items-center justify-center gap-6"
       >
         {/* Close Button */}
         <button 
