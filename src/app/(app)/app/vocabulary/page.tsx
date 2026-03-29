@@ -129,7 +129,7 @@ export default function VocabularyPage() {
               <button
                 key={sprintNum}
                 onClick={() => changeSprint(sprintNum)}
-                className={`flex-shrink-0 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border ${
+                className={`flex-shrink-0 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border select-none ${
                   isSelected 
                     ? 'bg-emerald-500 border-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.2)]'
                     : 'bg-white/5 border-white/5 text-slate-500 hover:border-white/10 hover:text-white'

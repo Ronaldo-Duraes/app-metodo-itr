@@ -23,8 +23,8 @@ body {
 
 /* Custom Scrollbar Styling (Global) */
 ::-webkit-scrollbar {
-  width: 8px;   /* Largura vertical */
-  height: 6px;  /* Altura reduzida para horizontal (Sprints, etc) */
+  width: 14px;   /* Hit area maior (Vertical) */
+  height: 12px;  /* Hit area maior (Horizontal) */
 }
 
 ::-webkit-scrollbar-track {
@@ -32,13 +32,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #10b981; /* emerald-500 */
+  background-color: #10b981; /* emerald-500 */
   border-radius: 10px;
-  border: 1px solid #0a0a0a; /* Sutil espaçamento */
+  background-clip: padding-box;
+  border: 3px solid transparent; /* Mantém o thumb fino enquanto a área de clique é maior */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #34d399; /* emerald-400 */
+  background-color: #34d399; /* emerald-400 */
 }
 
 /* Firefox compatibility */
