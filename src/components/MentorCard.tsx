@@ -17,8 +17,6 @@ interface MentorCardProps {
  * "Black & Green Premium" aesthetic.
  * 
  * Supports an 'isModal' mode for compact display in overlays.
- * 
- * @returns JSX.Element
  */
 export default function MentorCard({ isModal = false, onClose }: MentorCardProps) {
   const WHATSAPP_LINK = 'https://wa.me/5511999999999'; // TODO: Update with actual mentor number
@@ -66,7 +64,7 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
             <h2 className={`${isModal ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl'} font-bold text-white tracking-tight leading-tight`}>
               Quem está por trás do <span className="text-emerald-500">Método?</span>
             </h2>
-            <div className={`w-12 h-1 bg-emerald-500/40 rounded-full`} />
+            <div className="w-12 h-1 bg-emerald-500/40 rounded-full" />
             <p className={`text-slate-400 ${isModal ? 'text-sm' : 'text-lg'} leading-relaxed max-w-lg`}>
               Estudante de medicina e criador do método ITR. Preparando-se para o USMLE nos EUA. 
               <br className={isModal ? 'block' : 'hidden md:block'} />

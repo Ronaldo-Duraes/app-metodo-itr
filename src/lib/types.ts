@@ -40,6 +40,8 @@ export interface AppData {
   profile: UserProfile;
   decks: Deck[];
   dictionary?: DictionaryEntry[];
+  vocabularyProgress?: string[]; // IDs das palavras memorizadas
+  currentSprint?: number; // Sprint atual selecionado
 }
 
 export type ReviewInterval = '10m' | '1h' | '1d' | '4d' | '7d' | '30d' | 'memorized';

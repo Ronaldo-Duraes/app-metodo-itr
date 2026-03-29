@@ -582,3 +582,91 @@ export const getSortedDeckCards = (cards: Flashcard[], deckID?: string) => {
     return new Date(a.nextReview).getTime() - new Date(b.nextReview).getTime();
   });
 };
+
+// --- VOCABULÁRIOS ESSENCIAIS ---
+
+export const getVocabularyProgress = (): string[] => {
+  return getAppData().vocabularyProgress || [];
+};
+
+export const getCurrentSprint = (): number => {
+  return getAppData().currentSprint || 1;
+};
+
+export const setVocabularySprint = (sprint: number) => {
+  const data = getAppData();
+  saveAppData({ ...data, currentSprint: sprint });
+};
+
+export const toggleVocabularyMemorized = (word: { id: string, en: string, pt: string }) => {
+  const data = getAppData();
+  const progress = data.vocabularyProgress || [];
+  const isMemorized = progress.includes(word.id);
+  
+  let newProgress;
+  if (isMemorized) {
+    newProgress = progress.filter(id => id !== word.id);
+    
+    // Remover do dicionário se existir
+    const dictionary = getDictionary();
+    const filteredDictionary = dictionary.filter(e => 
+      !(e.word.toLowerCase() === word.en.toLowerCase() && 
+        e.translation.toLowerCase() === word.pt.toLowerCase())
+    );
+    saveDictionary(filteredDictionary);
+  } else {
+    newProgress = [...progress, word.id];
+    
+    // Se marcou como memorizado, envia para o dicionário pessoal
+    addOrUpdateDictionaryEntry({
+      front: word.en,
+      back: word.pt,
+      isMemorized: true,
+      association: 'Vocabulário Essencial'
+    } as Flashcard);
+  }
+  
+  saveAppData({ ...data, vocabularyProgress: newProgress });
+  return !isMemorized;
+};
+
+export const generateSprintCards = (words: { en: string, pt: string, category: string }[], sprintIndex: number) => {
+  const decks = getDecks();
+  const baseName = `Sprint ${sprintIndex}`;
+  let deckName = baseName;
+  let counter = 2;
+  
+  // Encontra um nome de deck único de forma iterativa
+  while (decks.some(d => d.name === deckName)) {
+    deckName = `${baseName} - ${counter}`;
+    counter++;
+  }
+  
+  // Adiciona cada palavra como um card no NOVO deck único
+  words.forEach(word => {
+    // Adiciona sem checar duplicatas globais para permitir que o usuário gere a mesma sprint em decks diferentes se quiser
+    addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName);
+  });
+
+  return deckName; // Retorna o nome final para o UI
+};
+
+export const resetSprintProgress = (wordIds: string[], words: { en: string, pt: string }[]) => {
+  const data = getAppData();
+  const progress = data.vocabularyProgress || [];
+  
+  // Remove IDs do progresso
+  const newProgress = progress.filter(id => !wordIds.includes(id));
+  
+  // Remove do dicionário
+  const dictionary = getDictionary();
+  const filteredDictionary = dictionary.filter(e => {
+    return !words.some(w => 
+      e.word.toLowerCase() === w.en.toLowerCase() && 
+      e.translation.toLowerCase() === w.pt.toLowerCase()
+    );
+  });
+  
+  saveDictionary(filteredDictionary);
+  saveAppData({ ...data, vocabularyProgress: newProgress });
+};
