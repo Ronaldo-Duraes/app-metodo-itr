@@ -462,34 +462,29 @@ export const playBlipSound = () => {
   } catch (e) {}
 };
 
-export const playWooshSound = () => {
+export const playVictoryPremiumSound = () => {
   if (typeof window === 'undefined' || !getUserProfile().soundEnabled) return;
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const duration = 0.8;
-    const bufferSize = ctx.sampleRate * duration;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.Q.value = 8;
-    filter.frequency.setValueAtTime(100, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(2500, ctx.currentTime + 0.3);
-    filter.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + duration);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start();
-    noise.stop(ctx.currentTime + duration);
+    const playShimmer = (freq: number, start: number, dur: number, vol = 0.05) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, ctx.currentTime + start + dur);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + dur);
+    };
+    // Acorde Maj7 Arpeggiated (C Maj7: C4, E4, G4, B4)
+    const base = 261.63; // C4
+    playShimmer(base, 0, 1.2, 0.06); 
+    playShimmer(base * 1.25, 0.05, 1.1, 0.05); 
+    playShimmer(base * 1.5, 0.1, 1.0, 0.05); 
+    playShimmer(base * 1.875, 0.15, 0.9, 0.04);
+    playShimmer(base * 2, 0.2, 0.8, 0.03); // C5 octave
   } catch (e) {}
 };
 

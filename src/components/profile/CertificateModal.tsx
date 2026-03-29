@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Award, Zap, Crown, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import confetti from 'canvas-confetti';
-import { playWooshSound } from '@/lib/srs';
+import { playVictoryPremiumSound } from '@/lib/srs';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
 
   useEffect(() => {
     if (isOpen) {
-      playWooshSound();
+      playVictoryPremiumSound();
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 300 };
