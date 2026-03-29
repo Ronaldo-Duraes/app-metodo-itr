@@ -541,11 +541,187 @@ const RAW_POOL = [
   createWord('col5', 'Black', 'preto', 'Cores', 'blék'),
   createWord('col6', 'White', 'branco', 'Cores', 'uait'),
   createWord('col7', 'Brown', 'marrom', 'Cores', 'braun'),
-  createWord('col8', 'Gray/Grey', 'cinza', 'Cores', 'grei')
+  createWord('col8', 'Gray/Grey', 'cinza', 'Cores', 'grei'),
+
+  // --- EXPANSÃO EXCLUSIVA MÉTODO ITR ---
+  
+  // ANIMAIS
+  createWord('ani1', 'Dog', 'cachorro', 'Animais', 'dóg'),
+  createWord('ani2', 'Cat', 'gato', 'Animais', 'két'),
+  createWord('ani3', 'Lion', 'leão', 'Animais', 'lái-on'),
+  createWord('ani4', 'Tiger', 'tigre', 'Animais', 'tái-guer'),
+  createWord('ani5', 'Elephant', 'elefante', 'Animais', 'é-le-fânt'),
+  createWord('ani6', 'Monkey', 'macaco', 'Animais', 'mân-qui'),
+  createWord('ani7', 'Bird', 'pássaro', 'Animais', 'bêrd'),
+  createWord('ani8', 'Snake', 'cobra', 'Animais', 'is-neik'),
+  createWord('ani9', 'Shark', 'tubarão', 'Animais', 'chárk'),
+  createWord('ani10', 'Horse', 'cavalo', 'Animais', 'rórss'),
+  
+  // ALIMENTOS
+  createWord('fd1', 'Apple', 'maçã', 'Alimentos', 'é-pol'),
+  createWord('fd2', 'Banana', 'banana', 'Alimentos', 'ba-né-na'),
+  createWord('fd3', 'Bread', 'pão', 'Alimentos', 'bré-dd'),
+  createWord('fd4', 'Rice', 'arroz', 'Alimentos', 'raiss'),
+  createWord('fd5', 'Meat', 'carne', 'Alimentos', 'miit'),
+  createWord('fd6', 'Milk', 'leite', 'Alimentos', 'mí-ol-k'),
+  createWord('fd7', 'Egg', 'ovo', 'Alimentos', 'é-gg'),
+  createWord('fd8', 'Cheese', 'queijo', 'Alimentos', 'tchiiz'),
+  createWord('fd9', 'Fruit', 'fruta', 'Alimentos', 'fruut'),
+  createWord('fd10', 'Vegetable', 'vegetal', 'Alimentos', 'vé-dge-ta-bol'),
+  
+  // SENTIMENTOS EXTRAS
+  createWord('emo1', 'Brave', 'corajoso/a', 'Sentimentos', 'breiv'),
+  createWord('emo2', 'Calm', 'calmo/a', 'Sentimentos', 'kám'),
+  createWord('emo3', 'Proud', 'orgulhoso/a', 'Sentimentos', 'praud'),
+  createWord('emo4', 'Confused', 'confuso/a', 'Sentimentos', 'con-fiu-zed'),
+  createWord('emo5', 'Surprised', 'surpreso/a', 'Sentimentos', 'sêr-prai-zed'),
+  createWord('emo6', 'Bored', 'entediado/a', 'Sentimentos', 'bórd'),
+  createWord('emo7', 'Lonely', 'solitário/a', 'Sentimentos', 'loun-li'),
+  createWord('emo8', 'Nervous', 'nervoso/a', 'Sentimentos', 'nêr-vass'),
+  
+  // CASA / CONSTRUÇÃO
+  createWord('hou1', 'Garden', 'jardim', 'Casa', 'gár-den'),
+  createWord('hou2', 'Roof', 'telhado', 'Casa', 'ruuf'),
+  createWord('hou3', 'Wall', 'parede', 'Casa', 'uól'),
+  createWord('hou4', 'Floor', 'chão/piso', 'Casa', 'flór'),
+  createWord('hou5', 'Ceiling', 'teto', 'Casa', 'sí-lin'),
+  createWord('hou6', 'Stairs', 'escadas', 'Casa', 'is-térs'),
+  createWord('hou7', 'Garage', 'garagem', 'Casa', 'ga-rá-dge'),
+  createWord('hou8', 'Balcony', 'sacada', 'Casa', 'bál-co-ni'),
+  
+  // ESPORTES / LAZER
+  createWord('spo1', 'Soccer', 'futebol', 'Esportes', 'só-ker'),
+  createWord('spo2', 'Basketball', 'basquete', 'Esportes', 'bás-ket-ból'),
+  createWord('spo3', 'Swimming', 'natação', 'Esportes', 'suí-min'),
+  createWord('spo4', 'Running', 'corrida', 'Esportes', 'râ-nin'),
+  createWord('spo5', 'Cycling', 'ciclismo', 'Esportes', 'sái-clin'),
+  createWord('spo6', 'Game', 'jogo', 'Esportes', 'gueim'),
+  createWord('spo7', 'Toy', 'brinquedo', 'Esportes', 'tói'),
+  createWord('spo8', 'Holiday', 'feriado', 'Esportes', 'ró-li-dei'),
+  
+  // NATUREZA EXTRAS
+  createWord('nt16', 'Mountain', 'montanha', 'Natureza', 'máun-ten'),
+  createWord('nt17', 'Valley', 'vale', 'Natureza', 'vé-li'),
+  createWord('nt18', 'Island', 'ilha', 'Natureza', 'ái-lând'),
+  createWord('nt19', 'Volcano', 'vulcão', 'Natureza', 'vol-kei-nou'),
+  createWord('nt20', 'Desert', 'deserto', 'Natureza', 'dé-zêrt'),
+  createWord('nt21', 'Rainbow', 'arco-íris', 'Natureza', 'rein-bou'),
+  createWord('nt22', 'Thunder', 'trovão', 'Natureza', 'dân-der'),
+  createWord('nt23', 'Lightning', 'relâmpago', 'Natureza', 'lait-nin'),
+  createWord('nt24', 'Storm', 'tempestade', 'Natureza', 'is-tórm'),
+  createWord('nt25', 'Star', 'estrela', 'Natureza', 'is-tár'),
+  
+  // PROFISSÕES
+  createWord('job1', 'Engineer', 'engenheiro/a', 'Profissões', 'ên-dji-ní-er'),
+  createWord('job2', 'Architect', 'arquiteto/a', 'Profissões', 'ár-qui-tét'),
+  createWord('job3', 'Photographer', 'fotógrafo/a', 'Profissões', 'fo-tó-gra-fer'),
+  createWord('job4', 'Artist', 'artista', 'Profissões', 'ár-tist'),
+  createWord('job5', 'Pilot', 'piloto', 'Profissões', 'pái-lot'),
+  createWord('job6', 'Driver', 'motorista', 'Profissões', 'drái-ver'),
+  createWord('job7', 'Cook/Chef', 'cozinheiro/a', 'Profissões', 'cúk / chéf'),
+  createWord('job8', 'Waiter', 'garçom', 'Profissões', 'uei-ter'),
+  createWord('job9', 'Salesman', 'vendedor', 'Profissões', 'seils-man'),
+  createWord('job10', 'Farmer', 'fazendeiro/a', 'Profissões', 'fár-mer'),
+  
+  // ESPAÇO / CIÊNCIA
+  createWord('sci1', 'Planet', 'planeta', 'Espaço', 'plén-et'),
+  createWord('sci2', 'Galaxy', 'galáxia', 'Espaço', 'gá-la-ksi'),
+  createWord('sci3', 'Astronaut', 'astronauta', 'Espaço', 'ás-tro-nót'),
+  createWord('sci4', 'Rocket', 'foguete', 'Espaço', 'ró-ket'),
+  createWord('sci5', 'Telescope', 'telescópio', 'Espaço', 'té-les-coup'),
+  createWord('sci6', 'Gravity', 'gravidade', 'Espaço', 'grá-vi-ti'),
+  createWord('sci7', 'Oxygen', 'oxigênio', 'Espaço', 'ó-ksi-djen'),
+  createWord('sci8', 'Energy', 'energia', 'Espaço', 'é-ner-dji'),
+  
+  // DIVERSOS
+  createWord('mix1', 'Gift', 'presente', 'Geral', 'guift'),
+  createWord('mix2', 'Party', 'festa', 'Geral', 'pár-ti'),
+  createWord('mix3', 'Secret', 'segredo', 'Geral', 'sí-cret'),
+  createWord('mix4', 'Tool', 'ferramenta', 'Geral', 'tuul'),
+  createWord('mix5', 'Machine', 'máquina', 'Geral', 'ma-chiín'),
+  createWord('mix6', 'Rule', 'regra', 'Geral', 'ru-ol'),
+  createWord('mix7', 'System', 'sistema', 'Geral', 'is-tis-têm'),
+  createWord('mix8', 'Power', 'poder', 'Geral', 'pau-er'),
+  createWord('mix9', 'Success', 'sucesso', 'Geral', 'sâk-sséss'),
+  createWord('mix10', 'Failure', 'falha', 'Geral', 'fei-liur'),
+  createWord('mix11', 'Mirror', 'espelho', 'Geral', 'mi-ror'), // Repete mas seen tratará
+  createWord('mix12', 'Shadow', 'sombra', 'Geral', 'chá-dou'),
+  createWord('mix13', 'Light', 'luz', 'Geral', 'lait'),
+  createWord('mix14', 'Voice', 'voz', 'Geral', 'vóiss'),
+  createWord('mix15', 'Sound', 'som', 'Geral', 'saund'),
+
+  // --- MOBÍLIA ---
+  createWord('fur1', 'Desk', 'escrivaninha', 'Mobília', 'désk'),
+  createWord('fur2', 'Shelf', 'prateleira', 'Mobília', 'chélf'),
+  createWord('fur3', 'Drawer', 'gaveta', 'Mobília', 'dró-er'),
+  createWord('fur4', 'Bench', 'banco', 'Mobília', 'bêntch'),
+  createWord('fur5', 'Stool', 'banqueta', 'Mobília', 'is-tuul'),
+  createWord('fur6', 'Cabinet', 'armário', 'Mobília', 'ké-bi-net'),
+  
+  // --- FERRAMENTAS ---
+  createWord('tol1', 'Hammer', 'martelo', 'Ferramentas', 'ré-mer'),
+  createWord('tol2', 'Saw', 'serra', 'Ferramentas', 'só'),
+  createWord('tol3', 'Screwdriver', 'chave de fenda', 'Ferramentas', 'is-cru-drai-ver'),
+  createWord('tol4', 'Drill', 'furadeira', 'Ferramentas', 'drí-ol'),
+  createWord('tol5', 'Nails', 'pregos', 'Ferramentas', 'neils'),
+  createWord('tol6', 'Pliers', 'alicate', 'Ferramentas', 'plái-ers'),
+  
+  // --- VESTUÁRIO ---
+  createWord('clo1', 'Belt', 'cinto', 'Vestuário', 'bélt'),
+  createWord('clo2', 'Tie', 'gravata', 'Vestuário', 'tái'),
+  createWord('clo3', 'Scarf', 'cachecol', 'Vestuário', 'iscárf'),
+  createWord('clo4', 'Gloves', 'luvas', 'Vestuário', 'glâvs'),
+  createWord('clo5', 'Boots', 'botas', 'Vestuário', 'buuts'),
+  createWord('clo6', 'Sandals', 'sandálias', 'Vestuário', 'sén-dals'),
+  
+  // --- INSTRUMENTOS ---
+  createWord('mus1', 'Guitar', 'violão/guitarra', 'Música', 'gui-tár'),
+  createWord('mus2', 'Piano', 'piano', 'Música', 'pi-é-nou'),
+  createWord('mus3', 'Drums', 'bateria', 'Música', 'drâms'),
+  createWord('mus4', 'Violin', 'violino', 'Música', 'vái-o-lin'),
+  createWord('mus5', 'Flute', 'flauta', 'Música', 'fluut'),
+  createWord('mus6', 'Trumpet', 'trompete', 'Música', 'trâm-pet'),
+  
+  // --- ESCRITÓRIO ---
+  createWord('off1', 'Paper', 'papel', 'Escritório', 'pei-per'),
+  createWord('off2', 'Clip', 'clipe', 'Escritório', 'clíp'),
+  createWord('off3', 'Stapler', 'grampeador', 'Escritório', 'is-tei-pler'),
+  createWord('off4', 'Folder', 'pasta', 'Escritório', 'foul-der'),
+  createWord('off5', 'Stamp', 'carimbo', 'Escritório', 'istémp'),
+  createWord('off6', 'Eraser', 'borracha', 'Escritório', 'i-rei-zer'),
+
+  // --- FRUTAS / VEGETAIS ---
+  createWord('fd11', 'Strawberry', 'morango', 'Alimentos', 'istró-be-ri'),
+  createWord('fd12', 'Grape', 'uva', 'Alimentos', 'greip'),
+  createWord('fd13', 'Watermelon', 'melancia', 'Alimentos', 'uó-ter-mé-lon'),
+  createWord('fd14', 'Pineapple', 'abacaxi', 'Alimentos', 'pái-né-pol'),
+  createWord('fd15', 'Lemon', 'limão', 'Alimentos', 'lé-mon'),
+  createWord('fd16', 'Potato', 'batata', 'Alimentos', 'po-tei-tou'),
+  createWord('fd17', 'Tomato', 'tomate', 'Alimentos', 'to-mei-tou'),
+  createWord('fd18', 'Onion', 'cebola', 'Alimentos', 'ó-ni-on'),
+  createWord('fd19', 'Garlic', 'alho', 'Alimentos', 'gár-lic'),
+  createWord('fd20', 'Carrot', 'cenoura', 'Alimentos', 'ké-rot')
 ];
 
 // De-duplicate (some words repeat across categories)
 const seen = new Set();
+
+// SPRINT 1 & 2 EXCLUSION (Ensures no repetition between manual and automatic sprints)
+[
+  'PHONE', 'KEYS', 'WALLET', 'BAG', 'PEN', 'PENCIL', 'NOTEBOOK', 'BOOK', 'GLASSES', 'WATCH', 
+  'COMPUTER', 'LAPTOP', 'MOUSE', 'KEYBOARD', 'SCREEN', 'CHAIR', 'TABLE', 'LAMP', 'CUP', 'GLASS', 
+  'PLATE', 'FORK', 'KNIFE', 'SPOON', 'BOWL', 'PAN', 'FRYING PAN', 'MICROWAVE', 'REFRIGERATOR', 
+  'STOVE', 'OVEN', 'DISHWASHER', 'SINK', 'SOAP', 'TOWEL', 'TOOTHBRUSH', 'TOOTHPASTE', 'SHAMPOO', 
+  'CONDITIONER', 'HAIR DRYER', 'BRUSH', 'COMB', 'MIRROR', 'BED', 'PILLOW', 'BLANKET', 'SHEET', 
+  'WARDROBE', 'CLOSET', 'DOOR', 'WINDOW', 'CURTAIN', 'CARPET', 'RUG', 'SOFA', 'ARMCHAIR', 
+  'COFFEE TABLE', 'REMOTE CONTROL', 'TELEVISION', 'SPEAKER', 'HEADPHONES', 'CHARGER', 'BATTERY', 
+  'LIGHT BULB', 'FAN', 'AIR CONDITIONER', 'TRASH CAN', 'BROOM', 'DUSTPAN', 'VACUUM CLEANER', 
+  'CLOTHES', 'SHIRT', 'PANTS', 'DRESS', 'SKIRT', 'SHOES', 'SOCKS', 'HAT', 'CAP', 'JACKET', 
+  'COAT', 'UMBRELLA', 'BACKPACK', 'SUITCASE', 'SCISSORS', 'GLUE', 'TAPE', 'CALCULATOR', 'CLOCK', 
+  'CALENDAR', 'NEWSPAPER', 'MAGAZINE', 'ENVELOPE', 'COIN', 'CASH', 'CREDIT CARD', 'ID CARD', 
+  'PASSPORT', 'PICTURE FRAME', 'VASE', 'MASTERY', 'FOCUS', 'REFLEX', 'PERFORMANCE'
+].forEach(word => seen.add(word.toLowerCase().trim()));
+
 const UNIQUE_POOL = RAW_POOL.filter(w => {
   const normalized = w.en.toLowerCase().trim();
   if (seen.has(normalized)) return false;
@@ -649,7 +825,7 @@ export const VOCABULARY_SPRINTS: EssentialWord[] = [
   { id: 'obj-90', en: 'CALENDAR', phonetic: 'ca-len-der', pt: 'Calendário', category: 'Objetos', sprint: 2 },
   { id: 'obj-91', en: 'NEWSPAPER', phonetic: 'niu-ss-pei-per', pt: 'Jornal', category: 'Objetos', sprint: 2 },
   { id: 'obj-92', en: 'MAGAZINE', phonetic: 'há-ga-ziin', pt: 'Revista', category: 'Objetos', sprint: 2 },
-  { id: 'obj-93', en: 'WALLET', phonetic: 'uó-lêt', pt: 'Carteira', category: 'Objetos', sprint: 2 },
+  { id: 'obj-93', en: 'ENVELOPE', phonetic: 'én-ve-loup', pt: 'Envelope', category: 'Objetos', sprint: 2 },
   { id: 'obj-94', en: 'COIN', phonetic: 'coin', pt: 'Moeda', category: 'Objetos', sprint: 2 },
   { id: 'obj-95', en: 'CASH', phonetic: 'câch', pt: 'Dinheiro em espécie', category: 'Objetos', sprint: 2 },
   { id: 'obj-96', en: 'CREDIT CARD', phonetic: 'cre-dit card', pt: 'Cartão de crédito', category: 'Objetos', sprint: 2 },
