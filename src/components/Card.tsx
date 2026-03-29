@@ -95,10 +95,10 @@ export default function Card({ card, onReviewed, showOnlyBack = false }: CardPro
             {!showOnlyBack && !showToast && (
               <div className="grid grid-cols-3 gap-3 w-full mt-8 relative z-10 max-w-sm mx-auto">
                 <button
-                  onClick={() => handleReview('10m')}
+                  onClick={() => handleReview('1h')}
                   className="btn-premium py-3 px-2 text-sm bg-slate-900/80 border border-rose-500/30 text-rose-400 hover:border-rose-500 hover:bg-rose-500/10 hover:shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all flex flex-col items-center justify-center gap-1 font-bold rounded-2xl"
                 >
-                  <span className="text-[10px] text-rose-500/70 font-normal uppercase tracking-wider">&lt; 10 MIN</span>
+                  <span className="text-[10px] text-rose-500/70 font-normal uppercase tracking-wider">&lt; 1 HORA</span>
                   Difícil
                 </button>
                 <button

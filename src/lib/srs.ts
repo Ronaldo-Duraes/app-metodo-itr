@@ -168,6 +168,7 @@ export const calculateNextReview = (interval: ReviewInterval): Date => {
   const now = new Date();
   switch (interval) {
     case '10m': return new Date(now.getTime() + 10 * 60 * 1000);
+    case '1h': return new Date(now.getTime() + 60 * 60 * 1000);
     case '1d': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
     case '4d': return new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
     case '7d': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -185,6 +186,7 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
   let isMemorized = false;
   switch (intervalType) {
     case '10m': intervalMinutes = 10; break;
+    case '1h': intervalMinutes = 60; break;
     case '1d': intervalMinutes = 1440; break;
     case '4d': intervalMinutes = 5760; break;
     case '7d': intervalMinutes = 10080; break;
