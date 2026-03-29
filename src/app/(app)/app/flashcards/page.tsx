@@ -296,6 +296,18 @@ export default function FlashcardsPage() {
       border: 'border-yellow-500/60', 
       width: 'min-w-[120px]' 
     };
+
+    // NOVO: Se nunca foi revisado ou revisado 0 vezes
+    if (!card.lastReviewed || card.reviewedCount === 0) {
+      return { 
+        text: 'NOVO', 
+        color: 'text-yellow-500', 
+        dot: 'bg-yellow-500', 
+        bg: 'bg-zinc-900', 
+        border: 'border-yellow-500/50', 
+        width: 'min-w-[100px]' 
+      };
+    }
     
     const diffMs = new Date(card.nextReview).getTime() - Date.now();
     const diffMin = diffMs / (1000 * 60);

@@ -601,32 +601,45 @@ export const setVocabularySprint = (sprint: number) => {
 export const toggleVocabularyMemorized = (word: { id: string, en: string, pt: string }) => {
   const data = getAppData();
   const progress = data.vocabularyProgress || [];
+  const dictionary = data.dictionary || [];
   const isMemorized = progress.includes(word.id);
   
   let newProgress;
+  let newDictionary = [...dictionary];
+
   if (isMemorized) {
     newProgress = progress.filter(id => id !== word.id);
     
     // Remover do dicionário se existir
-    const dictionary = getDictionary();
-    const filteredDictionary = dictionary.filter(e => 
-      !(e.word.toLowerCase() === word.en.toLowerCase() && 
-        e.translation.toLowerCase() === word.pt.toLowerCase())
+    newDictionary = dictionary.filter(e => 
+      !(e.word.toLowerCase().trim() === word.en.toLowerCase().trim() && 
+        e.translation.toLowerCase().trim() === word.pt.toLowerCase().trim())
     );
-    saveDictionary(filteredDictionary);
   } else {
     newProgress = [...progress, word.id];
     
     // Se marcou como memorizado, envia para o dicionário pessoal
-    addOrUpdateDictionaryEntry({
-      front: word.en,
-      back: word.pt,
+    // Nota: Criamos um novo ID e atualizamos manualmente para manter atômico
+    const newId = `word-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    newDictionary.push({
+      id: newId,
+      word: word.en,
+      translation: word.pt,
+      dateAdded: new Date().toISOString(),
       isMemorized: true,
-      association: 'Vocabulário Essencial'
-    } as Flashcard);
+      usageFrequency: 1
+    });
+
+    // Atualiza o perfil (total de palavras)
+    data.profile.totalWordsAdded = (data.profile.totalWordsAdded || 0) + 1;
   }
   
-  saveAppData({ ...data, vocabularyProgress: newProgress });
+  saveAppData({ 
+    ...data, 
+    vocabularyProgress: newProgress,
+    dictionary: newDictionary
+  });
+
   return !isMemorized;
 };
 
@@ -654,19 +667,22 @@ export const generateSprintCards = (words: { en: string, pt: string, category: s
 export const resetSprintProgress = (wordIds: string[], words: { en: string, pt: string }[]) => {
   const data = getAppData();
   const progress = data.vocabularyProgress || [];
+  const dictionary = data.dictionary || [];
   
   // Remove IDs do progresso
   const newProgress = progress.filter(id => !wordIds.includes(id));
   
-  // Remove do dicionário
-  const dictionary = getDictionary();
+  // Remove do dicionário de forma atômica
   const filteredDictionary = dictionary.filter(e => {
     return !words.some(w => 
-      e.word.toLowerCase() === w.en.toLowerCase() && 
-      e.translation.toLowerCase() === w.pt.toLowerCase()
+      e.word.toLowerCase().trim() === w.en.toLowerCase().trim() && 
+      e.translation.toLowerCase().trim() === w.pt.toLowerCase().trim()
     );
   });
   
-  saveDictionary(filteredDictionary);
-  saveAppData({ ...data, vocabularyProgress: newProgress });
+  saveAppData({ 
+    ...data, 
+    vocabularyProgress: newProgress,
+    dictionary: filteredDictionary
+  });
 };
