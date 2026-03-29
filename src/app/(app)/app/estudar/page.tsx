@@ -236,7 +236,7 @@ export default function EstudarPage() {
                     className="flex flex-row gap-1.5 md:gap-2 w-full"
                   >
                     {[
-                      { top: '< 10 MIN', bottom: 'REVISAR', interval: '10m' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
+                      { top: '< 1 HORA', bottom: 'REVISAR', interval: '1h' as ReviewInterval, color: 'text-red-500 border-red-500/20' },
                       { top: '< 1 DIA', bottom: 'PRATICAR', interval: '1d' as ReviewInterval, color: 'text-emerald-500 border-emerald-500/20' },
                       { top: '< 4 DIAS', bottom: 'FIXAR', interval: '4d' as ReviewInterval, color: 'text-blue-500 border-blue-500/20' },
                       { top: 'MEMORIZADO', bottom: '✓✓✓', interval: 'memorized' as ReviewInterval, color: 'text-purple-500 border-purple-500/20' },
