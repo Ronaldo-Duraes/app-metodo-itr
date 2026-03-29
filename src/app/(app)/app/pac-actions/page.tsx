@@ -10,7 +10,7 @@ const PAC_ACTIONS = [
   "Cair", "Quebrar", "Brilhar", "Vibrar", "Borbulhar", 
   "Escorrer", "Pingar", "Dobrar", "Rasgar", "Enrolar", 
   "Empilhar", "Explodir", "Derreter", "Evaporar", "Refletir", 
-  "Acender", "Mover", "Crescer", "Desaparecer", "Transformar"
+  "Acender", "Mover", "Crescer", "Desaparecer", "Transformar", "Teletransportar"
 ];
 
 export default function PacActionsPage() {
