@@ -20,7 +20,8 @@ export default function HomePage() {
   }, [allCards]);
 
   const pendingCount = priorityCards.length;
-  const activeCount = allCards.length; // allCards já vem de getCards() que lê o dicionário
+  const activeCount = allCards.filter(c => !c.isMemorized).length;
+  const memorizedCount = allCards.filter(c => c.isMemorized).length;
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col items-center py-8 md:py-16 font-outfit relative overflow-hidden">
@@ -95,8 +96,8 @@ export default function HomePage() {
               <h3 className="text-4xl font-black text-white tracking-tighter">{activeCount}</h3>
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase block mb-2">Sprints Concluídas</span>
-              <h3 className="text-4xl font-black text-white tracking-tighter">02</h3>
+              <span className="text-[10px] font-black text-slate-500 tracking-[0.4em] uppercase block mb-2">Palavras Memorizadas</span>
+              <h3 className="text-4xl font-black text-yellow-500 tracking-tighter drop-shadow-[0_0_12px_rgba(234,179,8,0.6)]">{memorizedCount}</h3>
             </div>
           </div>
 
