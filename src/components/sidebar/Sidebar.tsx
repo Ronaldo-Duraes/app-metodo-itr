@@ -141,7 +141,8 @@ const Sidebar = () => {
               className="absolute inset-0 cursor-pointer"
             />
             
-            <div className="relative z-10 w-full max-w-md">
+            {/* Modal Container with scroll support for small screens */}
+            <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2.5rem] scrollbar-hide">
               <MentorCard isModal onClose={() => setIsMentorOpen(false)} />
             </div>
           </div>

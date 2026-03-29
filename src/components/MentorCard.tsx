@@ -33,7 +33,7 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
       {isModal && onClose && (
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-[60] p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-white/50 hover:text-white transition-all"
+          className="absolute top-6 right-6 z-[60] p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-white/50 hover:text-white transition-all"
         >
           <X size={20} />
         </button>
