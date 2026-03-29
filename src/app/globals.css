@@ -21,11 +21,37 @@ body {
   @apply rounded-3xl bg-slate-900 border border-slate-800 shadow-xl;
 }
 
-/* Custom Scrollbar for hidden scroll effect */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+/* Custom Scrollbar Styling (Global) */
+::-webkit-scrollbar {
+  width: 8px;   /* Largura vertical */
+  height: 6px;  /* Altura reduzida para horizontal (Sprints, etc) */
 }
-.hide-scrollbar {
-  -ms-overflow-style: none;  
-  scrollbar-width: none;  
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #10b981; /* emerald-500 */
+  border-radius: 10px;
+  border: 1px solid #0a0a0a; /* Sutil espaçamento */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #34d399; /* emerald-400 */
+}
+
+/* Firefox compatibility */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #0a0a0a;
+}
+
+/* Redefinindo no-scrollbar para exibir a barra estilizada com altura mínima caso solicitado */
+.no-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.no-scrollbar {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
 }
