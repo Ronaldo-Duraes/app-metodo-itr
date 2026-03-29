@@ -50,7 +50,17 @@ body {
 
 /* Redefinindo no-scrollbar para exibir a barra estilizada com altura mínima caso solicitado */
 .no-scrollbar::-webkit-scrollbar {
-  height: 4px;
+  height: 20px; /* Grande zona de detecção (Hit area) */
+}
+.no-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Permite ver o fundo e arrastar na área preta */
+}
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #10b981;
+  background-clip: padding-box;
+  border-top: 7px solid transparent; /* Reduz visualmente a thumb para ~6px */
+  border-bottom: 7px solid transparent;
+  border-radius: 10px;
 }
 .no-scrollbar {
   -ms-overflow-style: auto;

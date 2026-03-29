@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Zap, LayoutGrid, ArrowLeft, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import Link from 'next/link';
@@ -19,6 +19,35 @@ export default function VocabularyPage() {
   const [progress, setProgress] = useState<string[]>([]);
   const [activeSprint, setActiveSprint] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Drag-to-scroll logic
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleDragDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    if (!scrollRef.current) return;
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -120,8 +149,15 @@ export default function VocabularyPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12">
-        {/* Sprint Selector */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+        {/* Sprint Selector with drag-to-scroll */}
+        <div 
+          ref={scrollRef}
+          onMouseDown={handleDragDown}
+          onMouseLeave={handleDragLeave}
+          onMouseUp={handleDragUp}
+          onMouseMove={handleDragMove}
+          className={`flex gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar active:cursor-grabbing ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        >
           {Array.from({ length: 12 }).map((_, i) => {
             const sprintNum = i + 1;
             const isSelected = activeSprint === sprintNum;
