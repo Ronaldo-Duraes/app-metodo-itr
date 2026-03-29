@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Award, Zap, Crown, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import confetti from 'canvas-confetti';
+import { playWooshSound } from '@/lib/srs';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
 
   useEffect(() => {
     if (isOpen) {
+      playWooshSound();
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 300 };
@@ -69,17 +71,28 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
       glow: 'shadow-[0_0_50px_rgba(239,68,68,0.2)]',
       icon: <Zap size={60} className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]" />,
       phrase: 'A consistência é o que transforma o ordinário em extraordinário.',
-      textColor: 'text-red-500'
+      textColor: 'text-red-500',
+      body: (
+        <>
+          Parabéns pela marca de <span className="text-white font-black">500 palavras dominadas</span>. <br/>
+          Você faz parte da elite que não apenas estuda, mas retém o conhecimento com maestria.
+        </>
+      )
     },
     gold: {
-      title: 'CERTIFICADO DE OURO',
+      title: 'CERTIFICADO OURO',
       subTitle: 'MAESTRIA DE 1500 PALAVRAS',
       bg: 'bg-gradient-to-br from-yellow-900 via-yellow-950 to-black',
       border: 'border-[#FFD700]',
       glow: 'shadow-[0_0_60px_rgba(255,215,0,0.2)]',
       icon: <Crown size={60} className="text-[#FFD700] drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]" />,
-      phrase: 'A fluidez é o resultado da persistência aliada ao método.',
-      textColor: 'text-[#FFD700]'
+      phrase: 'Sua voz agora tem o peso da autoridade.',
+      textColor: 'text-[#FFD700]',
+      body: (
+        <>
+          <span className="text-white font-black">{userName}</span>, você rompeu a barreira técnica da fluência. Com <span className="text-white font-black">1500 palavras dominadas</span>, o idioma deixou de ser um obstáculo e se tornou sua ferramenta. Poucos chegam aqui; menos ainda com essa precisão. Parabéns!
+        </>
+      )
     }
   };
 
@@ -143,9 +156,8 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
               </h2>
             </div>
 
-            <p className="text-slate-400 text-sm md:text-lg font-medium leading-relaxed uppercase tracking-widest">
-              Parabéns pela marca de <span className="text-white font-black">{type === 'rubi' ? '500' : '1500'} palavras dominadas</span>. <br/>
-              Você faz parte da elite que não apenas estuda, mas retém o conhecimento com maestria.
+            <p className="text-slate-400 text-sm md:text-lg font-medium leading-relaxed uppercase tracking-widest leading-[1.6]">
+              {current.body}
             </p>
 
             <div className="pt-8 border-t border-white/10">
