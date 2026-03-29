@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check } from 'lucide-react';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check, Rocket } from 'lucide-react';
 import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData, getDictionary } from '@/lib/srs';
 import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
@@ -358,6 +358,13 @@ export default function FlashcardsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
+            <button 
+              onClick={() => router.push('/app/vocabulary')}
+              className="flex items-center gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-6 py-3 rounded-lg font-black text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+            >
+              <Rocket size={16} strokeWidth={3} />
+              Sprint 600 palavras
+            </button>
             <button 
               onClick={() => setIsCardModalOpen(true)}
               className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
