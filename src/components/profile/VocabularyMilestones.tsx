@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Crown, Flame, Trees, Zap } from 'lucide-react';
+import { Star, Crown, Flame, Trees, Zap, Award } from 'lucide-react';
 import { redeemReward } from '@/lib/firebase';
-import { MILESTONES_COMMON, MILESTONES_MASTERY } from '@/lib/srs';
+import { MILESTONES_COMMON, MILESTONES_MASTERY, getUserProfile } from '@/lib/srs';
+import CertificateModal from './CertificateModal';
 
 interface VocabularyMilestonesProps {
   masteredCount: number;
@@ -16,6 +17,8 @@ const MILESTONES = [...MILESTONES_COMMON, ...MILESTONES_MASTERY].sort((a, b) => 
 
 export default function VocabularyMilestones({ masteredCount, uid, unlockedRewards }: VocabularyMilestonesProps) {
   const [lastCollected, setLastCollected] = useState<number | null>(null);
+  const [activeCert, setActiveCert] = useState<{ type: 'rubi' | 'gold', open: boolean } | null>(null);
+  const userName = getUserProfile().name || 'Estudante ITR';
 
   const handleCollect = (m: number) => {
     if (masteredCount >= m) {
@@ -27,7 +30,14 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
   const onRedeem = async (rewardKey: string) => {
     try {
       await redeemReward(uid, rewardKey);
-      window.location.reload(); 
+      
+      // Abrir certificado após resgate bem sucedido
+      const type = rewardKey.includes('ruby') ? 'rubi' : 'gold';
+      setActiveCert({ type, open: true });
+      
+      // Delay o reload para permitir download se quiser, mas o usuário pediu modal.
+      // Se recarregar agora o modal some. Removendo window.location.reload().
+      // window.location.reload(); 
     } catch (error) {
       console.error("Erro ao resgatar:", error);
     }
@@ -156,16 +166,15 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
             </div>
           </div>
           <button 
-            disabled={masteredCount < 500 || isRubyClaimed}
-            onClick={() => onRedeem('ruby_500')}
-            className={`px-8 py-3 rounded-xl font-black font-outfit text-xs tracking-widest transition-all border-2 border-[#ef4444] bg-[#050505] text-[#ef4444] hover:bg-[#ef4444] hover:text-white flex items-center gap-2 
-              ${masteredCount >= 500 && !isRubyClaimed ? 'animate-pulse cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-              ${isRubyClaimed ? 'bg-[#ef4444] text-white border-transparent' : ''}
-            `}
-          >
-             {isRubyClaimed ? <Star size={16} fill="white" /> : <Zap size={16} />}
-             {isRubyClaimed ? 'RESGATADO' : 'RESGATAR RUBI'}
-          </button>
+             onClick={isRubyClaimed ? () => setActiveCert({ type: 'rubi', open: true }) : () => onRedeem('ruby_500')}
+             className={`px-8 py-3 rounded-xl font-black font-outfit text-xs tracking-widest transition-all border-2 border-[#ef4444] bg-[#050505] text-[#ef4444] hover:bg-[#ef4444] hover:text-white flex items-center gap-2 
+               ${masteredCount >= 500 && !isRubyClaimed ? 'animate-pulse cursor-pointer' : (isRubyClaimed ? 'cursor-pointer hover:bg-red-500/10' : 'opacity-50 cursor-not-allowed')}
+               ${isRubyClaimed ? 'bg-transparent text-[#ef4444] border-[#ef4444]' : ''}
+             `}
+           >
+              {isRubyClaimed ? <Award size={16} /> : <Zap size={16} />}
+              {isRubyClaimed ? 'VER CERTIFICADO' : 'RESGATAR RUBI'}
+           </button>
         </motion.div>
       </div>
 
@@ -202,20 +211,29 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
           </div>
 
           <motion.button 
-            disabled={masteredCount < 1500 || isGoldClaimed}
-            onClick={() => onRedeem('gold_1500')}
-            animate={masteredCount >= 1500 && !isGoldClaimed ? { scale: [1, 1.02, 1] } : {}}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className={`px-10 py-5 font-black font-outfit rounded-2xl transition-all border-2 border-[#FFD700] active:scale-95 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.2)] relative group overflow-hidden
-              ${masteredCount >= 1500 && !isGoldClaimed ? 'bg-[#050505] text-[#FFD700] hover:bg-[#FFD700] hover:text-black cursor-pointer' : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'}
-              ${isGoldClaimed ? 'bg-[#FFD700] text-black border-transparent' : ''}
-            `}
-          >
-             <Trees size={24} />
-             <span className="tracking-widest uppercase">{isGoldClaimed ? 'RESGATADO' : 'RESGATAR OURO'}</span>
-          </motion.button>
+             onClick={isGoldClaimed ? () => setActiveCert({ type: 'gold', open: true }) : () => onRedeem('gold_1500')}
+             animate={masteredCount >= 1500 && !isGoldClaimed ? { scale: [1, 1.02, 1] } : {}}
+             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+             className={`px-10 py-5 font-black font-outfit rounded-2xl transition-all border-2 border-[#FFD700] active:scale-95 flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.2)] relative group overflow-hidden
+               ${masteredCount >= 1500 && !isGoldClaimed ? 'bg-[#050505] text-[#FFD700] hover:bg-[#FFD700] hover:text-black cursor-pointer' : (isGoldClaimed ? 'bg-transparent text-[#FFD700] cursor-pointer hover:bg-yellow-500/10' : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed')}
+             `}
+           >
+              {isGoldClaimed ? <Award size={24} /> : <Trees size={24} />}
+              <span className="tracking-widest uppercase">{isGoldClaimed ? 'VER CERTIFICADO' : 'RESGATAR OURO'}</span>
+           </motion.button>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {activeCert && activeCert.open && (
+           <CertificateModal 
+             isOpen={activeCert.open} 
+             onClose={() => setActiveCert(null)} 
+             type={activeCert.type} 
+             userName={userName}
+           />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
