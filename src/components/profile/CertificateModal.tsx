@@ -41,51 +41,67 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
   }, [isOpen]);
 
   const handleDownload = async () => {
-    if (certificateRef.current) {
-      try {
-        // Garantir que todas as fontes foram carregadas antes da captura
-        await document.fonts.ready;
-        
-        // Delay estratégico para sincronização de renderização (layout e estilos Tailwind)
-        await new Promise(resolve => setTimeout(resolve, 150));
+    if (!certificateRef.current) return;
 
-        const canvas = await html2canvas(certificateRef.current, {
-          backgroundColor: null,
-          scale: 3, // Ultra-High Definition
-          logging: true,
-          useCORS: true,
-          allowTaint: true,
-          foreignObjectRendering: true,
-          imageTimeout: 0,
-          width: certificateRef.current.offsetWidth,
-          height: certificateRef.current.offsetHeight,
-          onclone: (clonedDoc) => {
-            const el = clonedDoc.getElementById('certificate-content');
-            if (el) {
-              // Blindagem total contra invisibilidade
-              el.style.display = 'block'; 
-              el.style.visibility = 'visible';
-              el.style.opacity = '1';
-              el.style.transform = 'none';
-              
-              // Garante que o container interno também esteja visível
-              const inner = el.querySelector('.text-center');
-              if (inner instanceof HTMLElement) {
-                inner.style.display = 'block';
-                inner.style.visibility = 'visible';
-                inner.style.opacity = '1';
-              }
-            }
-          }
-        });
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = `Certificado_ITR_${type === 'rubi' ? 'Rubi' : 'Ouro'}_${userName.replace(/\s+/g, '_')}.png`;
-        link.click();
-      } catch (err) {
-        console.error("Erro ao gerar certificado:", err);
-      }
+    try {
+      // 1. Preparação: Garantir fontes prontas
+      await document.fonts.ready;
+      
+      // 2. Clonagem e Isolamento (Off-screen Render Stage)
+      const original = certificateRef.current;
+      const clone = original.cloneNode(true) as HTMLDivElement;
+      
+      // Criar container temporário fora da tela
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = `${original.offsetWidth}px`;
+      container.style.height = `${original.offsetHeight}px`;
+      container.style.backgroundColor = '#000000'; // Fundo base sólido
+      
+      // Limpeza de estilos que bugam a captura no clone
+      clone.style.transform = 'none';
+      clone.style.margin = '0';
+      clone.style.borderRadius = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.filter = 'none';
+      clone.style.backdropFilter = 'none'; // CRÍTICO: remove blurs
+      
+      // Forçar visibilidade absoluta no clone
+      clone.style.display = 'flex';
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      // Pequeno delay para o DOM processar a inserção off-screen
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // 3. Captura do Estágio Isolado
+      const canvas = await html2canvas(container, {
+        backgroundColor: "#000000",
+        scale: 3, // Ultra-Definição
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 0,
+        width: original.offsetWidth,
+        height: original.offsetHeight
+      });
+
+      // 4. Download da Imagem
+      const image = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Certificado_ITR_${type === 'rubi' ? 'Rubi' : 'Ouro'}_${userName.replace(/\s+/g, '_')}.png`;
+      link.click();
+
+      // 5. Cleanup: Remover evidências
+      document.body.removeChild(container);
+    } catch (err) {
+      console.error("Falha Crítica no Render Stage:", err);
     }
   };
 
@@ -155,7 +171,17 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
         <div 
           ref={certificateRef}
           id="certificate-content"
-          className={`w-full h-full flex flex-col items-center justify-center p-12 border-4 ${current.border} ${current.bg} ${current.glow} relative overflow-hidden`}
+          style={{
+            padding: '48px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            backgroundColor: '#000000'
+          }}
+          className={`w-full h-full border-4 ${current.border} ${current.bg} ${current.glow} relative overflow-hidden`}
         >
           {/* Decorative Corner Details */}
           <div className={`absolute top-0 left-0 w-32 h-32 border-l-8 border-t-8 ${current.border} opacity-40`} />
@@ -175,13 +201,13 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
               CERTIFICADO DE CONQUISTA • MÉTODO ITR
             </h4>
             
-            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic leading-none" style={{ color: '#ffffff' }}>
               {current.title}
             </h1>
 
             <div className="py-8">
               <span className="text-slate-500 font-bold uppercase tracking-widest text-xs block mb-4 italic">Concedido a:</span>
-              <h2 className={`text-3xl md:text-5xl font-black text-white border-b-2 ${current.border} inline-block px-12 pb-4 tracking-tight`}>
+              <h2 className={`text-3xl md:text-5xl font-black border-b-2 ${current.border} inline-block px-12 pb-4 tracking-tight`} style={{ color: '#ffffff' }}>
                 {userName || 'Estudante ITR'}
               </h2>
             </div>

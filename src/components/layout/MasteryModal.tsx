@@ -8,11 +8,8 @@ interface MasteryModalProps {
 }
 
 const MasteryModal = ({ milestone, onClose }: MasteryModalProps) => {
-  const router = useRouter();
-
   const handleClaim = () => {
     onClose();
-    router.push(`/app/perfil`);
   };
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-hidden">
