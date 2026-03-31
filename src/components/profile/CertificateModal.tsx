@@ -99,6 +99,13 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
         footerMeta.style.paddingTop = '30px'; // Reduzido para subir o rodapé
       }
 
+      // RESET DE AJUSTES VISUAIS (Para manter o download perfeito como estava)
+      const headerSmall = clone.querySelector('#cert-header-small') as HTMLElement;
+      if (headerSmall) headerSmall.style.marginTop = '0px';
+
+      const titleMain = clone.querySelector('#cert-title-main') as HTMLElement;
+      if (titleMain) titleMain.style.marginBottom = '0px';
+
       container.appendChild(clone);
       document.body.appendChild(container);
 
@@ -223,11 +230,11 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
               {current.icon}
             </div>
             
-            <h4 className={`text-xs font-black uppercase tracking-[0.8em] ${current.textColor} opacity-80`}>
+            <h4 id="cert-header-small" className={`text-xs font-black uppercase tracking-[0.8em] ${current.textColor} opacity-80 mt-10 md:mt-14`}>
               CERTIFICADO DE CONQUISTA • MÉTODO ITR
             </h4>
             
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic leading-none" style={{ color: '#ffffff' }}>
+            <h1 id="cert-title-main" className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic leading-none !mb-[-20px]" style={{ color: '#ffffff' }}>
               {current.title}
             </h1>
 
