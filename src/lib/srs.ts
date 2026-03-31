@@ -107,7 +107,8 @@ export const getCards = (): Flashcard[] => {
     isLearned: e.isMemorized || (e.reviewedCount || 0) > 5,
     isMemorized: e.isMemorized,
     deck: e.deck,
-    dictionaryId: e.id
+    dictionaryId: e.id,
+    pronunciation: e.pronunciation || ''
   }));
 };
 
@@ -155,7 +156,8 @@ export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
       isLearned: e.isMemorized || (e.reviewedCount || 0) > 5,
       isMemorized: e.isMemorized,
       deck: e.deck,
-      dictionaryId: e.id
+      dictionaryId: e.id,
+      pronunciation: e.pronunciation || ''
     }));
 };
 
@@ -177,7 +179,8 @@ export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
         nextReview: updates.nextReview || e.nextReview,
         lastReviewed: updates.lastReviewed || e.lastReviewed,
         interval: updates.interval || e.interval,
-        reviewedCount: updates.reviewedCount || e.reviewedCount
+        reviewedCount: updates.reviewedCount || e.reviewedCount,
+        pronunciation: updates.pronunciation !== undefined ? updates.pronunciation : e.pronunciation
       };
     }
     return e;
@@ -225,13 +228,12 @@ export const updateCardAssociation = (cardId: string, association: string) => {
   updateCard(cardId, { association } as any);
 };
 
-export const addFullCard = (front: string, back: string, association: string, deckName: string) => {
+export const addFullCard = (front: string, back: string, association: string, deckName: string, pronunciation: string = '') => {
   const dictionary = getDictionary();
   const existingIndex = dictionary.findIndex(e => e.word.toLowerCase().trim() === front.toLowerCase().trim());
-
   if (existingIndex >= 0) {
     const entry = dictionary[existingIndex];
-    dictionary[existingIndex] = { ...entry, translation: back, deck: deckName, association, isMemorized: false };
+    dictionary[existingIndex] = { ...entry, translation: back, deck: deckName, association, pronunciation, isMemorized: false };
     saveDictionary(dictionary);
     return entry;
   } else {
@@ -247,7 +249,8 @@ export const addFullCard = (front: string, back: string, association: string, de
       interval: 0,
       reviewedCount: 0,
       deck: deckName,
-      association: association
+      association: association,
+      pronunciation: pronunciation
     };
     saveDictionary([...dictionary, newEntry]);
     
@@ -257,8 +260,8 @@ export const addFullCard = (front: string, back: string, association: string, de
   }
 };
 
-export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado') => {
-  return addFullCard(front, back, association, deck);
+export const addCustomCard = (front: string, back: string, association: string, deck: string = 'Personalizado', pronunciation: string = '') => {
+  return addFullCard(front, back, association, deck, pronunciation);
 };
 
 export const deleteCard = (cardId: string) => deleteDictionaryEntry(cardId);
@@ -316,7 +319,7 @@ export const setVocabularySprint = (sprint: number) => {
   saveAppData({ ...data, currentSprint: sprint });
 };
 
-export const generateSprintCards = (words: { en: string, pt: string, category: string }[], sprintIndex: number) => {
+export const generateSprintCards = (words: { en: string, pt: string, category: string, phonetic?: string }[], sprintIndex: number) => {
   const decks = getDecks();
   const baseName = `Vocabulário ITR - Sprint ${sprintIndex}`;
   let deckName = baseName;
@@ -326,7 +329,7 @@ export const generateSprintCards = (words: { en: string, pt: string, category: s
     counter++;
   }
   addDeck(deckName);
-  words.forEach(word => addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName));
+  words.forEach(word => addFullCard(word.en, word.pt, `Vocabulário Essencial - ${word.category}`, deckName, word.phonetic || ''));
   return deckName; 
 };
 

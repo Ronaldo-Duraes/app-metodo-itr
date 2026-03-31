@@ -82,7 +82,7 @@ export default function VocabularyPage() {
     // Filtra palavras não memorizadas do sprint atual
     const wordsToGenerate = currentSprintWords
       .filter(w => !progress.includes(w.id))
-      .map(w => ({ en: w.en, pt: w.pt, category: w.category }));
+      .map(w => ({ en: w.en, pt: w.pt, category: w.category, phonetic: w.phonetic }));
     
     const finalDeckName = generateSprintCards(wordsToGenerate, activeSprint);
     

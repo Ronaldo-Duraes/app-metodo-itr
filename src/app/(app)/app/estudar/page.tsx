@@ -224,11 +224,23 @@ export default function EstudarPage() {
               </div>
 
               <div className="w-full max-w-4xl flex flex-col items-center text-center">
-                <div className="mb-6">
+                <div className="mb-6 flex flex-col items-center">
                   <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">Termo Original</span>
-                  <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
-                    {currentCard.front}
-                  </h3>
+                  <div className="flex flex-row items-baseline gap-3 justify-center">
+                    <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
+                      {currentCard.front}
+                    </h3>
+                    
+                    {currentCard.pronunciation && (
+                      <motion.span 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-xl md:text-2xl font-bold text-amber-500/40 uppercase tracking-[0.3em] italic"
+                      >
+                        ({currentCard.pronunciation})
+                      </motion.span>
+                    )}
+                  </div>
                 </div>
 
                 {!isRevealed && (

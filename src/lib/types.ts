@@ -11,6 +11,7 @@ export interface Flashcard {
   isMemorized?: boolean; // Pessoal: Parar de revisar totalmente
   deck?: string; // Baralho para agrupamento
   dictionaryId?: string; // Referência para a linha no dicionário
+  pronunciation?: string; // Pronúncia figurativa
 }
 
 export interface UserProfile {
@@ -40,6 +41,7 @@ export interface DictionaryEntry {
   reviewedCount?: number;
   deck?: string;
   association?: string;
+  pronunciation?: string;
 }
 
 export interface AppData {

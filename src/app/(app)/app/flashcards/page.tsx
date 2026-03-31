@@ -137,7 +137,7 @@ export default function FlashcardsPage() {
   }, [activeMenuId]);
   const [newDeckName, setNewDeckName] = useState('');
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
-  const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '' });
+  const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '', pronunciation: '' });
   
   const [isLoading, setIsLoading] = useState(true);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
@@ -259,7 +259,7 @@ export default function FlashcardsPage() {
 
   const handleCreateCard = (e: React.FormEvent) => {
     e.preventDefault();
-    const { front, back, association, deckName } = newCardData;
+    const { front, back, association, deckName, pronunciation } = newCardData;
     
     // Lógica de Segurança
     if (!deckName && decks.length === 0) {
@@ -268,16 +268,16 @@ export default function FlashcardsPage() {
         return;
       }
       const d = addDeck(newDeckName);
-      addFullCard(front, back, association, d.name);
+      addFullCard(front, back, association, d.name, pronunciation);
     } else {
       if (!front || !back || !deckName) {
         setShowErrors(true);
         return;
       }
-      addFullCard(front, back, association, deckName);
+      addFullCard(front, back, association, deckName, pronunciation);
     }
 
-    setNewCardData({ front: '', back: '', association: '', deckName: '' });
+    setNewCardData({ front: '', back: '', association: '', deckName: '', pronunciation: '' });
     setNewDeckName('');
     setSkipDictionary(false);
     setShowErrors(false);
@@ -333,7 +333,8 @@ export default function FlashcardsPage() {
     updateCard(editingCard.id, {
       front: editingCard.front,
       back: editingCard.back,
-      association: editingCard.association
+      association: editingCard.association,
+      pronunciation: editingCard.pronunciation
     });
     setIsEditCardModalOpen(false);
     setEditingCard(null);
@@ -920,6 +921,18 @@ export default function FlashcardsPage() {
                       )}
                     </div>
                     <div>
+                      <label className="block text-[8px] font-black text-amber-500/60 uppercase tracking-[0.3em] mb-3">PRONÚNCIA</label>
+                      <input 
+                        type="text" 
+                        value={newCardData.pronunciation} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, pronunciation: e.target.value});
+                        }} 
+                        placeholder="EX: DÂ" 
+                        className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-amber-500/40 transition-colors" 
+                      />
+                    </div>
+                    <div>
                       <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
                       <input 
                         type="text" 
@@ -1000,6 +1013,18 @@ export default function FlashcardsPage() {
                         if (showErrors) setShowErrors(false);
                       }} 
                       className={`w-full bg-white/[0.03] border p-4 text-white font-black uppercase tracking-widest outline-none transition-colors ${showErrors && !editingCard.front ? 'border-red-500' : 'border-white/10 focus:border-emerald-500/40'}`} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-amber-500/60 uppercase tracking-[0.3em] mb-3">PRONÚNCIA</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.pronunciation || ''} 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, pronunciation: e.target.value});
+                      }} 
+                      placeholder="EX: DÂ"
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-amber-500/40 transition-colors" 
                     />
                   </div>
                   <div>
