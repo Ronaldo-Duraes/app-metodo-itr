@@ -59,6 +59,9 @@ export default function EstudarPage() {
   const handleReview = (interval: ReviewInterval) => {
     if (!currentCard) return;
     
+    // TODAS AS INTERAÇÕES REATIVAM NO DICIONÁRIO
+    ensureCardInDictionary(currentCard.id);
+    
     // MODO MANUAL: Não persiste no banco de dados e repete o card se for Difícil
     if (studyMode === 'manual') {
       if (interval === '1h') { 
@@ -71,7 +74,6 @@ export default function EstudarPage() {
       }
     } else {
       // MODO SRS: Inteligente com persistência
-      ensureCardInDictionary(currentCard.id);
       updateCardReview(currentCard.id, interval);
     }
 

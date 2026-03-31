@@ -546,4 +546,11 @@ export const clearAllData = () => {
   window.location.reload();
 };
 
-export const ensureCardInDictionary = (cardId: string) => cardId; // Stub for compatibility
+export const ensureCardInDictionary = (cardId: string) => {
+  const dictionary = getDictionary();
+  const index = dictionary.findIndex(e => e.id === cardId);
+  if (index >= 0 && !dictionary[index].inDictionary) {
+    dictionary[index].inDictionary = true;
+    saveDictionary(dictionary);
+  }
+};
