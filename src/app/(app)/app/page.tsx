@@ -54,7 +54,7 @@ export default function HomePage() {
           {pendingCount > 0 ? (
             <div className="w-full text-center">
               <Link href="/app/estudar?mode=srs" className="w-full">
-                <button className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+                <button id="tour-acao-prioritaria" className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
                   <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                     <Zap size={48} className="text-emerald-500" />
                   </div>

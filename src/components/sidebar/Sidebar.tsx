@@ -4,10 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library, Star, X } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { startTour } from '@/lib/tour';
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -33,10 +34,10 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/app' },
-    { icon: Zap, label: 'Atividades', path: '/app/atividades' },
-    { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards' },
+    { icon: Zap, label: 'Atividades', path: '/app/atividades', id: 'tour-atividades' },
+    { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards', id: 'tour-flashcards' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
-    { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario' },
+    { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario', id: 'tour-dicionario' },
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 
@@ -45,8 +46,8 @@ const Sidebar = () => {
       <div className="flex flex-col h-full py-8">
         
         {/* LOGO AREA (FIXED WITH NEXT/IMAGE) */}
-        <div className="px-6 mb-12 flex justify-center">
-            <Link href="/" className="relative w-24 h-24">
+        <div className="px-6 mb-12 flex items-center justify-between">
+            <Link href="/" className="relative w-16 h-16">
               <Image 
                 src='/logo-itr.png' 
                 alt='Logo ITR' 
@@ -56,6 +57,13 @@ const Sidebar = () => {
                 className='object-contain drop-shadow-[0_0_15px_rgba(188,19,254,0.15)] hover:scale-105 transition-transform' 
               />
             </Link>
+            <button 
+              onClick={() => startTour()}
+              className="p-2 text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full"
+              title="Iniciar Tour"
+            >
+              <HelpCircle size={20} />
+            </button>
         </div>
 
         {/* NAVIGATION LINKS */}
@@ -79,7 +87,7 @@ const Sidebar = () => {
 
             return (
               <Link key={item.path} href={item.path}>
-                <div className={`
+                <div id={item.id} className={`
                   group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer
                   ${isActive 
                     ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
@@ -105,7 +113,7 @@ const Sidebar = () => {
         {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
         <div className="px-4 mt-auto pt-8 border-t border-white/5">
           <Link href="/perfil" onClick={handleProfileClick}>
-            <div className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
+            <div id="tour-perfil" className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
                   <User size={18} />

@@ -66,3 +66,78 @@ body {
   -ms-overflow-style: auto;
   scrollbar-width: thin;
 }
+
+/* --- DRIVER.JS CUSTOM THEME (ITR ELITE) --- */
+.itr-tour-popover {
+  background-color: #050505 !important;
+  color: #ffffff !important;
+  border: 1px solid #EAB308 !important;
+  border-radius: 0px !important; /* Estilo bloco industrial */
+  padding: 24px !important;
+  font-family: var(--font-outfit), sans-serif !important;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(234, 179, 8, 0.1) !important;
+  max-width: 320px !important;
+}
+
+.itr-tour-popover .driver-popover-title {
+  color: #EAB308 !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2em !important;
+  margin-bottom: 12px !important;
+  border-left: 3px solid #9B111E;
+  padding-left: 10px;
+}
+
+.itr-tour-popover .driver-popover-description {
+  color: #a1a1aa !important;
+  font-size: 12px !important;
+  line-height: 1.8 !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.itr-tour-popover .driver-popover-progress-text {
+  color: #9B111E !important;
+  font-weight: 900 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+.itr-tour-popover .driver-popover-next-btn,
+.itr-tour-popover .driver-popover-prev-btn,
+.itr-tour-popover .driver-popover-close-btn {
+  background-color: #111 !important;
+  color: #EAB308 !important;
+  border: 1px solid rgba(234, 179, 8, 0.3) !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  font-size: 9px !important;
+  letter-spacing: 0.2em !important;
+  padding: 8px 16px !important;
+  border-radius: 0px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.itr-tour-popover .driver-popover-next-btn:hover {
+  background-color: #EAB308 !important;
+  color: #000 !important;
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.4) !important;
+}
+
+.itr-tour-popover .driver-popover-prev-btn {
+  color: #666 !important;
+  border-color: #333 !important;
+}
+
+.itr-tour-popover .driver-popover-prev-btn:hover {
+  background-color: #222 !important;
+  color: #fff !important;
+}
+
+.itr-tour-popover .driver-popover-arrow {
+  border-color: transparent !important;
+}
