@@ -12,6 +12,7 @@ export interface Flashcard {
   deck?: string; // Baralho para agrupamento
   dictionaryId?: string; // Referência para a linha no dicionário
   pronunciation?: string; // Pronúncia figurativa
+  inDictionary?: boolean; // Se deve aparecer na lista geral do dicionário
 }
 
 export interface UserProfile {
@@ -42,6 +43,7 @@ export interface DictionaryEntry {
   deck?: string;
   association?: string;
   pronunciation?: string;
+  inDictionary?: boolean;
 }
 
 export interface AppData {

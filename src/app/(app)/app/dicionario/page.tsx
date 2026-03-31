@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, Search, Filter, Gem, Edit2, X, Check, Trash2, Trash, AlertTriangle } from 'lucide-react';
-import { getDictionary, updateDictionaryEntry, deleteDictionaryEntry, saveDictionary } from '@/lib/srs';
+import { getDictionary, updateDictionaryEntry, deleteDictionaryEntry, saveDictionary, resetDictionarySRS } from '@/lib/srs';
 import { DictionaryEntry } from '@/lib/types';
 
 export default function DicionarioPage() {
@@ -22,7 +22,7 @@ export default function DicionarioPage() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const loadData = () => {
-    const data = getDictionary();
+    const data = getDictionary().filter(item => item.inDictionary !== false);
     let sorted = [...data];
     
     if (sortMode === 'recent') {
@@ -92,7 +92,7 @@ export default function DicionarioPage() {
   };
 
   const handleClearAll = () => {
-    saveDictionary([]);
+    resetDictionarySRS();
     setIsClearAllModalOpen(false);
     setClearStep(1);
     setConfirmText('');
@@ -130,7 +130,7 @@ export default function DicionarioPage() {
             className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 transition-colors group"
           >
             <Trash size={14} className="group-hover:animate-bounce" />
-            Limpar Dicionário
+            Limpar Visualização (Resetar Progresso)
           </button>
         </div>
         
@@ -456,9 +456,9 @@ export default function DicionarioPage() {
 
               {clearStep === 1 ? (
                 <>
-                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 italic text-white">Excluir todo o <span className="text-red-500">progresso?</span></h2>
+                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 italic text-white">Resetar progresso de <span className="text-red-500">estudo?</span></h2>
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-10">
-                    Atenção: Isso apagará permanentemente todas as suas palavras e dados de repetição. Esta ação não pode ser desfeita.
+                    Atenção: Isso resetará todas as suas palavras para o nível 'Novo' e as removerá desta lista, mas elas continuarão salvas nos seus baralhos originais.
                   </p>
                   <div className="flex flex-col gap-3">
                     <button 
@@ -501,7 +501,7 @@ export default function DicionarioPage() {
                           : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
                       }`}
                     >
-                      EXCLUIR TUDO DEFINITIVAMENTE
+                      RESETAR PROGRESSO AGORA
                     </button>
                     <button 
                       onClick={() => {
@@ -530,7 +530,7 @@ export default function DicionarioPage() {
             className="fixed bottom-10 right-10 z-[250] bg-emerald-500 text-black px-8 py-4 font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3"
           >
             <Check size={18} strokeWidth={3} />
-            Dicionário resetado com sucesso
+            Progresso resetado com sucesso
           </motion.div>
         )}
       </AnimatePresence>

@@ -108,7 +108,8 @@ export const getCards = (): Flashcard[] => {
     isMemorized: e.isMemorized,
     deck: e.deck,
     dictionaryId: e.id,
-    pronunciation: e.pronunciation || ''
+    pronunciation: e.pronunciation || '',
+    inDictionary: e.inDictionary ?? true
   }));
 };
 
@@ -157,7 +158,8 @@ export const getPriorityCards = (cards: Flashcard[], deckID?: string) => {
       isMemorized: e.isMemorized,
       deck: e.deck,
       dictionaryId: e.id,
-      pronunciation: e.pronunciation || ''
+      pronunciation: e.pronunciation || '',
+      inDictionary: e.inDictionary ?? true
     }));
 };
 
@@ -180,7 +182,8 @@ export const updateCard = (cardId: string, updates: Partial<Flashcard>) => {
         lastReviewed: updates.lastReviewed || e.lastReviewed,
         interval: updates.interval || e.interval,
         reviewedCount: updates.reviewedCount || e.reviewedCount,
-        pronunciation: updates.pronunciation !== undefined ? updates.pronunciation : e.pronunciation
+        pronunciation: updates.pronunciation !== undefined ? updates.pronunciation : e.pronunciation,
+        inDictionary: updates.inDictionary !== undefined ? updates.inDictionary : e.inDictionary
       };
     }
     return e;
@@ -216,7 +219,8 @@ export const updateCardReview = (cardId: string, intervalType: ReviewInterval) =
         nextReview: nextDate.toISOString(),
         lastReviewed: now.toISOString(),
         interval: mins,
-        reviewedCount: (e.reviewedCount || 0) + 1
+        reviewedCount: (e.reviewedCount || 0) + 1,
+        inDictionary: true
       };
     }
     return e;
@@ -233,7 +237,7 @@ export const addFullCard = (front: string, back: string, association: string, de
   const existingIndex = dictionary.findIndex(e => e.word.toLowerCase().trim() === front.toLowerCase().trim());
   if (existingIndex >= 0) {
     const entry = dictionary[existingIndex];
-    dictionary[existingIndex] = { ...entry, translation: back, deck: deckName, association, pronunciation, isMemorized: false };
+    dictionary[existingIndex] = { ...entry, translation: back, deck: deckName, association, pronunciation, isMemorized: false, inDictionary: true };
     saveDictionary(dictionary);
     return entry;
   } else {
@@ -250,7 +254,8 @@ export const addFullCard = (front: string, back: string, association: string, de
       reviewedCount: 0,
       deck: deckName,
       association: association,
-      pronunciation: pronunciation
+      pronunciation: pronunciation,
+      inDictionary: true
     };
     saveDictionary([...dictionary, newEntry]);
     
@@ -508,6 +513,21 @@ export const playVictorySound = () => {
     };
     playNote(523.25, 0, 0.08); playNote(783.99, 0.05, 0.06); playNote(1046.50, 0.1, 0.05);
   } catch (e) {}
+};
+
+export const resetDictionarySRS = () => {
+  const dictionary = getDictionary();
+  const now = new Date().toISOString();
+  const reset = dictionary.map(e => ({
+    ...e,
+    inDictionary: false,
+    isMemorized: false,
+    nextReview: now,
+    lastReviewed: null,
+    interval: 0,
+    reviewedCount: 0
+  }));
+  saveDictionary(reset);
 };
 
 export const clearAllData = () => {
