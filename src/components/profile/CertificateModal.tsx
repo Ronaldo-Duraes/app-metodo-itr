@@ -73,6 +73,32 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
       clone.style.visibility = 'visible';
       clone.style.opacity = '1';
 
+      // --- AJUSTES DE LAYOUT EXCLUSIVOS PARA DOWNLOAD (ONCLONE ANALOG) ---
+      // 1. Respiro no nome (Desce a linha border-b)
+      const nameHeading = clone.querySelector('#cert-name-heading') as HTMLElement;
+      if (nameHeading) nameHeading.style.paddingBottom = '40px';
+      
+      const nameContainer = clone.querySelector('#cert-name-container') as HTMLElement;
+      if (nameContainer) nameContainer.style.paddingBottom = '10px';
+
+      // 2. Subir Copy e Frase Final
+      const copyText = clone.querySelector('#cert-copy-text') as HTMLElement;
+      if (copyText) {
+        copyText.style.marginTop = '-10px';
+        copyText.style.marginBottom = '20px';
+      }
+
+      const dividerLine = clone.querySelector('#cert-divider-line') as HTMLElement;
+      if (dividerLine) {
+        dividerLine.style.paddingTop = '20px'; // Reduzido para subir
+        dividerLine.style.marginTop = '0px';
+      }
+
+      const footerMeta = clone.querySelector('#cert-footer-meta') as HTMLElement;
+      if (footerMeta) {
+        footerMeta.style.paddingTop = '30px'; // Reduzido para subir o rodapé
+      }
+
       container.appendChild(clone);
       document.body.appendChild(container);
 
@@ -205,24 +231,24 @@ export default function CertificateModal({ isOpen, onClose, type, userName }: Ce
               {current.title}
             </h1>
 
-            <div className="py-8">
+            <div id="cert-name-container" className="py-8">
               <span className="text-slate-500 font-bold uppercase tracking-widest text-xs block mb-4 italic">Concedido a:</span>
-              <h2 className={`text-3xl md:text-5xl font-black border-b-2 ${current.border} inline-block px-12 pb-4 tracking-tight`} style={{ color: '#ffffff' }}>
+              <h2 id="cert-name-heading" className={`text-3xl md:text-5xl font-black border-b-2 ${current.border} inline-block px-12 pb-4 tracking-tight`} style={{ color: '#ffffff' }}>
                 {userName || 'Estudante ITR'}
               </h2>
             </div>
-
-            <p className="text-slate-400 text-sm md:text-lg font-medium leading-relaxed uppercase tracking-widest leading-[1.6]">
+ 
+            <p id="cert-copy-text" className="text-slate-400 text-sm md:text-lg font-medium leading-relaxed uppercase tracking-widest leading-[1.6]">
               {current.body}
             </p>
-
-            <div className="pt-8 border-t border-white/10">
+ 
+            <div id="cert-divider-line" className="pt-8 border-t border-white/10">
               <p className={`text-sm italic font-medium ${current.textColor} opacity-60 tracking-[0.2em]`}>
                  "{current.phrase}"
               </p>
             </div>
-
-            <div className="pt-12 flex items-center justify-center gap-12 opacity-40">
+ 
+            <div id="cert-footer-meta" className="pt-12 flex items-center justify-center gap-12 opacity-40">
                <div className="text-center">
                  <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">DATA EMISSÃO</div>
                  <div className="text-xs font-bold text-white uppercase">{new Date().toLocaleDateString('pt-BR')}</div>
