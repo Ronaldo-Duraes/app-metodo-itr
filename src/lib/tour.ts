@@ -6,11 +6,12 @@ export const startTour = () => {
         showProgress: true,
         animate: true,
         stagePadding: 10,
-        overlayColor: 'rgba(0, 0, 0, 0.85)',
+        overlayColor: 'rgba(0, 0, 0, 0.8)',
         popoverClass: 'itr-tour-popover',
         nextBtnText: 'Próximo',
         prevBtnText: 'Voltar',
         doneBtnText: 'Finalizar',
+        allowClose: false, // Bloqueia fechar ao clicar fora ou ESC
         steps: [
             {
                 element: '#tour-acao-prioritaria',
@@ -58,7 +59,18 @@ export const startTour = () => {
                 }
             },
         ],
+        onHighlightStarted: (element) => {
+            // Travamento de Tela (Scroll Lock)
+            document.body.style.overflow = 'hidden';
+            
+            // Auto-scroll garantido
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        },
         onDestroyStarted: () => {
+             // Restaurar Scroll
+             document.body.style.overflow = 'auto';
              // Marcar como concluído no localStorage
              localStorage.setItem('itr-tour-completed', 'true');
              driverObj.destroy();
