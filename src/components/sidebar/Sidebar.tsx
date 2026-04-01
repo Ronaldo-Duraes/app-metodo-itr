@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap, Settings } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +15,7 @@ import { useRoleGuard } from '@/hooks/useRoleGuard';
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const { executeProtectedAction } = useRoleGuard();
 
   // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
@@ -40,6 +40,7 @@ const Sidebar = () => {
     { icon: GraduationCap, label: 'Acessar Aulas', path: '/app/aulas', id: 'tour-aulas' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario', id: 'tour-dicionario' },
+    ...(isAdmin ? [{ icon: Settings, label: 'Painel Admin', path: '/admin', id: 'admin-panel', color: 'text-amber-500' }] : []),
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 

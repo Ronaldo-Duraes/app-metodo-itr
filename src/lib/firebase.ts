@@ -1,5 +1,16 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  collection, 
+  getDocs, 
+  query, 
+  orderBy, 
+  onSnapshot 
+} from 'firebase/firestore';
 import { 
   getAuth, 
   GoogleAuthProvider, 
@@ -36,6 +47,8 @@ if (isFirebaseReady) {
   googleProvider.setCustomParameters({ prompt: 'select_account' });
 }
 
+export const ADMIN_EMAIL = 'ronaldo.duraes@gmail.com';
+
 export { db, auth, googleProvider };
 
 // --- Lógica de Autenticação & Firestore ---
@@ -48,12 +61,16 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
     
     // Criar perfil no Firestore
     const userRef = doc(db, 'users', user.uid);
+    
+    // Determinar role inicial (Auto-Admin se o e-mail for o do ronaldo)
+    const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'lead';
+
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
       displayName: name,
       photoURL: null,
-      role: 'lead',
+      role: initialRole,
       createdAt: new Date().toISOString(),
       totalWordsAdded: 0,
       masteredCount: 0,
@@ -89,13 +106,15 @@ export async function signInWithGoogle() {
     const userSnap = await getDoc(userRef);
     
     if (!userSnap.exists()) {
-      // Criar novo usuário com role 'lead' (visitante que criou conta)
+      // Determinar role inicial (Auto-Admin)
+      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'lead';
+
       await setDoc(userRef, {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'lead',
+        role: initialRole,
         createdAt: new Date().toISOString(),
         totalWordsAdded: 0,
         masteredCount: 0,
@@ -156,4 +175,35 @@ export async function redeemReward(uid: string, rewardKey: string) {
     }
   }
   return false;
+}
+
+/**
+ * ADMIN: Busca todos os usuários ordenados por data de criação
+ */
+export async function getAllUsers(): Promise<UserStats[]> {
+  if (!isFirebaseReady || !db) return [];
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as UserStats);
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+    return [];
+  }
+}
+
+/**
+ * ADMIN: Atualiza o role de um usuário
+ */
+export async function updateUserRole(uid: string, newRole: UserStats['role']) {
+  if (!isFirebaseReady || !db) return false;
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, { role: newRole });
+    return true;
+  } catch (error) {
+    console.error("Erro ao atualizar role:", error);
+    return false;
+  }
 }
