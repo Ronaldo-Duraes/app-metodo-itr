@@ -21,16 +21,17 @@ import {
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyAKmN9LVOZaeO_kbnUibhgUAuc77c_Og5s",
+  authDomain: "app-metodo-itr-c9e06.firebaseapp.com",
+  projectId: "app-metodo-itr-c9e06",
+  storageBucket: "app-metodo-itr-c9e06.firebasestorage.app",
+  messagingSenderId: "837243870219",
+  appId: "1:837243870219:web:de5ad9e76cf2229db7fb0e",
+  measurementId: "G-K6720D3CL1"
 };
 
-// Verifica se as chaves existem para evitar erros de inicialização se o .env estiver vazio
-export const isFirebaseReady = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+// Configuração Real Conectada
+export const isFirebaseReady = true;
 
 // Inicializa Firebase apenas se as chaves existirem
 let app: any;
@@ -142,6 +143,7 @@ export interface UserStats {
   uid?: string;
   email?: string;
   displayName?: string;
+  photoURL?: string;
   role: 'lead' | 'aluno' | 'admin';
   masteredCount: number;
   totalWordsAdded: number;

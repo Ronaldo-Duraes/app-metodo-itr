@@ -28,6 +28,7 @@ export default function AdminPage() {
   const fetchUsers = async () => {
     setLoading(true);
     const data = await getAllUsers();
+    console.log('📡 Dados do Firestore (Users):', data);
     setUsers(data);
     setLoading(false);
   };
@@ -140,82 +141,90 @@ export default function AdminPage() {
           </thead>
           <tbody className="divide-y divide-white/5">
             <AnimatePresence mode="popLayout">
-              {filteredUsers.map((user) => (
-                <motion.tr 
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  key={user.uid}
-                  className="hover:bg-white/[0.01] transition-colors"
-                >
-                  <td className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-zinc-900 flex items-center justify-center font-black text-sm text-emerald-500">
-                        {user.displayName?.charAt(0).toUpperCase() || 'U'}
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <motion.tr 
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={user.uid}
+                    className="hover:bg-white/[0.01] transition-colors"
+                  >
+                    <td className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-zinc-900 flex items-center justify-center font-black text-sm text-emerald-500">
+                          {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <span className="font-black text-sm uppercase tracking-tight">{user.displayName || 'Sem Nome'}</span>
                       </div>
-                      <span className="font-black text-sm uppercase tracking-tight">{user.displayName || 'Sem Nome'}</span>
-                    </div>
-                  </td>
-                  <td className="p-6">
-                    <span className="text-sm font-medium text-zinc-500 italic lowercase">{user.email}</span>
-                  </td>
-                  <td className="p-6">
-                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '---'}
-                    </span>
-                  </td>
-                  <td className="p-6">
-                    <span className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border rounded-full ${
-                      user.role === 'admin' ? 'border-amber-500/30 text-amber-500 bg-amber-500/5' :
-                      user.role === 'aluno' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' :
-                      'border-blue-500/30 text-blue-500 bg-blue-500/5'
-                    }`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="p-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                       {user.role === 'lead' ? (
-                         <button 
-                           onClick={() => handleRoleChange(user.uid!, 'aluno')}
-                           className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all rounded-sm shadow-lg shadow-emerald-500/10"
-                         >
-                           <Zap size={12} fill="black" /> Liberar Acesso
-                         </button>
-                       ) : (
-                         <div className="flex items-center gap-2">
-                           {user.role !== 'admin' && (
-                             <button 
-                               onClick={() => handleRoleChange(user.uid!, 'admin')}
-                               className="p-2 border border-amber-500/20 text-amber-500/50 hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-all"
-                               title="Tornar Admin"
-                             >
-                               <ShieldCheck size={14} />
-                             </button>
-                           )}
-                           {user.role !== 'aluno' && (
-                             <button 
-                               onClick={() => handleRoleChange(user.uid!, 'aluno')}
-                               className="p-2 border border-emerald-500/20 text-emerald-500/50 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all"
-                               title="Tornar Aluno"
-                             >
-                               <GraduationCap size={14} />
-                             </button>
-                           )}
+                    </td>
+                    <td className="p-6">
+                      <span className="text-sm font-medium text-zinc-500 italic lowercase">{user.email}</span>
+                    </td>
+                    <td className="p-6">
+                      <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '---'}
+                      </span>
+                    </td>
+                    <td className="p-6">
+                      <span className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border rounded-full ${
+                        user.role === 'admin' ? 'border-amber-500/30 text-amber-500 bg-amber-500/5' :
+                        user.role === 'aluno' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' :
+                        'border-blue-500/30 text-blue-500 bg-blue-500/5'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="p-6 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                         {user.role === 'lead' ? (
                            <button 
-                             onClick={() => handleRoleChange(user.uid!, 'lead')}
-                             className="p-2 border border-red-500/20 text-red-500/50 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
-                             title="Remover Acesso (Lead)"
+                             onClick={() => handleRoleChange(user.uid!, 'aluno')}
+                             className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all rounded-sm shadow-lg shadow-emerald-500/10"
                            >
-                             <UserMinus size={14} />
+                             <Zap size={12} fill="black" /> Liberar Acesso
                            </button>
-                         </div>
-                       )}
-                    </div>
+                         ) : (
+                           <div className="flex items-center gap-2">
+                             {user.role !== 'admin' && (
+                               <button 
+                                 onClick={() => handleRoleChange(user.uid!, 'admin')}
+                                 className="p-2 border border-amber-500/20 text-amber-500/50 hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-all"
+                                 title="Tornar Admin"
+                               >
+                                 <ShieldCheck size={14} />
+                               </button>
+                             )}
+                             {user.role !== 'aluno' && (
+                               <button 
+                                 onClick={() => handleRoleChange(user.uid!, 'aluno')}
+                                 className="p-2 border border-emerald-500/20 text-emerald-500/50 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all"
+                                 title="Tornar Aluno"
+                               >
+                                 <GraduationCap size={14} />
+                               </button>
+                             )}
+                             <button 
+                               onClick={() => handleRoleChange(user.uid!, 'lead')}
+                               className="p-2 border border-red-500/20 text-red-500/50 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                               title="Remover Acesso (Lead)"
+                             >
+                               <UserMinus size={14} />
+                             </button>
+                           </div>
+                         )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs">
+                    Nenhum usuário encontrado no banco de dados.
                   </td>
-                </motion.tr>
-              ))}
+                </tr>
+              )}
             </AnimatePresence>
           </tbody>
         </table>

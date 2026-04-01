@@ -21,7 +21,7 @@ export default function Header() {
   if (!user) return null;
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-40 px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5 gap-6">
+    <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-[50] px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5 gap-6">
       {/* Botão de Ajuda (Tour Manual) */}
       <button 
         onClick={() => startTour()}
@@ -46,10 +46,12 @@ export default function Header() {
           </div>
           
           <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-zinc-900 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-            {user.photoURL ? (
-              <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+            {user.photoURL || profile?.photoURL ? (
+              <img src={user.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <User size={18} className="text-zinc-500" />
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
+                {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
+              </span>
             )}
           </div>
           
@@ -68,7 +70,7 @@ export default function Header() {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute top-full right-0 mt-2 w-60 bg-zinc-950 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 font-outfit"
+                className="absolute top-full right-0 mt-2 w-60 bg-zinc-950 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 font-outfit z-[100]"
               >
                 <div className="p-4 border-b border-white/5 mb-2">
                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 opacity-50 text-[8px]">Sessão Ativa</p>

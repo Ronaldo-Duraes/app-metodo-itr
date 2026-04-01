@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithGoogle, loginWithEmail, signUpWithEmail } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Mail, Lock, User, ArrowRight, ShieldCheck, Github } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Sparkles, Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,16 +17,35 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [canSubmit, setCanSubmit] = useState(false);
+
+  // Parity Validation for Registration
+  useEffect(() => {
+    if (isRegistering) {
+      const match = 
+        email.length > 0 && 
+        email === confirmEmail && 
+        password.length >= 6 && 
+        password === confirmPassword && 
+        name.length > 0;
+      setCanSubmit(match);
+    } else {
+      setCanSubmit(email.length > 0 && password.length > 0);
+    }
+  }, [email, confirmEmail, password, confirmPassword, name, isRegistering]);
 
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
     try {
       const user = await signInWithGoogle();
-      if (user) router.push('/app');
+      if (user) {
+        router.push('/app');
+        router.refresh();
+      }
     } catch (err: any) {
-      console.error("Login Google Error:", err);
-      setError('Falha na autenticação Google. Verifique se o domínio está autorizado.');
+      console.error("Google Auth Error:", err.code);
+      setError('Falha na autenticação com Google. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -34,221 +53,199 @@ export default function LoginPage() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit || loading) return;
+    
     setError('');
     setLoading(true);
 
     try {
       if (isRegistering) {
-        if (!name) throw new Error("Nome é obrigatório para registro");
-        if (email !== confirmEmail) throw new Error("Os e-mails não coincidem.");
-        if (password !== confirmPassword) throw new Error("As senhas não coincidem.");
-        if (password.length < 6) throw new Error("A senha deve ter pelo menos 6 caracteres.");
-        
         await signUpWithEmail(email, password, name);
       } else {
         await loginWithEmail(email, password);
       }
       router.push('/app');
+      router.refresh();
     } catch (err: any) {
-      console.error("Auth Error:", err);
-      if (err.code === 'auth/user-not-found') setError('Usuário não encontrado.');
-      else if (err.code === 'auth/wrong-password') setError('Senha incorreta.');
-      else setError(err.message || 'Erro na autenticação');
+      console.error("❌ Auth error:", err.code);
+      setError(isRegistering ? 'Erro ao criar conta. E-mail já em uso ou inválido.' : 'Credenciais de comando inválidas.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-outfit relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="flex min-h-screen bg-black font-outfit text-white relative overflow-hidden">
+      
+      {/* BACKGROUND ELEMENTS */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full" />
+      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] z-10"
-      >
-        <div className="bg-zinc-950 border border-white/5 p-10 md:p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden group">
-          {/* Top Line decoration */}
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50" />
+      <div className="w-full flex items-center justify-center p-6 md:p-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-lg bg-[#0a0a0a] border border-white/5 p-10 md:p-16 shadow-[0_0_100px_rgba(0,0,0,1)] relative"
+        >
+          {/* Shimmer Border */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-30" />
           
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-900 border border-white/5 rounded-2xl mb-6 shadow-xl">
-              <Image src="/logo-itr.png" alt="Logo ITR" width={40} height={40} className="object-contain" />
+          <div className="flex flex-col items-center mb-12">
+            <motion.div 
+               whileHover={{ scale: 1.05 }}
+               className="w-24 h-24 bg-white p-4 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] mb-8 flex items-center justify-center"
+            >
+               <Image src="/logo-itr.png" alt="Logo ITR" width={90} height={90} className="object-contain" priority />
+            </motion.div>
+            
+            <h1 className="text-3xl font-black tracking-tighter uppercase mb-2">Portal de Comando</h1>
+            <div className="flex items-center gap-3">
+               <span className="text-[9px] font-black text-emerald-500 tracking-[0.4em] uppercase">Método ITR v3.0</span>
+               <div className="h-[1px] w-4 bg-white/10" />
+               <span className="text-[9px] font-black text-zinc-500 tracking-[0.4em] uppercase italic">Acesso ITR</span>
             </div>
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">
-              {isRegistering ? 'Criar Conta ITR' : 'Acesso ao Arsenal'}
-            </h1>
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">
-              Método ITR v3.0 • Premium Access
-            </p>
           </div>
 
           {error && (
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/20 p-4 mb-8 text-red-500 text-[10px] font-black uppercase tracking-widest text-center"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3 bg-red-500/10 text-red-500 p-4 border border-red-500/20 rounded-xl mb-8 text-[10px] font-black uppercase tracking-widest"
             >
+              <AlertCircle size={14} />
               {error}
             </motion.div>
           )}
 
-          {/* 1. GOOGLE LOGIN (PREMIUM DISPLAY) */}
+          {/* GOOGLE AUTH - ELITE STYLE */}
           <button 
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full py-4 bg-white text-black font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-200 transition-all shadow-xl group/google mb-8"
+            className="w-full py-4 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center justify-center gap-4 text-white font-black text-xs uppercase tracking-widest hover:bg-white/[0.06] hover:border-white/20 transition-all group mb-8"
           >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4 group-hover/google:scale-110 transition-transform" />
-            Continuar com Google
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            Continuar com o Google
           </button>
 
-          <div className="relative mb-10 flex items-center gap-4">
-            <div className="h-[1px] flex-1 bg-white/5" />
-            <span className="text-[9px] font-black uppercase text-zinc-700 tracking-widest">Ou via Credenciais</span>
-            <div className="h-[1px] flex-1 bg-white/5" />
+          <div className="relative mb-8 text-center">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5" /></div>
+            <span className="relative bg-[#0a0a0a] px-4 text-[8px] text-zinc-600 font-black uppercase tracking-[0.3em]">Ou credenciais de comando</span>
           </div>
 
-          {/* 2. EMAIL FORM */}
-          <form onSubmit={handleEmailAuth} className="space-y-5">
+          <form onSubmit={handleEmailAuth} className="space-y-4">
             <AnimatePresence mode="popLayout">
               {isRegistering && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-1"
-                >
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Seu Nome</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="text" 
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Seu nome"
-                      className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold placeholder:text-zinc-700"
+                      type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Como prefere ser chamado?"
+                      className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                     />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">E-mail Corporativo</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
-                <input 
-                  type="email" 
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@parceiro.com"
-                  className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold placeholder:text-zinc-700"
-                />
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">E-mail Protegido</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
+                  <input 
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
+                    className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
+                  />
+                </div>
               </div>
-            </div>
 
-            <AnimatePresence mode="popLayout">
               {isRegistering && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-1"
-                >
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Confirmar E-mail</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="email" 
-                      required
-                      value={confirmEmail}
-                      onChange={(e) => setConfirmEmail(e.target.value)}
-                      placeholder="Repita seu e-mail"
-                      className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold placeholder:text-zinc-700"
+                      type="email" required value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} placeholder="repita seu@email.com"
+                      className={`w-full bg-white/[0.02] border p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:outline-none transition-all text-sm ${
+                        confirmEmail && email !== confirmEmail ? 'border-red-500/50' : 'border-white/5 focus:border-emerald-500/50'
+                      }`}
                     />
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
-
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Senha Segura</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
-                <input 
-                  type="password" 
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold placeholder:text-zinc-700"
-                />
-              </div>
             </div>
 
-            <AnimatePresence mode="popLayout">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Chave de Acesso</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
+                  <input 
+                    type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+                    className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
+                  />
+                </div>
+              </div>
+
               {isRegistering && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-1"
-                >
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Confirmar Senha</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">Confirmar Chave</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="password" 
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repita sua senha"
-                      className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all font-bold placeholder:text-zinc-700"
+                      type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="repita a chave"
+                      className={`w-full bg-white/[0.02] border p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:outline-none transition-all text-sm ${
+                        confirmPassword && password !== confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-emerald-500/50'
+                      }`}
                     />
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
+            </div>
 
             <button 
               type="submit"
-              disabled={loading}
-              className="group relative w-full py-5 bg-amber-500 text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-amber-400 transition-all overflow-hidden"
+              disabled={!canSubmit || loading}
+              className={`relative w-full py-5 text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98] mt-8 overflow-hidden group ${
+                canSubmit 
+                  ? 'bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]' 
+                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+              }`}
             >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                {loading ? 'Processando...' : isRegistering ? 'Finalizar Registro' : 'Entrar no Sistema'}
-                {!loading && <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />}
-              </span>
+              {canSubmit && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
+              )}
+              <Zap size={14} fill="currentColor" />
+              {loading ? 'Processando Autenticação...' : isRegistering ? 'Finalizar Criação de Conta' : 'Autorizar Entrada'}
             </button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-white/5 text-center">
-            <button 
-              onClick={() => setIsRegistering(!isRegistering)}
-              className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-amber-500 transition-colors"
-            >
-              {isRegistering ? 'Já possui uma conta? Faça Login' : 'Ainda não é membro? Cadastre-se agora'}
-            </button>
-          </div>
-        </div>
+          <footer className="mt-10 text-center">
+             <button 
+                onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
+                className="text-zinc-600 font-black text-[10px] tracking-widest uppercase hover:text-white transition-colors"
+             >
+                {isRegistering ? 'Já possui comando? Iniciar Gateway' : 'Não possui acesso? Solicitar Cadastro'}
+             </button>
+             
+             <div className="mt-10 flex items-center justify-center gap-4 opacity-10">
+                <ShieldCheck size={14} className="text-emerald-500" />
+                <span className="text-[7px] font-black uppercase tracking-[0.4em]">Protocolo de Comando ITR Ativo</span>
+             </div>
+          </footer>
+        </motion.div>
+      </div>
 
-        <div className="mt-8 flex items-center justify-center gap-8 opacity-20">
-          <div className="flex items-center gap-2 text-[8px] font-black uppercase text-white tracking-[0.2em]">
-            <ShieldCheck size={12} className="text-emerald-500" />
-            Protocolo SSL Ativo
-          </div>
-          <div className="flex items-center gap-2 text-[8px] font-black uppercase text-white tracking-[0.2em]">
-            <Lock size={12} className="text-amber-500" />
-            Criptografia de Ponta
-          </div>
-        </div>
-      </motion.div>
+      <style jsx global>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 }
