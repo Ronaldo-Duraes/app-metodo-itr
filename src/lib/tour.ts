@@ -19,7 +19,7 @@ export const startTour = () => {
                     title: 'Ação Prioritária',
                     description: 'Aqui é o seu motor de progresso. O sistema seleciona o que você realmente precisa estudar hoje.',
                     side: "bottom",
-                    align: 'start'
+                    align: 'center'
                 }
             },
             {
@@ -68,29 +68,9 @@ export const startTour = () => {
                 }
             },
         ],
-        onHighlightStarted: (element) => {
-            // Travamento de Tela (Scroll Lock)
-            document.body.style.overflow = 'hidden';
-            
-            // Auto-scroll suave e centralizado
-            if (element) {
-                const elementRect = element.getBoundingClientRect();
-                const absoluteElementTop = elementRect.top + window.pageYOffset;
-                const middle = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2);
-                
-                window.scrollTo({
-                    top: middle,
-                    behavior: 'smooth'
-                });
-            }
-        },
         onDestroyStarted: () => {
-             // Restaurar Scroll
-             document.body.style.overflow = 'auto';
-             // Marcar como concluído no localStorage
              localStorage.setItem('itr-tour-completed', 'true');
-             driverObj.destroy();
-        },
+        }
     });
 
     driverObj.drive();

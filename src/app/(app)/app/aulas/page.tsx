@@ -21,9 +21,7 @@ export default function AulasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-outfit pb-24">
-      {/* Background Decor */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,#0c2d1d_0%,#000000_70%)] -z-10" />
+    <div className="min-h-screen bg-[#050505] text-white font-outfit pb-24">
 
       <div className="max-w-7xl mx-auto px-6 pt-12">
         
