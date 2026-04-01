@@ -40,7 +40,6 @@ const Sidebar = () => {
     { icon: GraduationCap, label: 'Acessar Aulas', path: '/app/aulas', id: 'tour-aulas' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario', id: 'tour-dicionario' },
-    ...(isAdmin ? [{ icon: Settings, label: 'Painel Admin', path: '/admin', id: 'admin-panel', color: 'text-amber-500' }] : []),
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 

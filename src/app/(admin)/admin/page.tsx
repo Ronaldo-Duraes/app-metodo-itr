@@ -13,11 +13,15 @@ import {
   UserMinus, 
   Settings, 
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  Lock
 } from 'lucide-react';
 import { getAllUsers, updateUserRole, UserStats } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,8 +60,35 @@ export default function AdminPage() {
     admins: users.filter(u => u.role === 'admin').length,
   };
 
+  const handleClearAdminSession = () => {
+    localStorage.removeItem('admin_authenticated');
+    window.location.reload();
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-12 px-6">
+      {/* 0. TOP CONTROL BAR */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-10 pb-6 border-b border-white/5">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => router.push('/app')}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl"
+          >
+            <ArrowLeft size={16} /> Voltar para o App
+          </button>
+          <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
+          <h2 className="text-xl font-black uppercase tracking-tighter hidden md:block">Gestão de Comando ITR</h2>
+        </div>
+
+        <button 
+          onClick={handleClearAdminSession}
+          className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all overflow-hidden relative group"
+        >
+          <Lock size={14} className="group-hover:rotate-12 transition-transform" /> 
+          Encerrar Sessão Admin
+        </button>
+      </div>
+
       {/* 1. METRICS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         <MetricCard label="Total Usuários" value={stats.total} icon={Users} color="text-white" />

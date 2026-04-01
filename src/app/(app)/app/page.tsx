@@ -150,10 +150,10 @@ export default function HomePage() {
                   { icon: Video, text: 'Ações para PAC', color: 'text-rose-500', link: '/app/pac-actions' },
                   { icon: Lightbulb, text: 'PROMPT - Para IA', color: 'text-yellow-500', link: '/app/prompts' },
                 ].map((item, idx) => (
-                  <a 
+                  <div 
                     key={idx} 
-                    href={item.link} 
-                    className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all group/item"
+                    onClick={() => executeProtectedAction(() => router.push(item.link))}
+                    className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all group/item cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <item.icon size={16} className={`${item.color} group-hover/item:scale-110 transition-transform`} />
@@ -162,12 +162,15 @@ export default function HomePage() {
                       </span>
                     </div>
                     <ExternalLink size={12} className="text-slate-700 opacity-0 group-hover/item:opacity-100 transition-all" />
-                  </a>
+                  </div>
                 ))}
               </div>
 
               {/* SHIMMERING CALL TO ACTION BUTTON */}
-              <button className="relative w-full mt-8 py-4 bg-slate-900 border border-yellow-500/40 overflow-hidden group/btn hover:border-yellow-500 transition-colors">
+              <button 
+                onClick={() => executeProtectedAction(() => router.push('/app/pac-actions'))}
+                className="relative w-full mt-8 py-4 bg-slate-900 border border-yellow-500/40 overflow-hidden group/btn hover:border-yellow-500 transition-colors"
+              >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent -translate-x-full group-hover/btn:animate-shimmer-fast" />
                 <span className="relative text-[10px] font-black text-yellow-500 uppercase tracking-[0.3em]">
                   Explorar Arsenal Completo

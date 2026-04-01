@@ -96,11 +96,3 @@ export const startTour = () => {
     driverObj.drive();
 };
 
-export const checkAndStartAutoTour = () => {
-    const tourCompleted = localStorage.getItem('itr-tour-completed');
-    if (!tourCompleted) {
-        setTimeout(() => {
-            startTour();
-        }, 2000); // Aguardar renderização inicial
-    }
-};

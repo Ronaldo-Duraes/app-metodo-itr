@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Sidebar from "@/components/sidebar/Sidebar";
+import Header from "@/components/layout/Header";
 import { motion, AnimatePresence } from 'framer-motion';
 import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound } from '@/lib/srs';
 import MasteryModal from './MasteryModal';
 import { initDebugMode } from '@/lib/debug';
-import { checkAndStartAutoTour } from '@/lib/tour';
+import { startTour } from '@/lib/tour';
 
 const WelcomeScreen = () => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
@@ -55,7 +56,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     
     // Iniciar tour se necessário após a splash
     if (!showSplash && isInitialized) {
-      checkAndStartAutoTour();
+      // Auto-tour desativado: Controle agora é manual via ícones (?) no Header/Sidebar
     }
   }, [showSplash, isInitialized]);
 
@@ -100,11 +101,14 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Sidebar />
-      <main className="flex-1 ml-0 md:ml-64 p-8 relative overflow-y-auto h-screen scroll-smooth transition-all duration-300">
-        <div className="max-w-6xl mx-auto">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 ml-0 md:ml-64 relative min-h-screen">
+        <Header />
+        <main className="p-8 pt-28 h-screen overflow-y-auto scroll-smooth transition-all duration-300">
+          <div className="max-w-6xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
 
       <AnimatePresence>
         {activeMilestone && (
