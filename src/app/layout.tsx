@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" className="dark" style={{ colorScheme: 'dark' }}>
       <body className={`${inter.variable} ${outfit.variable} font-sans bg-black text-white min-h-screen selection:bg-emerald-500/30 selection:text-emerald-200`}>
         <AuthProvider>
           <ThemeProvider>

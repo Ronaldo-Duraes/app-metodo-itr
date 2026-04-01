@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,6 +37,7 @@ const Sidebar = () => {
     { icon: Home, label: 'Home', path: '/app' },
     { icon: Zap, label: 'Atividades', path: '/app/atividades', id: 'tour-atividades' },
     { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards', id: 'tour-flashcards' },
+    { icon: GraduationCap, label: 'Acessar Aulas', path: '/app/aulas', id: 'tour-aulas' },
     { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario', id: 'tour-dicionario' },
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },

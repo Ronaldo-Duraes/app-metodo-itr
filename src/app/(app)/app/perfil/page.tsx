@@ -10,7 +10,7 @@ import ProfileFooter from '@/components/profile/ProfileFooter';
 import MaestriaRoadmap from '@/components/profile/MaestriaRoadmap';
 import MentorCard from '@/components/MentorCard';
 import { useTheme } from '@/components/ThemeProvider';
-import { fetchUserStats } from '@/lib/firebase';
+import { fetchUserProfile as fetchUserStats } from '@/lib/firebase';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
