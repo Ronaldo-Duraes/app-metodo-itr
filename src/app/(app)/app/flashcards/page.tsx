@@ -351,7 +351,7 @@ export default function FlashcardsPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#050505] p-8 md:p-12 font-outfit">
+    <div className="min-h-screen bg-[#050505] p-8 md:px-12 md:pb-12 md:pt-0 font-outfit">
       <div className="max-w-7xl mx-auto">
         
         {/* HEADER AREA */}
