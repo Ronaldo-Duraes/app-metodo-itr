@@ -102,18 +102,6 @@ export default function AdminPasswordGuard({ children }: AdminPasswordGuardProps
     );
   }
 
-  // We provide the logout function to the children context or via a portal
-  return (
-    <>
-      <div className="fixed top-6 right-6 z-[100]">
-        <button 
-          onClick={logoutAdminMode}
-          className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-2 text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl backdrop-blur-md"
-        >
-          Sair do Modo Admin
-        </button>
-      </div>
-      {children}
-    </>
-  );
+  // We provide the children without the fixed logout button for a cleaner UI
+  return <>{children}</>;
 }

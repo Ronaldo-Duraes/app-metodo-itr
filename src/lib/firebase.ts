@@ -123,8 +123,12 @@ export async function signInWithGoogle() {
     }
     
     return user;
-  } catch (error) {
-    console.error("Erro ao autenticar com Google:", error);
+  } catch (error: any) {
+    console.error("❌ Erro Crítico Google Auth:", {
+      code: error.code,
+      message: error.message,
+      domain: window.location.hostname
+    });
     throw error;
   }
 }
@@ -142,6 +146,7 @@ export interface UserStats {
   masteredCount: number;
   totalWordsAdded: number;
   unlockedRewards: string[]; 
+  createdAt?: string;
 }
 
 /**
