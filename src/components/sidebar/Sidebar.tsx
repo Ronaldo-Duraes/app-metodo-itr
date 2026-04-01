@@ -59,13 +59,6 @@ const Sidebar = () => {
                 className='object-contain drop-shadow-[0_0_15px_rgba(188,19,254,0.15)] hover:scale-105 transition-transform' 
               />
             </Link>
-            <button 
-              onClick={() => startTour()}
-              className="p-2 text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full"
-              title="Iniciar Tour"
-            >
-              <HelpCircle size={20} />
-            </button>
         </div>
 
         {/* NAVIGATION LINKS */}
@@ -116,24 +109,26 @@ const Sidebar = () => {
         <div className="px-4 mt-auto pt-8 border-t border-white/5">
           <Link href="/app/perfil" onClick={handleProfileClick}>
             <div id="tour-perfil" className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
-              <div className="relative">
+              <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
-                  {user?.photoURL ? (
-                    <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                  {user?.photoURL || profile?.photoURL ? (
+                    <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <User size={18} />
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
+                      {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
+                    </span>
                   )}
                 </div>
                 {/* Online Status */}
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#050505] rounded-full"></div>
               </div>
               
-              <div className="flex flex-col hidden md:flex justify-center h-full">
-                <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none">
+              <div className="flex flex-col hidden md:flex justify-center overflow-hidden">
+                <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none mb-1">
                   {profile?.displayName || user?.displayName || 'Estudante ITR'}
                 </span>
-                <span className="text-[9px] font-black text-[#BC13FE] tracking-[0.2em] uppercase mt-1 leading-none opacity-90">
-                  {profile?.role === 'aluno' ? 'ALUNO ITR' : profile?.role === 'lead' ? 'VISITANTE' : 'GUEST'}
+                <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
+                  {profile?.role === 'admin' ? 'DIRETOR ITR' : profile?.role === 'aluno' ? 'ALUNO ITR' : 'VISITANTE'}
                 </span>
               </div>
             </div>

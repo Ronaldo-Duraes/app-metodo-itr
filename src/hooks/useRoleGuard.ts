@@ -4,12 +4,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 
+import { useUI } from '@/context/UIContext';
+
 /**
  * Hook para proteger ações específicas (cliques em botões, abertura de cards).
  * Se o usuário não for um 'aluno', ele é redirecionado para a página de login.
  */
 export function useRoleGuard() {
   const { user, isAluno } = useAuth();
+  const { showAlert } = useUI();
   const router = useRouter();
 
   const executeProtectedAction = (action: () => void) => {
@@ -20,7 +23,10 @@ export function useRoleGuard() {
       router.push('/login');
     } else {
       // Logado como 'lead' mostra aviso
-      alert('🔒 ÁREA EXCLUSIVA PARA ALUNOS ITR\n\nEste recurso é reservado para alunos matriculados. Entre em contato com o Panda para liberar seu Arsenal!');
+      showAlert(
+        '🔒 ÁREA EXCLUSIVA PARA ALUNOS ITR',
+        'Este recurso é reservado para alunos matriculados.\n\nEntre em contato com o Panda no WhatsApp para liberar seu Arsenal Elite!'
+      );
     }
   };
 

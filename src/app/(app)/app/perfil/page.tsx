@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { getUserProfile, saveUserProfile, getCards, getUserPatente, getDictionaryCount } from '@/lib/srs';
 import { UserProfile } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,9 +10,10 @@ import ProfileFooter from '@/components/profile/ProfileFooter';
 import MaestriaRoadmap from '@/components/profile/MaestriaRoadmap';
 import MentorCard from '@/components/MentorCard';
 import { useTheme } from '@/components/ThemeProvider';
-import { fetchUserProfile as fetchUserStats } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
+import { updateUserProfile, fetchUserProfile as fetchUserStats } from '@/lib/firebase';
+import { useUI } from '@/context/UIContext';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
 const ICON_MAP: Record<string, any> = {
   'Sprout': Sprout,
@@ -23,29 +24,30 @@ const ICON_MAP: Record<string, any> = {
 };
 
 function ProfileContent() {
+  const { user, profile: authProfile } = useAuth();
+  const { showAlert } = useUI();
   const searchParams = useSearchParams();
   const trigger = searchParams.get('t') || 'initial';
   const highlight = searchParams.get('highlight');
+  
   const [profile, setProfile] = useState<UserProfile>({ name: '' });
   const journeyRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const [masteredCount, setMasteredCount] = useState(0);
   const [unlockedRewards, setUnlockedRewards] = useState<string[]>([]);
-
   const { activeThemeName, setThemeByName } = useTheme();
-
-  // Mock UID para teste
-  const [uid] = useState('user_test_99'); 
 
   useEffect(() => {
     async function syncData() {
+      if (!user?.uid) return;
+      
       const p = getUserProfile();
       setProfile(p);
-      setNewName(p.name);
+      setNewName(authProfile?.displayName || p.name);
       
       try {
-        const stats = await fetchUserStats(uid);
+        const stats = await fetchUserStats(user.uid);
         if (stats) {
           setMasteredCount(stats.masteredCount);
           setUnlockedRewards(stats.unlockedRewards || []);
@@ -63,22 +65,34 @@ function ProfileContent() {
     }
     
     syncData();
-  }, [uid, setThemeByName]);
+  }, [user?.uid, authProfile?.displayName, setThemeByName]);
 
   // --- LÓGICA DE FOCO NA JORNADA ---
   useEffect(() => {
     if (highlight && journeyRef.current) {
       setTimeout(() => {
         journeyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 500); // Delay buffer para carregamento de componentes
+      }, 500);
     }
   }, [highlight]);
 
-  const handleSave = () => {
-    const updated = { ...profile, name: newName };
-    saveUserProfile(updated);
-    setProfile(updated);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!user?.uid) return;
+    
+    try {
+       const success = await updateUserProfile(user.uid, { displayName: newName });
+       if (success) {
+          const updated = { ...profile, name: newName };
+          saveUserProfile(updated);
+          setProfile(updated);
+          setIsEditing(false);
+          showAlert('Sucesso', 'Perfil atualizado com sucesso no comando ITR!');
+       } else {
+          showAlert('Erro', 'Não foi possível salvar a alteração no servidor.');
+       }
+    } catch (err) {
+       showAlert('Erro', 'Falha ao conectar com o banco de dados.');
+    }
   };
 
   const handleToggleSound = (enabled: boolean) => {
@@ -94,24 +108,6 @@ function ProfileContent() {
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       
-      {/* CONTROLE DE DEBUG (SLIDER REAL-TIME) */}
-      <div className="max-w-md mx-auto mb-12 p-6 rounded-3xl bg-slate-900/40 border border-slate-800 shadow-xl border-dashed">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ferramenta de Debug - Progresso</span>
-          <span className="text-xl font-black font-outfit" style={{ color: 'var(--itr-primary)' }}>{masteredCount}</span>
-        </div>
-        <input 
-          type="range" min="0" max="1500" step="1" value={masteredCount} 
-          onChange={(e) => {
-            const val = parseInt(e.target.value);
-            setMasteredCount(val);
-            const pInfo = getUserPatente(val);
-            setThemeByName(pInfo.current.name);
-          }}
-          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[var(--itr-primary)]"
-        />
-      </div>
-
       {/* 2. SEÇÃO DE PERFIL */}
       <motion.div 
         key={trigger}
@@ -144,7 +140,7 @@ function ProfileContent() {
 
       <VocabularyMilestones 
         masteredCount={masteredCount} 
-        uid={uid} 
+        uid={user?.uid || ''} 
         unlockedRewards={unlockedRewards} 
       />
 

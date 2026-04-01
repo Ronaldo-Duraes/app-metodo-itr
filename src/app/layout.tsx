@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: "Aprenda inglês com o Método ITR de forma rápida e eficiente",
 };
 
+import { UIProvider } from "@/context/UIContext";
+import ITRModal from "@/components/ui/ITRModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,9 +25,12 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark" style={{ colorScheme: 'dark' }}>
       <body className={`${inter.variable} ${outfit.variable} font-sans bg-black text-white min-h-screen selection:bg-emerald-500/30 selection:text-emerald-200`}>
         <AuthProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+          <UIProvider>
+            <ThemeProvider>
+              {children}
+              <ITRModal />
+            </ThemeProvider>
+          </UIProvider>
         </AuthProvider>
       </body>
     </html>

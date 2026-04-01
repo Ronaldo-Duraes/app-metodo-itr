@@ -214,3 +214,18 @@ export async function updateUserRole(uid: string, newRole: UserStats['role']) {
     return false;
   }
 }
+
+/**
+ * Atualiza o perfil do usuário no Firestore
+ */
+export async function updateUserProfile(uid: string, data: Partial<UserStats>) {
+  if (!isFirebaseReady || !db) return false;
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, data);
+    return true;
+  } catch (error) {
+    console.error("Erro ao atualizar perfil:", error);
+    return false;
+  }
+}

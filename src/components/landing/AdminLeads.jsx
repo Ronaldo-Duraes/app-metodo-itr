@@ -4,8 +4,10 @@ import { collection, query, orderBy, limit, onSnapshot, doc, deleteDoc } from 'f
 import { Activity, Users, MousePointer2, Clock, Smartphone, Monitor, ChevronDown, ChevronUp, Link as LinkIcon, Fingerprint, MapPin, Compass, Globe, Map, Download, Printer, Trash2, Filter, BarChart2, LogOut, Eye, Target, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, CartesianGrid, AreaChart, Area } from 'recharts';
+import { useUI } from '@/context/UIContext';
 
 export default function AdminLeads() {
+    const { showAlert, showConfirm } = useUI();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
@@ -296,36 +298,49 @@ export default function AdminLeads() {
     };
 
     const clearLeads = async () => {
-        if(window.confirm(`⚠️ PERIGO EXTREMO: Você está prestes a apagar permanentemente os registros do banco de dados.\n\nDeseja mesmo limpar estes contatos?`)) {
-            let i = 0;
-            for(let l of processedLeads) {
-                await deleteDoc(doc(db, 'lead_interactions', l.id));
-                i++;
-            }
-            alert(`✅ ${i} leads apagados com sucesso.`);
-        }
+        showConfirm(
+            "⚠️ PERIGO EXTREMO",
+            "Você está prestes a apagar permanentemente os registros do banco de dados.\n\nDeseja mesmo limpar estes contatos?",
+            async () => {
+                let i = 0;
+                for(let l of processedLeads) {
+                    await deleteDoc(doc(db, 'lead_interactions', l.id));
+                    i++;
+                }
+                showAlert("Sucesso", `✅ ${i} leads apagados com sucesso.`);
+            },
+            "APAGAR TUDO"
+        );
     };
 
     const deleteLead = async (id, e) => {
         if (e) e.stopPropagation();
-        if(window.confirm("Deseja apagar APENAS este lead especificamente? Esta ação não pode ser desfeita.")) {
-            try {
-                await deleteDoc(doc(db, 'lead_interactions', id));
-                if (expandedLead === id) setExpandedLead(null);
-            } catch (err) {
-                console.error("Erro ao apagar lead:", err);
-                alert("Erro ao apagar lead.");
+        showConfirm(
+            "Apagar Lead",
+            "Deseja apagar APENAS este lead especificamente? Esta ação não pode ser desfeita.",
+            async () => {
+                try {
+                    await deleteDoc(doc(db, 'lead_interactions', id));
+                    if (expandedLead === id) setExpandedLead(null);
+                } catch (err) {
+                    console.error("Erro ao apagar lead:", err);
+                    showAlert("Erro", "Não foi possível apagar o lead no servidor.");
+                }
             }
-        }
+        );
     };
 
     const handleLogout = () => {
-        if(window.confirm("Deseja sair do Painel VIP? Seu navegador voltará a ser rastreado pelas métricas como um visitante normal.")) {
-            localStorage.removeItem('itr_admin_auth');
-            localStorage.removeItem('itr_admin_mode');
-            setIsAuthenticated(false);
-            window.location.href = '/';
-        }
+        showConfirm(
+            "Sair do Painel",
+            "Deseja sair do Painel VIP? Seu navegador voltará a ser rastreado pelas métricas como um visitante normal.",
+            () => {
+                localStorage.removeItem('itr_admin_auth');
+                localStorage.removeItem('itr_admin_mode');
+                setIsAuthenticated(false);
+                window.location.href = '/';
+            }
+        );
     };
 
     const handleAuth = (e) => {
@@ -334,7 +349,7 @@ export default function AdminLeads() {
             localStorage.setItem('itr_admin_auth', 'true');
             setIsAuthenticated(true);
         } else {
-            alert('Acesso Restrito: Código Incorreto.');
+            showAlert('Acesso Restrito', 'Código de Gateway ITR Incorreto.');
         }
     };
 

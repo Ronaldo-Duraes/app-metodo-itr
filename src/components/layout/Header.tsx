@@ -18,13 +18,23 @@ export default function Header() {
     router.push('/login');
   };
 
+  const handleStartTour = () => {
+    // Redireciona para a home antes de iniciar para garantir elementos visíveis
+    if (typeof window !== 'undefined' && window.location.pathname !== '/app') {
+       router.push('/app');
+       setTimeout(() => startTour(), 800);
+    } else {
+       startTour();
+    }
+  };
+
   if (!user) return null;
 
   return (
     <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-[50] px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5 gap-6">
       {/* Botão de Ajuda (Tour Manual) */}
       <button 
-        onClick={() => startTour()}
+        onClick={handleStartTour}
         className="p-3 text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full flex items-center justify-center group"
         title="Iniciar Tour de Boas-vindas"
       >
