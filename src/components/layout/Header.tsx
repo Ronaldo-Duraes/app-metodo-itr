@@ -48,7 +48,7 @@ export default function Header() {
         >
           <div className="text-right hidden sm:block">
             <p className="text-[10px] font-black text-white uppercase tracking-tighter">
-              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Estudante'}
+              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || ''}
             </p>
             <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest leading-none mt-1 opacity-80">
                 {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'aluno' ? 'Aluno ITR' : 'Visitante'}

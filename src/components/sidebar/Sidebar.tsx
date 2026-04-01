@@ -125,7 +125,7 @@ const Sidebar = () => {
               
               <div className="flex flex-col hidden md:flex justify-center overflow-hidden">
                 <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none mb-1">
-                  {profile?.displayName || user?.displayName || 'Estudante ITR'}
+                  {profile?.displayName || user?.displayName || ''}
                 </span>
                 <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
                   {profile?.role === 'admin' ? 'DIRETOR ITR' : profile?.role === 'aluno' ? 'ALUNO ITR' : 'VISITANTE'}

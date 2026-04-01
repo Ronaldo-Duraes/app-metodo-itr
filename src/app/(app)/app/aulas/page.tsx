@@ -64,8 +64,8 @@ export default function AulasPage() {
               <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
               
               {/* Thumbnail Placeholder Image (Simulated with Gradient and Logo) */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-20 grayscale scale-110 group-hover:scale-100 transition-transform duration-[2s]">
-                 <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1543269865-cbf427effbad?q=100&w=2000&auto=format')] bg-cover bg-center" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-40 grayscale scale-110 group-hover:scale-100 transition-transform duration-[2s]">
+                 <div className="w-full h-full bg-[url('/curso-thumbnail.png')] bg-cover bg-center" />
               </div>
 
               {/* Centered Play Button Overlay */}

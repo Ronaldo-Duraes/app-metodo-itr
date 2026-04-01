@@ -17,7 +17,8 @@ import {
   signInWithPopup, 
   signOut,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -121,6 +122,12 @@ export async function signInWithGoogle() {
         masteredCount: 0,
         unlockedRewards: []
       });
+    } else {
+      // Captura/atualiza dados vindos do Google (Sincronização Ativa)
+      await updateDoc(userRef, {
+        displayName: user.displayName || userSnap.data()?.displayName,
+        photoURL: user.photoURL || userSnap.data()?.photoURL
+      });
     }
     
     return user;
@@ -216,13 +223,24 @@ export async function updateUserRole(uid: string, newRole: UserStats['role']) {
 }
 
 /**
- * Atualiza o perfil do usuário no Firestore
+ * Atualiza o perfil do usuário no Firestore e no Firebase Auth
  */
 export async function updateUserProfile(uid: string, data: Partial<UserStats>) {
   if (!isFirebaseReady || !db) return false;
   try {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, data);
+    
+    // Sincroniza bidirecionalmente com o Firebase Auth se houver displayName/photoURL
+    if (auth.currentUser && auth.currentUser.uid === uid) {
+      if (data.displayName || data.photoURL) {
+        await updateProfile(auth.currentUser, {
+          displayName: data.displayName || auth.currentUser.displayName,
+          photoURL: data.photoURL || auth.currentUser.photoURL
+        });
+      }
+    }
+    
     return true;
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);
