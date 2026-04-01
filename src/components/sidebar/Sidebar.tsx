@@ -38,7 +38,6 @@ const Sidebar = () => {
     { icon: Zap, label: 'Atividades', path: '/app/atividades', id: 'tour-atividades' },
     { icon: BookOpen, label: 'Flashcards', path: '/app/flashcards', id: 'tour-flashcards' },
     { icon: GraduationCap, label: 'Acessar Aulas', path: '/app/aulas', id: 'tour-aulas' },
-    { icon: User, label: 'Perfil', path: '/app/perfil' },
     { icon: Library, label: 'Dicionário Pessoal', path: '/app/dicionario', id: 'tour-dicionario' },
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
@@ -128,7 +127,7 @@ const Sidebar = () => {
                   {profile?.displayName || user?.displayName || ''}
                 </span>
                 <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
-                  {profile?.role === 'admin' ? 'DIRETOR ITR' : profile?.role === 'aluno' ? 'ALUNO ITR' : 'VISITANTE'}
+                  {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'user' || profile?.role === 'aluno') ? 'Aluno' : 'Visitante'}
                 </span>
               </div>
             </div>

@@ -103,7 +103,7 @@ export default function HomePage() {
   const memorizedCount = allCards.filter(c => c.isMemorized).length;
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col items-center py-8 md:py-16 font-outfit relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex flex-col items-center py-8 md:pt-0 md:pb-16 font-outfit relative overflow-hidden">
       
       {/* Background Isolation Group */}
       <div className="absolute inset-0 overflow-hidden -z-10 pointer-events-none">

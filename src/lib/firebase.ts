@@ -151,7 +151,7 @@ export interface UserStats {
   email?: string;
   displayName?: string;
   photoURL?: string;
-  role: 'lead' | 'aluno' | 'admin';
+  role: 'lead' | 'aluno' | 'admin' | 'user';
   masteredCount: number;
   totalWordsAdded: number;
   unlockedRewards: string[]; 
