@@ -6,6 +6,7 @@ import { CheckCircle2, Zap, LayoutGrid, ArrowLeft, Loader2, Sparkles, BookOpen }
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { VOCABULARY_SPRINTS, EssentialWord } from '@/lib/vocabularyData';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 import { 
   getVocabularyProgress, 
   toggleVocabularyMemorized, 
@@ -18,6 +19,7 @@ import ResetSprintModal from '@/components/ResetSprintModal';
 
 export default function VocabularyPage() {
   const router = useRouter(); 
+  const { executeProtectedAction } = useRoleGuard();
   const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState<string[]>([]);
   const [activeSprint, setActiveSprint] = useState(1);
@@ -70,32 +72,38 @@ export default function VocabularyPage() {
   const sprintTotal = currentSprintWords.length;
 
   const handleToggle = (word: EssentialWord) => {
-    toggleVocabularyMemorized({ id: word.id, en: word.en, pt: word.pt });
-    setProgress(getVocabularyProgress());
+    executeProtectedAction(() => {
+      toggleVocabularyMemorized({ id: word.id, en: word.en, pt: word.pt });
+      setProgress(getVocabularyProgress());
+    });
   };
 
   const handleGenerateCards = async () => {
-    setIsGenerating(true);
-    // Simula processamento para UX
-    await new Promise(r => setTimeout(r, 1500));
-    
-    // Filtra palavras não memorizadas do sprint atual
-    const wordsToGenerate = currentSprintWords
-      .filter(w => !progress.includes(w.id))
-      .map(w => ({ en: w.en, pt: w.pt, category: w.category, phonetic: w.phonetic }));
-    
-    const finalDeckName = generateSprintCards(wordsToGenerate, activeSprint);
-    
-    // Pequeno delay extra para UX de conclusão
-    await new Promise(r => setTimeout(r, 500));
-    setIsGenerating(false);
-    
-    // Redirecionamento automático
-    router.push('/app/flashcards');
+    executeProtectedAction(async () => {
+      setIsGenerating(true);
+      // Simula processamento para UX
+      await new Promise(r => setTimeout(r, 1500));
+      
+      // Filtra palavras não memorizadas do sprint atual
+      const wordsToGenerate = currentSprintWords
+        .filter(w => !progress.includes(w.id))
+        .map(w => ({ en: w.en, pt: w.pt, category: w.category, phonetic: w.phonetic }));
+      
+      generateSprintCards(wordsToGenerate, activeSprint);
+      
+      // Pequeno delay extra para UX de conclusão
+      await new Promise(r => setTimeout(r, 500));
+      setIsGenerating(false);
+      
+      // Redirecionamento automático
+      router.push('/app/flashcards');
+    });
   };
 
   const handleResetSprint = () => {
-    setIsResetModalOpen(true);
+    executeProtectedAction(() => {
+      setIsResetModalOpen(true);
+    });
   };
 
   const confirmReset = () => {

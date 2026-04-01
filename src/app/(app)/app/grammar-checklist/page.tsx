@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, Trophy, Target, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 // Estrutura de Dados
 const GRAMMAR_DATA = {
@@ -24,6 +25,7 @@ const GRAMMAR_DATA = {
 const STORAGE_KEY = 'itr_grammar_checklist';
 
 export default function GrammarChecklistPage() {
+  const { executeProtectedAction } = useRoleGuard();
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -50,10 +52,12 @@ export default function GrammarChecklistPage() {
   }, [completedItems, isLoaded]);
 
   const toggleItem = (item: string) => {
-    setCompletedItems(prev => ({
-      ...prev,
-      [item]: !prev[item]
-    }));
+    executeProtectedAction(() => {
+      setCompletedItems(prev => ({
+        ...prev,
+        [item]: !prev[item]
+      }));
+    });
   };
 
   const totalItems = Object.values(GRAMMAR_DATA).flat().length;

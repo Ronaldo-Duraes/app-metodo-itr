@@ -8,9 +8,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Flashcard } from '@/lib/types';
 import StudyModeModal from '@/components/study/StudyModeModal';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 export default function HomePage() {
   const router = useRouter();
+  const { executeProtectedAction } = useRoleGuard();
   const [allCards, setAllCards] = useState<Flashcard[]>([]);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
  
@@ -53,7 +55,10 @@ export default function HomePage() {
           {/* AÇÃO PRIORITÁRIA BUTTON / EMPTY STATE */}
           {pendingCount > 0 ? (
             <div className="w-full text-center">
-              <Link href="/app/estudar?mode=srs" className="w-full">
+              <div 
+                onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
+                className="w-full cursor-pointer"
+              >
                 <button id="tour-acao-prioritaria" className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
                   <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                     <Zap size={48} className="text-emerald-500" />
@@ -80,7 +85,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </button>
-              </Link>
+              </div>
             </div>
           ) : (
             <div className="w-full p-16 border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center">
@@ -125,7 +130,7 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-yellow-500 opacity-10 blur-xl group-hover:opacity-30 transition-opacity duration-700 -z-10" />
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-shimmer" />
             
-            <div className="bg-[#0a0a0a] border border-yellow-500/30 p-8 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.4)] hover:border-yellow-500/60 transition-colors">
+            <div id="tour-arsenal" className="bg-[#0a0a0a] border border-yellow-500/30 p-8 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.4)] hover:border-yellow-500/60 transition-colors">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
                   <Shield size={24} className="text-yellow-500" />

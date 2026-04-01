@@ -1,5 +1,6 @@
 import React from "react";
 import AppWrapper from "@/components/layout/AppWrapper";
+import GuestGuard from "@/components/auth/GuestGuard";
 
 export default function AppLayout({
   children,
@@ -7,8 +8,10 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AppWrapper>
-      {children}
-    </AppWrapper>
+    <GuestGuard>
+      <AppWrapper>
+        {children}
+      </AppWrapper>
+    </GuestGuard>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, Zap, Target, Maximize2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 // Estrutura de Dados dos 50 Gatilhos
 const MIRROR_CATEGORIES = [
@@ -112,6 +113,7 @@ const MIRROR_CATEGORIES = [
 const STORAGE_KEY = 'itr_mirror_triggers';
 
 export default function MirrorTriggersPage() {
+  const { executeProtectedAction } = useRoleGuard();
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -134,7 +136,9 @@ export default function MirrorTriggersPage() {
 
   const toggleComplete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setCompleted(prev => ({ ...prev, [id]: !prev[id] }));
+    executeProtectedAction(() => {
+      setCompleted(prev => ({ ...prev, [id]: !prev[id] }));
+    });
   };
 
   const total = 50;

@@ -8,6 +8,7 @@ import { Flashcard, Deck } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import StudyModeModal from '@/components/study/StudyModeModal';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 // --- COMPONENTE: DECK SELECTOR CUSTOM (INDUSTRIAL) ---
 interface DeckSelectorProps {
@@ -101,6 +102,7 @@ const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false, err
 
 export default function FlashcardsPage() {
   const router = useRouter();
+  const { executeProtectedAction } = useRoleGuard();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -363,25 +365,25 @@ export default function FlashcardsPage() {
 
           <div className="flex flex-wrap items-center gap-4">
             <button 
-              onClick={() => router.push('/app/vocabulary')}
+              onClick={() => executeProtectedAction(() => router.push('/app/vocabulary'))}
               className="flex items-center gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-6 py-3 rounded-lg font-black text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
             >
               <Rocket size={16} strokeWidth={3} />
               Sprint 600 palavras
             </button>
             <button 
-              onClick={() => setIsCardModalOpen(true)}
+              onClick={() => executeProtectedAction(() => setIsCardModalOpen(true))}
               className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Card
             </button>
             <button 
-              onClick={() => {
+              onClick={() => executeProtectedAction(() => {
                 setNewDeckName('');
                 setShowErrors(false);
                 setIsModalOpen(true);
-              }}
+              })}
               className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95"
             >
               <Plus size={16} strokeWidth={3} />
@@ -424,12 +426,15 @@ export default function FlashcardsPage() {
                       </div>
                     </div>
 
-                    <Link href="/app/estudar" className="w-full block">
+                    <div 
+                      onClick={() => executeProtectedAction(() => router.push('/app/estudar'))}
+                      className="w-full block cursor-pointer"
+                    >
                       <button className="w-full py-4 bg-emerald-500 text-black font-black text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all shadow-xl">
                         <Play size={14} fill="currentColor" />
                         Iniciar Estudo
                       </button>
-                    </Link>
+                    </div>
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full py-4 text-center">
@@ -493,10 +498,12 @@ export default function FlashcardsPage() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (deckCards.length > 0) {
-                                setTargetStudyDeckId(deck.id);
-                                setIsModeModalOpen(true);
-                              }
+                              executeProtectedAction(() => {
+                                if (deckCards.length > 0) {
+                                  setTargetStudyDeckId(deck.id);
+                                  setIsModeModalOpen(true);
+                                }
+                              });
                             }}
                             className={`absolute inset-0 w-full h-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center opacity-0 group-hover/play:opacity-100 transition-all scale-75 group-hover/play:scale-100 cursor-pointer ${deckCards.length === 0 ? 'cursor-not-allowed opacity-0 group-hover/play:opacity-40 grayscale' : ''}`}
                             title={deckCards.length > 0 ? "Iniciar Estudo" : "Adicione cards primeiro"}
@@ -547,10 +554,12 @@ export default function FlashcardsPage() {
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActiveDeck(deck);
-                                setNewDeckName(deck.name);
-                                setIsRenameModalOpen(true);
-                                setActiveMenuId(null);
+                                executeProtectedAction(() => {
+                                  setActiveDeck(deck);
+                                  setNewDeckName(deck.name);
+                                  setIsRenameModalOpen(true);
+                                  setActiveMenuId(null);
+                                });
                               }}
                               className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
                             >
@@ -559,9 +568,11 @@ export default function FlashcardsPage() {
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActiveDeck(deck);
-                                setIsDeleteModalOpen(true);
-                                setActiveMenuId(null);
+                                executeProtectedAction(() => {
+                                  setActiveDeck(deck);
+                                  setIsDeleteModalOpen(true);
+                                  setActiveMenuId(null);
+                                });
                               }}
                               className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
                             >
@@ -578,7 +589,7 @@ export default function FlashcardsPage() {
               
               <motion.div 
                 whileHover={{ scale: 1.01 }}
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => executeProtectedAction(() => setIsModalOpen(true))}
                 className="p-6 border border-dashed border-white/10 bg-transparent hover:border-emerald-500/50 transition-all flex items-center justify-center group cursor-pointer h-[88px]"
               >
                 <div className="flex flex-col items-center gap-1">
@@ -643,24 +654,28 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
-                  {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
-                    <button 
-                      onClick={() => {
-                        setTargetStudyDeckId(viewingDeck.id);
-                        setIsModeModalOpen(true);
-                      }}
-                      className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
-                    >
-                      <Play size={14} fill="currentColor" />
-                      INICIAR ESTUDO
-                    </button>
-                  )}
+                    <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
+                      {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
+                        <button 
+                          onClick={() => {
+                            executeProtectedAction(() => {
+                              setTargetStudyDeckId(viewingDeck.id);
+                              setIsModeModalOpen(true);
+                            });
+                          }}
+                          className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                        >
+                          <Play size={14} fill="currentColor" />
+                          INICIAR ESTUDO
+                        </button>
+                      )}
                   <button 
                     onClick={() => {
-                      setNewCardData({ ...newCardData, deckName: viewingDeck.name });
-                      setShowErrors(false);
-                      setIsCardModalOpen(true);
+                      executeProtectedAction(() => {
+                        setNewCardData({ ...newCardData, deckName: viewingDeck.name });
+                        setShowErrors(false);
+                        setIsCardModalOpen(true);
+                      });
                     }}
                     className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
                   >
@@ -705,9 +720,11 @@ export default function FlashcardsPage() {
                       <div className="flex items-center gap-3 justify-end">
                         <button 
                           onClick={() => {
-                            setEditingCard(card);
-                            setOriginalVocab({ front: card.front, back: card.back });
-                            setIsEditCardModalOpen(true);
+                            executeProtectedAction(() => {
+                              setEditingCard(card);
+                              setOriginalVocab({ front: card.front, back: card.back });
+                              setIsEditCardModalOpen(true);
+                            });
                           }}
                           className="p-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all"
                           title="Editar Card"
@@ -715,7 +732,9 @@ export default function FlashcardsPage() {
                           <Edit2 size={16} />
                         </button>
                         <button 
-                          onClick={() => handleDeleteCard(card.id)}
+                          onClick={() => {
+                            executeProtectedAction(() => handleDeleteCard(card.id));
+                          }}
                           className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/40 hover:text-red-500 hover:border-red-500/30 transition-all"
                           title="Excluir Card"
                         >

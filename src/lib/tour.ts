@@ -10,7 +10,7 @@ export const startTour = () => {
         popoverClass: 'itr-tour-popover',
         nextBtnText: 'Próximo',
         prevBtnText: 'Voltar',
-        doneBtnText: 'Finalizar',
+        doneBtnText: 'Começar Agora',
         allowClose: false, // Bloqueia fechar ao clicar fora ou ESC
         steps: [
             {
@@ -58,14 +58,30 @@ export const startTour = () => {
                     align: 'start'
                 }
             },
+            {
+                element: '#tour-arsenal',
+                popover: {
+                    title: 'Arsenal ITR',
+                    description: 'Este é o seu Arsenal ITR. Aqui você encontra as ferramentas de elite para destravar sua fluência, organizadas para o seu nível atual.',
+                    side: "left",
+                    align: 'start',
+                }
+            },
         ],
         onHighlightStarted: (element) => {
             // Travamento de Tela (Scroll Lock)
             document.body.style.overflow = 'hidden';
             
-            // Auto-scroll garantido
+            // Auto-scroll suave e centralizado
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const elementRect = element.getBoundingClientRect();
+                const absoluteElementTop = elementRect.top + window.pageYOffset;
+                const middle = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2);
+                
+                window.scrollTo({
+                    top: middle,
+                    behavior: 'smooth'
+                });
             }
         },
         onDestroyStarted: () => {

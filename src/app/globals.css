@@ -117,8 +117,10 @@ body {
   text-transform: uppercase !important;
   font-size: 9px !important;
   letter-spacing: 0.2em !important;
-  padding: 8px 16px !important;
+  padding: 6px 12px !important; /* Reduzido de 8px 16px */
   border-radius: 0px !important;
+  width: auto !important;
+  min-width: fit-content !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -144,25 +146,50 @@ body {
 
 /* --- PREMIUM TOUR EFFECTS --- */
 .driver-active-element {
-  box-shadow: 0 0 30px 10px rgba(234, 179, 8, 0.3) !important;
+  box-shadow: 0 0 40px 15px rgba(234, 179, 8, 0.4) !important;
   transition: box-shadow 0.3s ease-in-out !important;
-  outline: 2px solid rgba(234, 179, 8, 0.5) !important;
+  outline: 2px solid rgba(234, 179, 8, 0.6) !important;
+  z-index: 999999 !important; /* Acima do overlay */
+  position: relative !important;
 }
 
 @keyframes tourFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .itr-tour-popover {
-  animation: tourFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-  z-index: 100000 !important;
+  animation: tourFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  z-index: 1000000 !important;
+  margin: 0 !important; /* Previne deslocamentos indesejados */
+}
+
+.driver-popover-arrow {
+  display: block !important;
+  z-index: 1000001 !important;
 }
 
 .driver-overlay {
-  z-index: 99998 !important;
+  z-index: 999998 !important;
 }
 
 .driver-stage {
-  z-index: 99999 !important;
+  z-index: 999999 !important;
+}
+
+/* Forçar alinhamento do progresso 'X of X' */
+.itr-tour-popover .driver-popover-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important; /* Move botões para direita */
+  gap: 12px !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+}
+
+.itr-tour-popover .driver-popover-progress-text {
+  position: absolute !important;
+  left: 24px !important; /* Alinha com o padding do popover */
+  margin: 0 !important;
+  font-size: 9px !important; /* Levemente menor */
 }

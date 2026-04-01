@@ -8,21 +8,22 @@ import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle } from 'lucide-
 import { getUserProfile } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 import { startTour } from '@/lib/tour';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, profile } = useAuth();
+  const { executeProtectedAction } = useRoleGuard();
 
   // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
   const [mounted, setMounted] = React.useState(false);
-  const [profile, setProfile] = React.useState({ name: "RONALDO DURAES" });
   const [isMentorOpen, setIsMentorOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
-    const p = getUserProfile();
-    if (p && p.name) setProfile(p);
   }, []);
 
   if (!mounted) return null;
@@ -76,7 +77,7 @@ const Sidebar = () => {
               return (
                 <div 
                   key={item.label}
-                  onClick={() => setIsMentorOpen(true)}
+                  onClick={() => executeProtectedAction(() => setIsMentorOpen(true))}
                   className="group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500"
                 >
                   <Icon size={20} className="transition-colors duration-200" />
@@ -112,7 +113,7 @@ const Sidebar = () => {
 
         {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
         <div className="px-4 mt-auto pt-8 border-t border-white/5">
-          <Link href="/perfil" onClick={handleProfileClick}>
+          <Link href="/app/perfil" onClick={handleProfileClick}>
             <div id="tour-perfil" className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
@@ -124,10 +125,10 @@ const Sidebar = () => {
               
               <div className="flex flex-col hidden md:flex justify-center h-full">
                 <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none">
-                  {profile.name}
+                  {profile?.displayName || user?.displayName || 'Estudante ITR'}
                 </span>
                 <span className="text-[9px] font-black text-[#BC13FE] tracking-[0.2em] uppercase mt-1 leading-none opacity-90">
-                  ALUNO
+                  {profile?.role === 'aluno' ? 'ALUNO ITR' : profile?.role === 'lead' ? 'VISITANTE' : 'GUEST'}
                 </span>
               </div>
             </div>
