@@ -55,7 +55,7 @@ const Sidebar = () => {
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
-                className='object-contain drop-shadow-[0_0_15px_rgba(188,19,254,0.15)] hover:scale-105 transition-transform' 
+                className='object-contain hover:scale-105 transition-transform' 
               />
             </Link>
         </div>

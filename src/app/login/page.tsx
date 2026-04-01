@@ -53,13 +53,15 @@ export default function LoginPage() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || loading) return;
+    if (loading) return;
     
     setError('');
     setLoading(true);
 
     try {
       if (isRegistering) {
+        if (email !== confirmEmail) throw { code: 'auth/emails-dont-match' };
+        if (password !== confirmPassword) throw { code: 'auth/passwords-dont-match' };
         await signUpWithEmail(email, password, name);
       } else {
         await loginWithEmail(email, password);
@@ -68,7 +70,9 @@ export default function LoginPage() {
       router.refresh();
     } catch (err: any) {
       console.error("❌ Auth error:", err.code);
-      setError(isRegistering ? 'Erro ao criar conta. E-mail já em uso ou inválido.' : 'Credenciais de comando inválidas.');
+      if (err.code === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
+      else if (err.code === 'auth/passwords-dont-match') setError('As chaves não conferem.');
+      else setError(isRegistering ? 'Erro ao criar conta. Verifique os dados.' : 'Credenciais inválidas.');
     } finally {
       setLoading(false);
     }
@@ -96,7 +100,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center mb-12">
             <motion.div 
                whileHover={{ scale: 1.05 }}
-               className="w-24 h-24 bg-white p-4 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] mb-8 flex items-center justify-center"
+               className="w-24 h-24 mb-8 flex items-center justify-center"
             >
                <Image src="/logo-itr.png" alt="Logo ITR" width={90} height={90} className="object-contain" priority />
             </motion.div>
@@ -209,14 +213,14 @@ export default function LoginPage() {
 
             <button 
               type="submit"
-              disabled={!canSubmit || loading}
+              disabled={loading}
               className={`relative w-full py-5 text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98] mt-8 overflow-hidden group ${
-                canSubmit 
-                  ? 'bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]' 
-                  : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                loading 
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                  : 'bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]'
               }`}
             >
-              {canSubmit && (
+              {!loading && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
               )}
               <Zap size={14} fill="currentColor" />
