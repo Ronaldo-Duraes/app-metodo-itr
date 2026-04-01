@@ -82,7 +82,15 @@ const ProfileFooter = ({
             </motion.div>
           ) : (
             <motion.div key="edit" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4 pt-2 w-full">
-              <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="text-3xl font-bold bg-slate-950 border-2 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm text-center md:text-left text-white" style={{ borderColor: 'var(--itr-glow)' }} autoFocus />
+              <input 
+                type="text" 
+                value={newName} 
+                onChange={(e) => setNewName(e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }} 
+                className="text-3xl font-bold bg-slate-950 border-2 rounded-xl px-4 py-2 focus:outline-none w-full max-w-sm text-center md:text-left text-white"  
+                style={{ borderColor: 'var(--itr-glow)' }} 
+                autoFocus 
+              />
               <div className="flex gap-3 justify-center md:justify-start">
                 <button onClick={handleSave} className="text-white px-6 py-2 rounded-xl text-sm font-bold transition-all font-outfit" style={{ backgroundColor: 'var(--itr-primary)' }}>Salvar</button>
                 <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cancelar</button>

@@ -80,9 +80,9 @@ function ProfileContent() {
     if (!user?.uid) return;
     
     try {
-       const success = await updateUserProfile(user.uid, { displayName: newName });
+       const success = await updateUserProfile(user.uid, { displayName: newName, name: newName } as any);
        if (success) {
-          const updated = { ...profile, name: newName };
+          const updated = { ...profile, name: newName, displayName: newName };
           saveUserProfile(updated);
           setProfile(updated);
           setIsEditing(false);
