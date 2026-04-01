@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { logout } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, ChevronDown, ShieldCheck } from 'lucide-react';
+import { User, LogOut, ChevronDown, ShieldCheck, HelpCircle } from 'lucide-react';
+import { startTour } from '@/lib/tour';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
@@ -20,7 +21,16 @@ export default function Header() {
   if (!user) return null;
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-40 px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5">
+    <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-40 px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5 gap-6">
+      {/* Botão de Ajuda (Tour Manual) */}
+      <button 
+        onClick={() => startTour()}
+        className="p-3 text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full flex items-center justify-center group"
+        title="Iniciar Tour de Boas-vindas"
+      >
+        <HelpCircle size={20} className="group-hover:scale-110 transition-transform" />
+      </button>
+
       <div className="relative">
         <button 
           onClick={() => setIsOpen(!isOpen)}
