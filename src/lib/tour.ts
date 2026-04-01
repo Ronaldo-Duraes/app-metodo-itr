@@ -11,6 +11,7 @@ export const startTour = () => {
         nextBtnText: 'Próximo',
         prevBtnText: 'Voltar',
         doneBtnText: 'Começar Agora',
+        showButtons: ['next', 'previous', 'close'],
         allowClose: false, // Bloqueia fechar ao clicar fora ou ESC
         steps: [
             {
@@ -18,8 +19,8 @@ export const startTour = () => {
                 popover: {
                     title: 'Ação Prioritária',
                     description: 'Aqui é o seu motor de progresso. O sistema seleciona o que você realmente precisa estudar hoje.',
-                    side: "bottom",
-                    align: 'center'
+                    side: "right",
+                    align: 'start'
                 }
             },
             {

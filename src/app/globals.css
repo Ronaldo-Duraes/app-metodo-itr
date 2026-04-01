@@ -107,8 +107,7 @@ body {
 }
 
 .itr-tour-popover .driver-popover-next-btn,
-.itr-tour-popover .driver-popover-prev-btn,
-.itr-tour-popover .driver-popover-close-btn {
+.itr-tour-popover .driver-popover-prev-btn {
   background-color: #111 !important;
   color: #EAB308 !important;
   border: 1px solid rgba(234, 179, 8, 0.3) !important;
@@ -117,11 +116,32 @@ body {
   text-transform: uppercase !important;
   font-size: 9px !important;
   letter-spacing: 0.2em !important;
-  padding: 6px 12px !important; /* Reduzido de 8px 16px */
+  padding: 6px 12px !important;
   border-radius: 0px !important;
   width: auto !important;
   min-width: fit-content !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.itr-tour-popover .driver-popover-close-btn {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  background-color: transparent !important;
+  color: #ef4444 !important;
+  border: none !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+  box-shadow: none !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-shadow: none !important;
+}
+.itr-tour-popover .driver-popover-close-btn:hover {
+  background-color: transparent !important;
+  color: #dc2626 !important;
+  transform: scale(1.2) !important;
 }
 
 .itr-tour-popover .driver-popover-next-btn:hover {
