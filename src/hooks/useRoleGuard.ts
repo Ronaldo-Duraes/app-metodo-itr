@@ -12,7 +12,7 @@ import { useUI } from '@/context/UIContext';
  */
 export function useRoleGuard() {
   const { user, isAluno } = useAuth();
-  const { showAlert } = useUI();
+  const { showAlert, showConfirm } = useUI();
   const router = useRouter();
 
   const executeProtectedAction = (action: () => void) => {
@@ -23,9 +23,11 @@ export function useRoleGuard() {
       router.push('/login');
     } else {
       // Logado como 'lead' mostra aviso
-      showAlert(
-        '🔒 ÁREA EXCLUSIVA PARA ALUNOS ITR',
-        'Este recurso é reservado para alunos matriculados.\n\nEntre em contato com o Panda no WhatsApp para liberar seu Arsenal Elite!'
+      showConfirm(
+        'ACESSO LIMITADO: MODO VISITANTE',
+        'Para liberar o seu Arsenal ITR e salvar seu progresso, você precisa criar uma conta gratuita ou fazer login.',
+        () => router.push('/login'),
+        'CRIAR MINHA CONTA AGORA'
       );
     }
   };

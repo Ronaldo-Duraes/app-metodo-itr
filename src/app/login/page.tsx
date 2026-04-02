@@ -60,6 +60,7 @@ export default function LoginPage() {
 
     try {
       if (isRegistering) {
+        if (password.length < 6) throw { code: 'auth/weak-password' };
         if (email !== confirmEmail) throw { code: 'auth/emails-dont-match' };
         if (password !== confirmPassword) throw { code: 'auth/passwords-dont-match' };
         await signUpWithEmail(email, password, name);
@@ -70,7 +71,9 @@ export default function LoginPage() {
       router.refresh();
     } catch (err: any) {
       console.error("❌ Auth error:", err.code);
-      if (err.code === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
+      if (err.code === 'auth/weak-password') setError('Sua chave deve ter no mínimo 6 caracteres.');
+      else if (err.code === 'auth/email-already-in-use') setError('Este e-mail já possui um Comando Ativo.');
+      else if (err.code === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
       else if (err.code === 'auth/passwords-dont-match') setError('As chaves não conferem.');
       else setError(isRegistering ? 'Erro ao criar conta. Verifique os dados.' : 'Credenciais inválidas.');
     } finally {

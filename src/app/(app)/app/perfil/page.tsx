@@ -13,7 +13,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile, fetchUserProfile as fetchUserStats } from '@/lib/firebase';
 import { useUI } from '@/context/UIContext';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const ICON_MAP: Record<string, any> = {
   'Sprout': Sprout,
@@ -24,6 +24,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 function ProfileContent() {
+  const router = useRouter();
   const { user, profile: authProfile } = useAuth();
   const { showAlert } = useUI();
   const searchParams = useSearchParams();
@@ -108,6 +109,23 @@ function ProfileContent() {
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       
+      {/* GUEST WELCOME STATE */}
+      {!user && (
+        <div className="mb-12 bg-[#0a0a0a] border border-white/5 p-12 text-center relative overflow-hidden group">
+            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-white">Bem-Vindo ao Perfil</h2>
+            <p className="text-slate-400 font-bold mb-8 max-w-xl mx-auto text-xs tracking-widest uppercase">
+               Você está navegando como visitante. Para salvar seu progresso, destrinchar conquistas e obter seus certificados ITR, acesse o portal central.
+            </p>
+            <button 
+               onClick={() => router.push('/login')}
+               className="px-8 py-4 bg-emerald-500 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-400 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+            >
+               Entrar no Portal
+            </button>
+        </div>
+      )}
+
       {/* 2. SEÇÃO DE PERFIL */}
       <motion.div 
         key={trigger}

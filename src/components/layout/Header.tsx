@@ -28,8 +28,6 @@ export default function Header() {
     }
   };
 
-  if (!user) return null;
-
   return (
     <header className="fixed top-0 right-0 left-0 md:left-64 h-20 z-[50] px-8 flex items-center justify-end bg-black/20 backdrop-blur-md border-b border-white/5 gap-6">
       {/* Botão de Ajuda (Tour Manual) */}
@@ -48,16 +46,16 @@ export default function Header() {
         >
           <div className="text-right hidden sm:block">
             <p className="text-[10px] font-black text-white uppercase tracking-tighter">
-              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || ''}
+              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Visitante'}
             </p>
             <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest leading-none mt-1 opacity-80">
-                {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'aluno' ? 'Aluno ITR' : 'Visitante'}
+                {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'aluno' ? 'Aluno ITR' : 'Convidado'}
             </p>
           </div>
           
           <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-zinc-900 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-            {user.photoURL || profile?.photoURL ? (
-              <img src={user.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
+            {user?.photoURL || profile?.photoURL ? (
+              <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
                 {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
@@ -84,7 +82,7 @@ export default function Header() {
               >
                 <div className="p-4 border-b border-white/5 mb-2">
                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 opacity-50 text-[8px]">Sessão Ativa</p>
-                   <p className="text-[11px] font-bold text-white truncate">{user.email}</p>
+                   <p className="text-[11px] font-bold text-white truncate">{user?.email || 'Nenhuma conta logada'}</p>
                 </div>
                 
                 <button 
@@ -105,13 +103,23 @@ export default function Header() {
 
                 <div className="h-[1px] bg-white/5 my-2" />
                 
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 p-4 bg-red-500/5 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest text-left mt-2 group"
-                >
-                  <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" /> 
-                  Sair da Conta
-                </button>
+                {user ? (
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 p-4 bg-red-500/5 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest text-left mt-2 group"
+                  >
+                    <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" /> 
+                    Sair da Conta
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => router.push('/login')}
+                    className="w-full flex items-center gap-3 p-4 bg-emerald-500/5 text-emerald-500 border border-emerald-500/10 hover:bg-emerald-500 hover:text-black transition-all text-[10px] font-black uppercase tracking-widest text-left mt-2 group"
+                  >
+                    <User size={16} className="group-hover:scale-110 transition-transform" /> 
+                    Fazer Login
+                  </button>
+                )}
               </motion.div>
             </>
           )}

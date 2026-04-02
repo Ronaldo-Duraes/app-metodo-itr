@@ -12,7 +12,6 @@ export const startTour = () => {
         prevBtnText: 'Voltar',
         doneBtnText: 'Começar Agora',
         showButtons: ['next', 'previous', 'close'],
-        allowClose: false, // Bloqueia fechar ao clicar fora ou ESC
         steps: [
             {
                 element: '#tour-acao-prioritaria',
@@ -69,7 +68,7 @@ export const startTour = () => {
                 }
             },
         ],
-        onDestroyStarted: () => {
+        onDestroyed: () => {
              localStorage.setItem('itr-tour-completed', 'true');
         }
     });

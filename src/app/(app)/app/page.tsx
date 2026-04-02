@@ -126,54 +126,55 @@ export default function HomePage() {
           </div>
 
           {/* AÇÃO PRIORITÁRIA BUTTON / EMPTY STATE */}
-          {pendingCount > 0 ? (
-            <div className="w-full text-center">
-              <div 
-                id="tour-acao-prioritaria"
-                onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
-                className="w-full cursor-pointer"
-              >
-                <button className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
-                  <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
-                    <Zap size={48} className="text-emerald-500" />
-                  </div>
-                  
-                  <div className="flex flex-col items-start text-left">
-                    <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-4">Ação Prioritária</span>
-                    <h2 className="text-5xl font-black text-white mb-8 tracking-tighter uppercase leading-tight group-hover:text-emerald-500 transition-colors">
-                      Revisar Agora
-                    </h2>
+          <div id="tour-acao-prioritaria" className="w-full">
+            {pendingCount > 0 ? (
+              <div className="w-full text-center">
+                <div 
+                  onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
+                  className="w-full cursor-pointer"
+                >
+                  <button className="w-full group relative p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+                    <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
+                      <Zap size={48} className="text-emerald-500" />
+                    </div>
                     
-                    <div className="flex items-center gap-6 mb-10">
-                      <div className="px-5 py-2 bg-emerald-500 text-black text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.4)]">
-                        {pendingCount} Pendentes
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-4">Ação Prioritária</span>
+                      <h2 className="text-5xl font-black text-white mb-8 tracking-tighter uppercase leading-tight group-hover:text-emerald-500 transition-colors">
+                        Revisar Agora
+                      </h2>
+                      
+                      <div className="flex items-center gap-6 mb-10">
+                        <div className="px-5 py-2 bg-emerald-500 text-black text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.4)]">
+                          {pendingCount} Pendentes
+                        </div>
+                        <div className="text-white/20 text-[10px] font-bold tracking-[0.4em] uppercase italic">
+                          Time to Elite
+                        </div>
                       </div>
-                      <div className="text-white/20 text-[10px] font-bold tracking-[0.4em] uppercase italic">
-                        Time to Elite
-                      </div>
-                    </div>
 
-                    <div className="w-full h-14 bg-emerald-500 flex items-center justify-center gap-3 group-hover:bg-emerald-400 transition-colors">
-                      <Play size={16} fill="black" stroke="black" />
-                      <span className="text-black font-black text-xs tracking-[0.3em] uppercase">Iniciar Sessão</span>
+                      <div className="w-full h-14 bg-emerald-500 flex items-center justify-center gap-3 group-hover:bg-emerald-400 transition-colors">
+                        <Play size={16} fill="black" stroke="black" />
+                        <span className="text-black font-black text-xs tracking-[0.3em] uppercase">Iniciar Sessão</span>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="w-full p-16 border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center">
-              <div className="mb-8 p-6 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                <CheckCircle2 size={48} className="text-emerald-500" />
+            ) : (
+              <div className="w-full p-16 border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center">
+                <div className="mb-8 p-6 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                  <CheckCircle2 size={48} className="text-emerald-500" />
+                </div>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
+                  Tudo em dia!
+                </h2>
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.4em] leading-relaxed">
+                  Seu vocabulário está consolidado.
+                </p>
               </div>
-              <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
-                Tudo em dia!
-              </h2>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.4em] leading-relaxed">
-                Seu vocabulário está consolidado.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="mt-12 flex items-center justify-center gap-12 border-t border-white/5 pt-12 w-full">
             <div className="text-center">
