@@ -25,7 +25,7 @@ const ICON_MAP: Record<string, any> = {
 
 function ProfileContent() {
   const router = useRouter();
-  const { user, profile: authProfile } = useAuth();
+  const { user, profile: authProfile, isVisitor } = useAuth();
   const { showAlert } = useUI();
   const searchParams = useSearchParams();
   const trigger = searchParams.get('t') || 'initial';
@@ -110,7 +110,7 @@ function ProfileContent() {
     <div className="max-w-5xl mx-auto py-12 px-6">
       
       {/* GUEST WELCOME STATE */}
-      {!user && (
+      {isVisitor && (
         <div className="mb-12 bg-[#0a0a0a] border border-white/5 p-12 text-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-white">Bem-Vindo ao Perfil</h2>
