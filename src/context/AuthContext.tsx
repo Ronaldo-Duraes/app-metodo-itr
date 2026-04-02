@@ -9,6 +9,7 @@ interface AuthContextType {
   profile: UserStats | null;
   loading: boolean;
   isAluno: boolean;
+  isUsuario: boolean;
   isAdmin: boolean;
   isVisitor: boolean;
 }
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   isAluno: false,
+  isUsuario: false,
   isAdmin: false,
   isVisitor: true,
 });
@@ -37,6 +39,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      // Libera a interface instantaneamente enquanto busca o Firestore
+      setLoading(false);
       
       // Limpar subscription anterior do profile se existir
       if (unsubscribeProfile) {
@@ -50,13 +54,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         try {
           const userRef = doc(db, 'users', firebaseUser.uid);
-          unsubscribeProfile = onSnapshot(userRef, (docSnap: any) => {
+          unsubscribeProfile = onSnapshot(userRef, async (docSnap: any) => {
             if (docSnap.exists()) {
               setProfile(docSnap.data());
+              setLoading(false);
             } else {
-              setProfile(null);
+              const { setDoc } = require('firebase/firestore');
+              try {
+                const newProfile: UserStats = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email || '',
+                  displayName: firebaseUser.displayName || 'Usuário',
+                  name: firebaseUser.displayName || 'Usuário',
+                  role: 'usuario',
+                  createdAt: new Date(),
+                  totalWordsAdded: 0,
+                  masteredCount: 0,
+                  unlockedRewards: []
+                };
+                await setDoc(userRef, newProfile);
+                setProfile(newProfile);
+                setLoading(false);
+              } catch (e) {
+                console.error("Erro ao auto-criar documento:", e);
+                setProfile(null);
+                setLoading(false);
+              }
             }
-            setLoading(false);
           }, (error: any) => {
             console.error("Profile sync error:", error);
             setLoading(false);
@@ -77,12 +101,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const isAluno = !!(profile?.role === 'aluno' || profile?.role === 'admin');
+  const isAluno = profile?.role === 'aluno' || profile?.role === 'admin';
+  const isUsuario = profile?.role === 'usuario';
   const isAdmin = profile?.role === 'admin';
-  const isVisitor = !user || profile?.role === 'lead';
+  const isVisitor = !user;
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAluno, isAdmin, isVisitor }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAluno, isUsuario, isAdmin, isVisitor }}>
       {!loading && children}
     </AuthContext.Provider>
   );

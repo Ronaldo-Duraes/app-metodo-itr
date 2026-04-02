@@ -23,14 +23,24 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'aluno' | 'lead' | 'admin'>('all');
+  const [filter, setFilter] = useState<'all' | 'aluno' | 'usuario' | 'admin'>('all');
+
+  const [timeoutError, setTimeoutError] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
-    const data = await getAllUsers();
-    console.log('📡 Dados do Firestore (Users):', data);
-    setUsers(data);
-    setLoading(false);
+    setTimeoutError(false);
+    try {
+      const data = await getAllUsers();
+      console.log('📡 Dados do Firestore (Users):', data);
+      setUsers(data);
+    } catch (e: any) {
+      if (e.message === 'TIMEOUT_BANCO') {
+        setTimeoutError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -55,7 +65,7 @@ export default function AdminPage() {
   const stats = {
     total: users.length,
     alunos: users.filter(u => u.role === 'aluno').length,
-    leads: users.filter(u => u.role === 'lead').length,
+    usuarios: users.filter(u => u.role === 'usuario').length,
     admins: users.filter(u => u.role === 'admin').length,
   };
 
@@ -92,7 +102,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         <MetricCard label="Total Usuários" value={stats.total} icon={Users} color="text-white" />
         <MetricCard label="Alunos ITR" value={stats.alunos} icon={GraduationCap} color="text-emerald-500" />
-        <MetricCard label="Leads Acadêmicos" value={stats.leads} icon={UserPlus} color="text-blue-500" />
+        <MetricCard label="Usuários Pendentes" value={stats.usuarios} icon={UserPlus} color="text-blue-500" />
         <MetricCard label="Administradores" value={stats.admins} icon={Settings} color="text-amber-500" />
       </div>
 
@@ -110,7 +120,7 @@ export default function AdminPage() {
         </div>
 
         <div className="flex items-center gap-2">
-           {(['all', 'aluno', 'lead', 'admin'] as const).map(f => (
+           {(['all', 'aluno', 'usuario', 'admin'] as const).map(f => (
              <button
                key={f}
                onClick={() => setFilter(f)}
@@ -178,12 +188,12 @@ export default function AdminPage() {
                     </td>
                     <td className="p-6 text-right">
                       <div className="flex items-center justify-end gap-3">
-                         {user.role === 'lead' ? (
+                         {user.role === 'usuario' ? (
                            <button 
                              onClick={() => handleRoleChange(user.uid!, 'aluno')}
                              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all rounded-sm shadow-lg shadow-emerald-500/10"
                            >
-                             <Zap size={12} fill="black" /> Liberar Acesso
+                             <Zap size={12} fill="black" /> Liberar Acesso (Aluno)
                            </button>
                          ) : (
                            <div className="flex items-center gap-2">
@@ -206,9 +216,9 @@ export default function AdminPage() {
                                </button>
                              )}
                              <button 
-                               onClick={() => handleRoleChange(user.uid!, 'lead')}
+                               onClick={() => handleRoleChange(user.uid!, 'usuario')}
                                className="p-2 border border-red-500/20 text-red-500/50 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
-                               title="Remover Acesso (Lead)"
+                               title="Revogar Acesso (Usuário)"
                              >
                                <UserMinus size={14} />
                              </button>
@@ -220,8 +230,17 @@ export default function AdminPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="p-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs">
-                    Nenhum usuário encontrado no banco de dados.
+                  <td colSpan={5} className="p-20 text-center">
+                    {timeoutError ? (
+                      <div className="flex flex-col items-center gap-4">
+                        <span className="text-red-500 font-bold uppercase tracking-widest text-xs">Conexão Lenta com o Banco de Dados.</span>
+                        <button onClick={fetchUsers} className="px-6 py-2 bg-white/10 border border-white/20 hover:bg-white/20 transition-all text-xs font-black uppercase tracking-[0.2em] rounded-sm">
+                           Recarregar Tabela
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-zinc-600 font-bold uppercase tracking-widest text-xs">Nenhum usuário encontrado no banco de dados.</span>
+                    )}
                   </td>
                 </tr>
               )}

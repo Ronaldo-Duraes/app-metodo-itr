@@ -9,7 +9,8 @@ import {
   getDocs, 
   query, 
   orderBy, 
-  onSnapshot 
+  onSnapshot,
+  serverTimestamp
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -58,30 +59,55 @@ export { db, auth, googleProvider };
 export async function signUpWithEmail(email: string, pass: string, name: string) {
   if (!isFirebaseReady || !auth || !db) return null;
   try {
+    console.log('Iniciando Auth');
     const result = await createUserWithEmailAndPassword(auth, email, pass);
+    console.log('PASSO 1: AUTH OK');
     const user = result.user;
-    
-    // Criar perfil no Firestore
     const userRef = doc(db, 'users', user.uid);
     
-    // Determinar role inicial (Auto-Admin se o e-mail for o do ronaldo)
-    const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'lead';
+    await updateProfile(user, { displayName: name });
+    const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
 
-    await setDoc(userRef, {
-      uid: user.uid,
-      email: user.email,
-      displayName: name,
-      photoURL: null,
-      role: initialRole,
-      createdAt: new Date().toISOString(),
-      totalWordsAdded: 0,
-      masteredCount: 0,
-      unlockedRewards: []
-    });
+    try {
+      console.log('Criando Firestore');
+      
+      const payload = {
+        uid: user.uid,
+        email: user.email,
+        displayName: name,
+        name: name,
+        photoURL: null,
+        role: initialRole,
+        createdAt: new Date(),
+        totalWordsAdded: 0,
+        masteredCount: 0,
+        unlockedRewards: []
+      };
+
+      // TIMEOUT DE 3 SEGUNDOS
+      await Promise.race([
+        setDoc(userRef, payload, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 3000))
+      ]);
+      
+      console.log('PASSO 2: FIRESTORE OK');
+      console.log('Finalizado');
+    } catch (fsError: any) {
+      if (fsError.message === "TIMEOUT_BANCO") {
+        if (typeof window !== 'undefined') {
+          window.alert('BANCO LENTO: Redirecionando mesmo assim...');
+          window.location.href = '/app';
+        }
+      } else {
+        if (typeof window !== 'undefined') window.alert('ERRO NO BANCO: ' + fsError.message);
+      }
+      console.warn("⚠️ Firestore block no SignUp:", fsError);
+    }
     
     return user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao registrar com e-mail:", error);
+    if (typeof window !== 'undefined') window.alert('ERRO NO AUTH: ' + error.message);
     throw error;
   }
 }
@@ -109,19 +135,39 @@ export async function signInWithGoogle() {
     
     if (!userSnap.exists()) {
       // Determinar role inicial (Auto-Admin)
-      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'lead';
+      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
 
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: initialRole,
-        createdAt: new Date().toISOString(),
-        totalWordsAdded: 0,
-        masteredCount: 0,
-        unlockedRewards: []
-      });
+      try {
+        const payload = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          name: user.displayName,
+          photoURL: user.photoURL,
+          role: initialRole,
+          createdAt: new Date(),
+          totalWordsAdded: 0,
+          masteredCount: 0,
+          unlockedRewards: []
+        };
+        
+        await Promise.race([
+          setDoc(userRef, payload, { merge: true }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 3000))
+        ]);
+        
+        console.log('✅ Documento criado com sucesso (Google Auth):', user.uid);
+      } catch (fsError: any) {
+        if (fsError.message === "TIMEOUT_BANCO") {
+          if (typeof window !== 'undefined') {
+            window.alert('BANCO LENTO: Redirecionando mesmo assim...');
+            window.location.href = '/app';
+          }
+        } else {
+          if (typeof window !== 'undefined') window.alert('ERRO NO BANCO: ' + fsError.message);
+        }
+        console.warn("⚠️ Firestore block no Google Auth. Criando fallback.", fsError);
+      }
     } else {
       // Captura/atualiza dados vindos do Google (Sincronização Ativa)
       await updateDoc(userRef, {
@@ -150,12 +196,13 @@ export interface UserStats {
   uid?: string;
   email?: string;
   displayName?: string;
+  name?: string;
   photoURL?: string;
-  role: 'lead' | 'aluno' | 'admin' | 'user';
+  role: 'usuario' | 'aluno' | 'admin';
   masteredCount: number;
   totalWordsAdded: number;
   unlockedRewards: string[]; 
-  createdAt?: string;
+  createdAt?: any;
 }
 
 /**
@@ -198,10 +245,23 @@ export async function getAllUsers(): Promise<UserStats[]> {
   if (!isFirebaseReady || !db) return [];
   try {
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as UserStats);
-  } catch (error) {
+    
+    const querySnapshot = await Promise.race([
+      getDocs(usersRef),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 5000))
+    ]);
+    
+    // @ts-ignore - querySnapshot is guaranteed to be a QuerySnapshot here if it didn't throw
+    const users = querySnapshot.docs.map(doc => doc.data() as UserStats);
+    return users.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+  } catch (error: any) {
+    if (error.message === 'TIMEOUT_BANCO') {
+       throw error; 
+    }
     console.error("Erro ao buscar usuários:", error);
     return [];
   }

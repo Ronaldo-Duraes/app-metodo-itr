@@ -22,12 +22,12 @@ export function useRoleGuard() {
       // Visitante não logado vai para login
       router.push('/login');
     } else {
-      // Logado como 'lead' mostra aviso
+      // Logado como 'usuario' mostra aviso de pendência
       showConfirm(
-        'ACESSO LIMITADO: MODO VISITANTE',
-        'Para liberar o seu Arsenal ITR e salvar seu progresso, você precisa criar uma conta gratuita ou fazer login.',
-        () => router.push('/login'),
-        'CRIAR MINHA CONTA AGORA'
+        'ACESSO RESTRITO',
+        'Sua conta foi criada com sucesso! Mande uma mensagem para o Administrador solicitar a liberação do seu perfil como Aluno ITR.',
+        () => {}, // Empty action since they just wait or contact admin
+        'ENTENDIDO'
       );
     }
   };

@@ -20,7 +20,7 @@ function AuthStatusContent() {
 
   if (loading) return <div className="h-20 animate-pulse bg-white/5 rounded-xl" />;
 
-  if (user && profile) {
+  if (user) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4">
@@ -29,16 +29,16 @@ function AuthStatusContent() {
               <img src={profile?.photoURL || user?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center w-full h-full">
-                {profile?.displayName?.charAt(0).toUpperCase() || <UserIcon size={18} />}
+                {profile?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || <UserIcon size={18} />}
               </div>
             )}
           </div>
           <div className="flex flex-col">
             <h4 className="text-white font-black text-lg tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
-              Olá, {profile.displayName?.split(' ')[0]}!
+              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário'}!
             </h4>
             <span className="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase flex items-center gap-2">
-              Nível: {profile.role} <Sparkles size={10} className="fill-blue-500" />
+              Nível: {profile?.role || 'Usuário'} <Sparkles size={10} className="fill-blue-500" />
             </span>
           </div>
         </div>

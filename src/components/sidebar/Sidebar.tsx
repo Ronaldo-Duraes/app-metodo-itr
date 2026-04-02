@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap, Settings } from 'lucide-react';
+import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap, Settings, UserCircle } from 'lucide-react';
 import { getUserProfile } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +15,7 @@ import { useRoleGuard } from '@/hooks/useRoleGuard';
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, isVisitor } = useAuth();
   const { executeProtectedAction } = useRoleGuard();
 
   // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
@@ -110,11 +110,13 @@ const Sidebar = () => {
             <div id="tour-perfil" className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
               <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
-                  {user?.photoURL || profile?.photoURL ? (
+                  {isVisitor ? (
+                    <UserCircle size={24} className="text-zinc-500 opacity-60" />
+                  ) : user?.photoURL || profile?.photoURL ? (
                     <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
-                      {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
+                      {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
                     </span>
                   )}
                 </div>
@@ -124,10 +126,10 @@ const Sidebar = () => {
               
               <div className="flex flex-col hidden md:flex justify-center overflow-hidden">
                 <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none mb-1">
-                  {profile?.displayName || user?.displayName || ''}
+                  {profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante'}
                 </span>
                 <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
-                  {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'user' || profile?.role === 'aluno') ? 'Aluno' : 'Visitante'}
+                  {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'aluno') ? 'Aluno' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante'}
                 </span>
               </div>
             </div>

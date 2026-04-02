@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { logout } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, ChevronDown, ShieldCheck, HelpCircle } from 'lucide-react';
+import { User, LogOut, ChevronDown, ShieldCheck, HelpCircle, UserCircle } from 'lucide-react';
 import { startTour } from '@/lib/tour';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const { user, profile } = useAuth();
+  const { user, profile, isVisitor } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -46,19 +46,21 @@ export default function Header() {
         >
           <div className="text-right hidden sm:block">
             <p className="text-[10px] font-black text-white uppercase tracking-tighter">
-              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Visitante'}
+              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Visitante'}
             </p>
             <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest leading-none mt-1 opacity-80">
-                {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'aluno' ? 'Aluno ITR' : 'Convidado'}
+                {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'aluno' ? 'Aluno ITR' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Convidado'}
             </p>
           </div>
           
           <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-zinc-900 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-            {user?.photoURL || profile?.photoURL ? (
+            {isVisitor ? (
+              <UserCircle size={24} className="text-zinc-500 opacity-60" />
+            ) : user?.photoURL || profile?.photoURL ? (
               <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
-                {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
+                {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
               </span>
             )}
           </div>

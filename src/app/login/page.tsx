@@ -16,23 +16,8 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  // Validação manual feita diretamente no form
   const [loading, setLoading] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
-
-  // Parity Validation for Registration
-  useEffect(() => {
-    if (isRegistering) {
-      const match = 
-        email.length > 0 && 
-        email === confirmEmail && 
-        password.length >= 6 && 
-        password === confirmPassword && 
-        name.length > 0;
-      setCanSubmit(match);
-    } else {
-      setCanSubmit(email.length > 0 && password.length > 0);
-    }
-  }, [email, confirmEmail, password, confirmPassword, name, isRegistering]);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -40,12 +25,11 @@ export default function LoginPage() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        router.push('/app');
-        router.refresh();
+        window.location.href = '/app';
       }
     } catch (err: any) {
-      console.error("Google Auth Error:", err.code);
-      setError('Falha na autenticação com Google. Tente novamente.');
+      console.error("Google Auth Error:", err);
+      setError('Falha na autenticação com Google. ' + (err.message || ''));
     } finally {
       setLoading(false);
     }
@@ -60,6 +44,7 @@ export default function LoginPage() {
 
     try {
       if (isRegistering) {
+        if (!name || !email || !password || !confirmEmail || !confirmPassword) throw { code: 'auth/empty-fields' };
         if (password.length < 6) throw { code: 'auth/weak-password' };
         if (email !== confirmEmail) throw { code: 'auth/emails-dont-match' };
         if (password !== confirmPassword) throw { code: 'auth/passwords-dont-match' };
@@ -67,15 +52,22 @@ export default function LoginPage() {
       } else {
         await loginWithEmail(email, password);
       }
-      router.push('/app');
-      router.refresh();
+      window.location.href = '/app';
     } catch (err: any) {
-      console.error("❌ Auth error:", err.code);
-      if (err.code === 'auth/weak-password') setError('Sua chave deve ter no mínimo 6 caracteres.');
-      else if (err.code === 'auth/email-already-in-use') setError('Este e-mail já possui um Comando Ativo.');
-      else if (err.code === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
-      else if (err.code === 'auth/passwords-dont-match') setError('As chaves não conferem.');
-      else setError(isRegistering ? 'Erro ao criar conta. Verifique os dados.' : 'Credenciais inválidas.');
+      console.error("❌ Auth error:", err);
+      
+      const errorCode = err.code || '';
+      
+      if (errorCode === 'auth/empty-fields') setError('Preencha todos os campos obrigatórios.');
+      else if (errorCode === 'auth/weak-password') setError('A senha deve ter no mínimo 6 caracteres.');
+      else if (errorCode === 'auth/email-already-in-use') {
+        if (typeof window !== 'undefined') window.alert('E-mail já cadastrado!');
+        setError('Este e-mail já está em uso. Tente fazer login ou use outro e-mail.');
+      }
+      else if (errorCode === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
+      else if (errorCode === 'auth/passwords-dont-match') setError('As chaves não conferem.');
+      else if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') setError('Credenciais inválidas. Verifique seu e-mail e chave.');
+      else setError(`Falha: ${err.message || 'Verifique seus dados de conexão.'}`);
     } finally {
       setLoading(false);
     }
@@ -150,7 +142,7 @@ export default function LoginPage() {
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Como prefere ser chamado?"
+                      type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Como prefere ser chamado?"
                       className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                     />
                   </div>
@@ -164,7 +156,7 @@ export default function LoginPage() {
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                   <input 
-                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
+                    type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
                     className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                   />
                 </div>
@@ -176,7 +168,7 @@ export default function LoginPage() {
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="email" required value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} placeholder="repita seu@email.com"
+                      type="email" value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} placeholder="repita seu@email.com"
                       className={`w-full bg-white/[0.02] border p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:outline-none transition-all text-sm ${
                         confirmEmail && email !== confirmEmail ? 'border-red-500/50' : 'border-white/5 focus:border-emerald-500/50'
                       }`}
@@ -192,7 +184,7 @@ export default function LoginPage() {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                   <input 
-                    type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+                    type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
                     className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                   />
                 </div>
@@ -204,7 +196,7 @@ export default function LoginPage() {
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-emerald-500 transition-colors" size={16} />
                     <input 
-                      type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="repita a chave"
+                      type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="repita a chave"
                       className={`w-full bg-white/[0.02] border p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:outline-none transition-all text-sm ${
                         confirmPassword && password !== confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-emerald-500/50'
                       }`}

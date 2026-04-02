@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 export default function GuestGuard({ children }: { children: React.ReactNode }) {
-  const { loading } = useAuth();
+  const { loading, isVisitor } = useAuth();
   const pathname = usePathname();
-
   // Exceção absoluta: página de login
   if (pathname === '/login') return <>{children}</>;
 
@@ -21,8 +20,6 @@ export default function GuestGuard({ children }: { children: React.ReactNode }) 
     </div>
   );
 
-  // AGORA O VISITANTE TEM ACESSO VISUAL COMPLETO
-  // O bloqueio acontece via useRoleGuard nos botões de ação (Iniciar, Revisar, etc)
   return (
     <>
       {children}

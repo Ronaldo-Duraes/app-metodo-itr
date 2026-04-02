@@ -11,6 +11,7 @@ export const startTour = () => {
         nextBtnText: 'Próximo',
         prevBtnText: 'Voltar',
         doneBtnText: 'Começar Agora',
+        allowClose: true,
         showButtons: ['next', 'previous', 'close'],
         steps: [
             {
