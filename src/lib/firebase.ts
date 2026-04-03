@@ -10,7 +10,9 @@ import {
   query, 
   orderBy, 
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  enableNetwork,
+  Unsubscribe
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -35,7 +37,6 @@ const firebaseConfig = {
 // Configuração Real Conectada
 export const isFirebaseReady = true;
 
-// Inicializa Firebase apenas se as chaves existirem
 let app: any;
 let db: any = null;
 let auth: any = null;
@@ -43,10 +44,18 @@ let googleProvider: any = null;
 
 if (isFirebaseReady) {
   app = initializeApp(firebaseConfig);
+  
+  // INICIALIZAÇÃO LIMPA — sem terminate(), sem clearIndexedDbPersistence()
+  // Essas chamadas DESTRUÍAM a conexão e causavam "client is offline"
   db = getFirestore(app);
+  
+  // Força modo online proativo — se o SDK estiver offline por cache corrompido, isso força a reconexão
+  if (typeof window !== 'undefined') {
+    enableNetwork(db).catch((e) => console.warn('enableNetwork initial:', e));
+  }
+  
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
-  // Configuração adicional para evitar erros de pop-up no localhost
   googleProvider.setCustomParameters({ prompt: 'select_account' });
 }
 
@@ -54,23 +63,40 @@ export const ADMIN_EMAIL = 'ronaldo.duraes@gmail.com';
 
 export { db, auth, googleProvider };
 
+/**
+ * Força o Firestore para modo online — útil como botão de emergência
+ */
+export async function forceFirestoreOnline(): Promise<boolean> {
+  if (!db) return false;
+  try {
+    await enableNetwork(db);
+    console.log('✅ Firestore forçado para modo Online');
+    return true;
+  } catch (e) {
+    console.error('❌ Falha ao forçar enableNetwork:', e);
+    return false;
+  }
+}
+
 // --- Lógica de Autenticação & Firestore ---
 
 export async function signUpWithEmail(email: string, pass: string, name: string) {
   if (!isFirebaseReady || !auth || !db) return null;
   try {
-    console.log('Iniciando Auth');
-    const result = await createUserWithEmailAndPassword(auth, email, pass);
-    console.log('PASSO 1: AUTH OK');
-    const user = result.user;
-    const userRef = doc(db, 'users', user.uid);
+    // Garante rede ativa antes de qualquer operação
+    await enableNetwork(db).catch(() => {});
     
+    console.log('Iniciando Auth...');
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    console.log('PASSO 1: AUTH OK — UID:', result.user.uid);
+    const user = result.user;
+
     await updateProfile(user, { displayName: name });
     const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
 
+    // PASSO 2: Criar documento no Firestore IMEDIATAMENTE
     try {
-      console.log('Criando Firestore');
-      
+      const userRef = doc(db, 'users', user.uid);
       const payload = {
         uid: user.uid,
         email: user.email,
@@ -78,36 +104,33 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
         name: name,
         photoURL: null,
         role: initialRole,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
         totalWordsAdded: 0,
         masteredCount: 0,
         unlockedRewards: []
       };
 
-      // TIMEOUT DE 3 SEGUNDOS
+      // Timeout blindado de 5s
       await Promise.race([
         setDoc(userRef, payload, { merge: true }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 3000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 5000))
       ]);
-      
-      console.log('PASSO 2: FIRESTORE OK');
-      console.log('Finalizado');
+      console.log('PASSO 2: FIRESTORE DOC OK');
     } catch (fsError: any) {
-      if (fsError.message === "TIMEOUT_BANCO") {
-        if (typeof window !== 'undefined') {
-          window.alert('BANCO LENTO: Redirecionando mesmo assim...');
-          window.location.href = '/app';
-        }
-      } else {
-        if (typeof window !== 'undefined') window.alert('ERRO NO BANCO: ' + fsError.message);
-      }
-      console.warn("⚠️ Firestore block no SignUp:", fsError);
+      // Log, mas NÃO impede o fluxo — o AuthContext vai auto-criar se necessário
+      console.warn("⚠️ Firestore setDoc no SignUp falhou:", fsError.message);
     }
-    
+
+    // PASSO 3: Retorna o usuário — o redirect é feito pelo chamador (login/page.tsx)
     return user;
   } catch (error: any) {
-    console.error("Erro ao registrar com e-mail:", error);
-    if (typeof window !== 'undefined') window.alert('ERRO NO AUTH: ' + error.message);
+    console.error("Erro ao registrar:", error);
+    // Alert específico para email duplicado
+    if (error.code === 'auth/email-already-in-use') {
+      if (typeof window !== 'undefined') {
+        window.alert('Este e-mail já está cadastrado! Tente fazer login.');
+      }
+    }
     throw error;
   }
 }
@@ -129,12 +152,27 @@ export async function signInWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     
-    // Verificar se usuário existe no Firestore
+    // Força rede ativa
+    await enableNetwork(db).catch(() => {});
+    
     const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
+    
+    let userSnap;
+    try {
+      userSnap = await getDoc(userRef);
+    } catch (docError: any) {
+      // Fallback: se offline, redireciona mesmo assim — AuthContext cria o doc
+      if (docError.message?.toLowerCase().includes('offline')) {
+        console.warn('Firestore offline no Google Auth — redirecionando...');
+        if (typeof window !== 'undefined') {
+          window.location.href = '/app';
+        }
+        return user;
+      }
+      throw docError;
+    }
     
     if (!userSnap.exists()) {
-      // Determinar role inicial (Auto-Admin)
       const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
 
       try {
@@ -145,7 +183,7 @@ export async function signInWithGoogle() {
           name: user.displayName,
           photoURL: user.photoURL,
           role: initialRole,
-          createdAt: new Date(),
+          createdAt: serverTimestamp(),
           totalWordsAdded: 0,
           masteredCount: 0,
           unlockedRewards: []
@@ -153,27 +191,19 @@ export async function signInWithGoogle() {
         
         await Promise.race([
           setDoc(userRef, payload, { merge: true }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 3000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 5000))
         ]);
-        
-        console.log('✅ Documento criado com sucesso (Google Auth):', user.uid);
+        console.log('✅ Doc criado (Google Auth):', user.uid);
       } catch (fsError: any) {
-        if (fsError.message === "TIMEOUT_BANCO") {
-          if (typeof window !== 'undefined') {
-            window.alert('BANCO LENTO: Redirecionando mesmo assim...');
-            window.location.href = '/app';
-          }
-        } else {
-          if (typeof window !== 'undefined') window.alert('ERRO NO BANCO: ' + fsError.message);
-        }
-        console.warn("⚠️ Firestore block no Google Auth. Criando fallback.", fsError);
+        console.warn("⚠️ Firestore block no Google Auth:", fsError.message);
+        // Não bloqueia — AuthContext cria o doc
       }
     } else {
-      // Captura/atualiza dados vindos do Google (Sincronização Ativa)
+      // Atualiza dados do Google
       await updateDoc(userRef, {
         displayName: user.displayName || userSnap.data()?.displayName,
         photoURL: user.photoURL || userSnap.data()?.photoURL
-      });
+      }).catch(() => {});
     }
     
     return user;
@@ -181,7 +211,7 @@ export async function signInWithGoogle() {
     console.error("❌ Erro Crítico Google Auth:", {
       code: error.code,
       message: error.message,
-      domain: window.location.hostname
+      domain: typeof window !== 'undefined' ? window.location.hostname : 'SSR'
     });
     throw error;
   }
@@ -239,20 +269,23 @@ export async function redeemReward(uid: string, rewardKey: string) {
 }
 
 /**
- * ADMIN: Busca todos os usuários ordenados por data de criação
+ * ADMIN: Busca todos os usuários (one-shot) com força online
  */
 export async function getAllUsers(): Promise<UserStats[]> {
   if (!isFirebaseReady || !db) return [];
   try {
+    // Força rede ativa antes de buscar
+    await enableNetwork(db).catch(() => {});
+    
     const usersRef = collection(db, 'users');
     
     const querySnapshot = await Promise.race([
-      getDocs(usersRef),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 5000))
+      getDocs(query(usersRef)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 8000))
     ]);
     
-    // @ts-ignore - querySnapshot is guaranteed to be a QuerySnapshot here if it didn't throw
-    const users = querySnapshot.docs.map(doc => doc.data() as UserStats);
+    // @ts-ignore
+    const users = querySnapshot.docs.map((d: any) => d.data() as UserStats);
     return users.sort((a, b) => {
       const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
       const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
@@ -265,6 +298,27 @@ export async function getAllUsers(): Promise<UserStats[]> {
     console.error("Erro ao buscar usuários:", error);
     return [];
   }
+}
+
+/**
+ * ADMIN: Inscreve listener real-time na coleção users (onSnapshot)
+ */
+export function subscribeToUsers(callback: (users: UserStats[]) => void): Unsubscribe | null {
+  if (!isFirebaseReady || !db) return null;
+  
+  const usersRef = collection(db, 'users');
+  
+  return onSnapshot(usersRef, (snapshot) => {
+    const users = snapshot.docs.map(d => d.data() as UserStats);
+    const sorted = users.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+    callback(sorted);
+  }, (error) => {
+    console.error("onSnapshot users error:", error);
+  });
 }
 
 /**
@@ -291,7 +345,6 @@ export async function updateUserProfile(uid: string, data: Partial<UserStats>) {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, data);
     
-    // Sincroniza bidirecionalmente com o Firebase Auth se houver displayName/photoURL
     if (auth.currentUser && auth.currentUser.uid === uid) {
       if (data.displayName || data.photoURL) {
         await updateProfile(auth.currentUser, {

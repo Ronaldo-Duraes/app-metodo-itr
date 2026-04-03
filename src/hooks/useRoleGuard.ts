@@ -2,13 +2,11 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
-
 import { useUI } from '@/context/UIContext';
 
 /**
  * Hook para proteger ações específicas (cliques em botões, abertura de cards).
- * Se o usuário não for um 'aluno', ele é redirecionado para a página de login.
+ * Se o usuário não for um 'aluno', exibe modal de Acesso Restrito com link para metodoitr.com.br.
  */
 export function useRoleGuard() {
   const { user, isAluno } = useAuth();
@@ -22,12 +20,15 @@ export function useRoleGuard() {
       // Visitante não logado vai para login
       router.push('/login');
     } else {
-      // Logado como 'usuario' mostra aviso de pendência
+      // Logado como 'usuario' — mostra modal de acesso restrito com link para Saiba Mais
       showConfirm(
-        'ACESSO RESTRITO',
-        'Sua conta foi criada com sucesso! Mande uma mensagem para o Administrador solicitar a liberação do seu perfil como Aluno ITR.',
-        () => {}, // Empty action since they just wait or contact admin
-        'ENTENDIDO'
+        '🔒 ACESSO EXCLUSIVO PARA ALUNOS',
+        'Este conteúdo é exclusivo para alunos do Método ITR. Para desbloquear o acesso completo ao Arsenal, Flashcards, Atividades e todo o sistema de fluência, conheça o método.',
+        () => {
+          // Redireciona para o site do método ITR
+          window.open('https://metodoitr.com.br', '_blank');
+        },
+        'SAIBA MAIS'
       );
     }
   };

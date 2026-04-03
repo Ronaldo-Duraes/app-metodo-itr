@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { signInWithGoogle, loginWithEmail, signUpWithEmail } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Sparkles, Zap } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Zap, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,22 +16,24 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  // Validação manual feita diretamente no form
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
+    setLoadingMessage('Conectando com o Google...');
     try {
       const user = await signInWithGoogle();
       if (user) {
+        setLoadingMessage('Autenticado! Entrando no sistema...');
         window.location.href = '/app';
       }
     } catch (err: any) {
       console.error("Google Auth Error:", err);
       setError('Falha na autenticação com Google. ' + (err.message || ''));
-    } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -41,6 +43,17 @@ export default function LoginPage() {
     
     setError('');
     setLoading(true);
+    setLoadingMessage(isRegistering ? 'Criando sua conta...' : 'Verificando credenciais...');
+
+    // TIMEOUT DE SEGURANÇA: Reseta o botão em 10s e força redirect
+    const safetyTimeout = setTimeout(() => {
+      console.warn('⏱️ Safety timeout (10s): resetando botão e forçando entrada');
+      setLoading(false);
+      setLoadingMessage('');
+      if (isRegistering) {
+        window.location.href = '/app';
+      }
+    }, 10000);
 
     try {
       if (isRegistering) {
@@ -48,12 +61,16 @@ export default function LoginPage() {
         if (password.length < 6) throw { code: 'auth/weak-password' };
         if (email !== confirmEmail) throw { code: 'auth/emails-dont-match' };
         if (password !== confirmPassword) throw { code: 'auth/passwords-dont-match' };
+        setLoadingMessage('Registrando no sistema...');
         await signUpWithEmail(email, password, name);
       } else {
         await loginWithEmail(email, password);
       }
+      clearTimeout(safetyTimeout);
+      setLoadingMessage('Autenticado! Redirecionando...');
       window.location.href = '/app';
     } catch (err: any) {
+      clearTimeout(safetyTimeout);
       console.error("❌ Auth error:", err);
       
       const errorCode = err.code || '';
@@ -68,14 +85,61 @@ export default function LoginPage() {
       else if (errorCode === 'auth/passwords-dont-match') setError('As chaves não conferem.');
       else if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') setError('Credenciais inválidas. Verifique seu e-mail e chave.');
       else setError(`Falha: ${err.message || 'Verifique seus dados de conexão.'}`);
-    } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
   return (
     <div className="flex min-h-screen bg-black font-outfit text-white relative overflow-hidden">
       
+      {/* ============ LOADING OVERLAY ============ */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-[#0a0a0a] border border-white/10 p-10 md:p-14 max-w-sm w-full mx-6 shadow-[0_0_80px_rgba(16,185,129,0.15)] relative overflow-hidden"
+            >
+              {/* Shimmer top bar */}
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+              
+              <div className="flex flex-col items-center text-center">
+                {/* Animated spinner */}
+                <div className="relative w-20 h-20 mb-8">
+                  <div className="absolute inset-0 rounded-full border-[3px] border-white/5" />
+                  <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-emerald-500 animate-spin" />
+                  <div className="absolute inset-2 rounded-full border-[2px] border-transparent border-b-emerald-500/30 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Zap size={24} className="text-emerald-500 animate-pulse" fill="currentColor" />
+                  </div>
+                </div>
+
+                <h3 className="text-lg font-black uppercase tracking-tighter text-white mb-3">
+                  {loadingMessage || 'Processando...'}
+                </h3>
+                <p className="text-[9px] font-black text-zinc-500 tracking-[0.4em] uppercase">
+                  Protocolo de Comando Ativo
+                </p>
+
+                {/* Animated loading bar */}
+                <div className="w-full h-1 bg-white/5 mt-8 overflow-hidden rounded-full">
+                  <div className="h-full bg-emerald-500 rounded-full animate-loading-bar" />
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* BACKGROUND ELEMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[150px] rounded-full animate-pulse" />
@@ -243,6 +307,14 @@ export default function LoginPage() {
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
+        }
+        @keyframes loading-bar {
+          0% { transform: translateX(-100%); width: 40%; }
+          50% { width: 60%; }
+          100% { transform: translateX(250%); width: 40%; }
+        }
+        .animate-loading-bar {
+          animation: loading-bar 1.5s infinite ease-in-out;
         }
       `}</style>
     </div>

@@ -140,6 +140,7 @@ function ProfileContent() {
 
         <ProfileFooter 
           profile={profile}
+          authProfile={authProfile}
           isEditing={isEditing}
           newName={newName}
           setNewName={setNewName}

@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Edit3, Gem } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
+import { UserStats } from '@/lib/firebase';
 
 interface ProfileFooterProps {
   profile: UserProfile;
+  authProfile?: UserStats | null;
   isEditing: boolean;
   newName: string;
   setNewName: (name: string) => void;
@@ -21,6 +23,7 @@ interface ProfileFooterProps {
 
 const ProfileFooter = ({
   profile,
+  authProfile,
   isEditing,
   newName,
   setNewName,
@@ -32,6 +35,9 @@ const ProfileFooter = ({
   masteredCount
 }: ProfileFooterProps) => {
   const { user } = useAuth();
+
+  // Prioridade: authProfile (Firestore live) > profile local
+  const displayName = authProfile?.displayName || authProfile?.name || profile.displayName || profile.name || 'Visitante';
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full mb-12">
@@ -56,7 +62,7 @@ const ProfileFooter = ({
           {!isEditing ? (
             <motion.div key="display" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3 pt-2">
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 justify-center md:justify-start">
-                <h1 className="text-4xl md:text-5xl font-black font-outfit text-white tracking-tight">{profile.displayName || profile.name || 'Visitante'}</h1>
+                <h1 className="text-4xl md:text-5xl font-black font-outfit text-white tracking-tight">{displayName}</h1>
                 {user && (
                   <button onClick={() => setIsEditing(true)} className="text-slate-500 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800 self-center">
                     <Edit3 size={18} />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -13,9 +13,11 @@ import {
   Settings, 
   RefreshCw,
   ArrowLeft,
-  Lock
+  Lock,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
-import { getAllUsers, updateUserRole, UserStats } from '@/lib/firebase';
+import { getAllUsers, updateUserRole, UserStats, subscribeToUsers, forceFirestoreOnline } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
@@ -24,34 +26,94 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'aluno' | 'usuario' | 'admin'>('all');
-
   const [timeoutError, setTimeoutError] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'live' | 'fallback' | 'error'>('live');
+  const unsubRef = useRef<(() => void) | null>(null);
 
-  const fetchUsers = async () => {
+  // Tenta listener real-time primeiro, fallback para one-shot
+  useEffect(() => {
+    setLoading(true);
+    
+    const unsub = subscribeToUsers((data) => {
+      console.log('📡 onSnapshot users:', data.length);
+      setUsers(data);
+      setLoading(false);
+      setSyncStatus('live');
+      setTimeoutError(false);
+    });
+
+    if (unsub) {
+      unsubRef.current = unsub;
+    } else {
+      // Fallback: Firebase não está pronto
+      fetchUsersFallback();
+    }
+
+    // Timeout de segurança: se onSnapshot não entregar em 8s, faz getDocs
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('⏱️ onSnapshot timeout — tentando getDocs...');
+        fetchUsersFallback();
+      }
+    }, 8000);
+
+    return () => {
+      clearTimeout(safetyTimeout);
+      if (unsubRef.current) unsubRef.current();
+    };
+  }, []);
+
+  const fetchUsersFallback = async () => {
     setLoading(true);
     setTimeoutError(false);
     try {
       const data = await getAllUsers();
-      console.log('📡 Dados do Firestore (Users):', data);
+      console.log('📡 getDocs fallback:', data.length);
       setUsers(data);
+      setSyncStatus('fallback');
     } catch (e: any) {
       if (e.message === 'TIMEOUT_BANCO') {
         setTimeoutError(true);
+        setSyncStatus('error');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const handleForceSync = async () => {
+    setLoading(true);
+    const success = await forceFirestoreOnline();
+    if (success) {
+      // Re-attach listener
+      if (unsubRef.current) unsubRef.current();
+      const unsub = subscribeToUsers((data) => {
+        setUsers(data);
+        setLoading(false);
+        setSyncStatus('live');
+        setTimeoutError(false);
+      });
+      if (unsub) {
+        unsubRef.current = unsub;
+      } else {
+        await fetchUsersFallback();
+      }
+      // Safety timeout
+      setTimeout(() => {
+        if (loading) fetchUsersFallback();
+      }, 5000);
+    } else {
+      await fetchUsersFallback();
+    }
+  };
 
   const handleRoleChange = async (uid: string, newRole: UserStats['role']) => {
     const success = await updateUserRole(uid, newRole);
-    if (success) {
+    if (success && syncStatus !== 'live') {
+      // Se não está em modo live, atualiza local
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole } : u));
     }
+    // Se estiver em modo live, o onSnapshot entrega a atualização automaticamente
   };
 
   const filteredUsers = users.filter(user => {
@@ -89,13 +151,25 @@ export default function AdminPage() {
           <h2 className="text-xl font-black uppercase tracking-tighter hidden md:block">Gestão de Comando ITR</h2>
         </div>
 
-        <button 
-          onClick={handleClearAdminSession}
-          className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all overflow-hidden relative group"
-        >
-          <Lock size={14} className="group-hover:rotate-12 transition-transform" /> 
-          Encerrar Sessão Admin
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Sync Status Indicator */}
+          <div className={`flex items-center gap-2 px-4 py-2 text-[9px] font-black uppercase tracking-widest border ${
+            syncStatus === 'live' ? 'border-emerald-500/30 text-emerald-500' :
+            syncStatus === 'fallback' ? 'border-amber-500/30 text-amber-500' :
+            'border-red-500/30 text-red-500'
+          }`}>
+            {syncStatus === 'live' ? <Wifi size={12} /> : syncStatus === 'error' ? <WifiOff size={12} /> : <RefreshCw size={12} />}
+            {syncStatus === 'live' ? 'Tempo Real' : syncStatus === 'fallback' ? 'Cache' : 'Offline'}
+          </div>
+
+          <button 
+            onClick={handleClearAdminSession}
+            className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all overflow-hidden relative group"
+          >
+            <Lock size={14} className="group-hover:rotate-12 transition-transform" /> 
+            Encerrar Sessão Admin
+          </button>
+        </div>
       </div>
 
       {/* 1. METRICS CARDS */}
@@ -131,7 +205,11 @@ export default function AdminPage() {
                {f}
              </button>
            ))}
-           <button onClick={fetchUsers} className="p-3 bg-zinc-900 border border-white/5 text-zinc-500 hover:text-white transition-all">
+           <button 
+             onClick={handleForceSync} 
+             title="Forçar Sincronização"
+             className="p-3 bg-zinc-900 border border-white/5 text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all"
+           >
              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
            </button>
         </div>
@@ -151,7 +229,16 @@ export default function AdminPage() {
           </thead>
           <tbody className="divide-y divide-white/5">
             <AnimatePresence mode="popLayout">
-              {filteredUsers.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-20 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <RefreshCw size={24} className="animate-spin text-emerald-500" />
+                      <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Sincronizando com o Banco de Dados...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <motion.tr 
                     layout
@@ -174,7 +261,8 @@ export default function AdminPage() {
                     </td>
                     <td className="p-6">
                       <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '---'}
+                        {user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString('pt-BR') : 
+                         user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '---'}
                       </span>
                     </td>
                     <td className="p-6">
@@ -233,9 +321,13 @@ export default function AdminPage() {
                   <td colSpan={5} className="p-20 text-center">
                     {timeoutError ? (
                       <div className="flex flex-col items-center gap-4">
+                        <WifiOff size={32} className="text-red-500" />
                         <span className="text-red-500 font-bold uppercase tracking-widest text-xs">Conexão Lenta com o Banco de Dados.</span>
-                        <button onClick={fetchUsers} className="px-6 py-2 bg-white/10 border border-white/20 hover:bg-white/20 transition-all text-xs font-black uppercase tracking-[0.2em] rounded-sm">
-                           Recarregar Tabela
+                        <button 
+                          onClick={handleForceSync} 
+                          className="px-8 py-3 bg-emerald-500 text-black border border-emerald-500 hover:bg-emerald-400 transition-all text-xs font-black uppercase tracking-[0.2em] rounded-sm flex items-center gap-2"
+                        >
+                          <Wifi size={14} /> Forçar Sincronização
                         </button>
                       </div>
                     ) : (
@@ -248,7 +340,7 @@ export default function AdminPage() {
           </tbody>
         </table>
         
-        {filteredUsers.length === 0 && !loading && (
+        {filteredUsers.length === 0 && !loading && !timeoutError && users.length > 0 && (
           <div className="p-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs">
             Nenhum usuário encontrado para este filtro.
           </div>

@@ -10,8 +10,7 @@ import { Flashcard } from '@/lib/types';
 import StudyModeModal from '@/components/study/StudyModeModal';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import { useAuth } from '@/context/AuthContext';
-import { logout } from '@/lib/firebase';
-import { User as UserIcon, LogOut, ArrowRight, Sparkles } from 'lucide-react';
+import { User as UserIcon, ArrowRight, Sparkles } from 'lucide-react';
 
 
 function AuthStatusContent() {
@@ -22,44 +21,23 @@ function AuthStatusContent() {
 
   if (user) {
     return (
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center font-black text-blue-500 border border-white/10 overflow-hidden">
-            {profile?.photoURL || user?.photoURL ? (
-              <img src={profile?.photoURL || user?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full">
-                {profile?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || <UserIcon size={18} />}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col">
-            <h4 className="text-white font-black text-lg tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
-              Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário'}!
-            </h4>
-            <span className="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase flex items-center gap-2">
-              Nível: {profile?.role || 'Usuário'} <Sparkles size={10} className="fill-blue-500" />
-            </span>
-          </div>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center font-black text-blue-500 border border-white/10 overflow-hidden">
+          {profile?.photoURL || user?.photoURL ? (
+            <img src={profile?.photoURL || user?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full">
+              {profile?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || <UserIcon size={18} />}
+            </div>
+          )}
         </div>
-
-        <div className="flex flex-col gap-2">
-          <button 
-            onClick={() => router.push('/app/estudar?mode=srs')}
-            className="w-full py-4 bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all flex items-center justify-center gap-2 shadow-xl"
-          >
-            Continuar Estudando <ArrowRight size={14} />
-          </button>
-          
-          <button 
-            onClick={async () => {
-              await logout();
-              router.push('/login');
-            }}
-            className="w-full py-3 bg-red-500/10 text-red-500 font-bold text-[9px] uppercase tracking-widest border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
-          >
-            <LogOut size={12} /> Sair do Sistema
-          </button>
+        <div className="flex flex-col">
+          <h4 className="text-white font-black text-lg tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+            Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário'}!
+          </h4>
+          <span className="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase flex items-center gap-2">
+            Nível: {profile?.role || 'Usuário'} <Sparkles size={10} className="fill-blue-500" />
+          </span>
         </div>
       </div>
     );

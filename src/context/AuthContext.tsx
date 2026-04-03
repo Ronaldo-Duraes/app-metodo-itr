@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, fetchUserProfile, UserStats } from '@/lib/firebase';
+import { doc, onSnapshot, setDoc, serverTimestamp, enableNetwork } from 'firebase/firestore';
+import { auth, db, UserStats, ADMIN_EMAIL } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -28,9 +29,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const autoCreateAttempted = useRef(false);
 
   useEffect(() => {
-    if (!auth) {
+    if (!auth || !db) {
       setLoading(false);
       return;
     }
@@ -41,49 +43,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(firebaseUser);
       // Libera a interface instantaneamente enquanto busca o Firestore
       setLoading(false);
+      autoCreateAttempted.current = false;
       
-      // Limpar subscription anterior do profile se existir
+      // Limpar subscription anterior do profile
       if (unsubscribeProfile) {
         unsubscribeProfile();
         unsubscribeProfile = null;
       }
 
       if (firebaseUser) {
-        const { db } = require('@/lib/firebase'); // Import dinâmico ou garantir que db existe
-        const { doc, onSnapshot } = require('firebase/firestore');
+        // Força enableNetwork antes de tentar ouvir
+        enableNetwork(db).catch(() => {});
         
         try {
           const userRef = doc(db, 'users', firebaseUser.uid);
-          unsubscribeProfile = onSnapshot(userRef, async (docSnap: any) => {
+          
+          unsubscribeProfile = onSnapshot(userRef, async (docSnap) => {
             if (docSnap.exists()) {
-              setProfile(docSnap.data());
-              setLoading(false);
+              setProfile(docSnap.data() as UserStats);
             } else {
-              const { setDoc } = require('firebase/firestore');
-              try {
-                const newProfile: UserStats = {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email || '',
-                  displayName: firebaseUser.displayName || 'Usuário',
-                  name: firebaseUser.displayName || 'Usuário',
-                  role: 'usuario',
-                  createdAt: new Date(),
-                  totalWordsAdded: 0,
-                  masteredCount: 0,
-                  unlockedRewards: []
-                };
-                await setDoc(userRef, newProfile);
-                setProfile(newProfile);
-                setLoading(false);
-              } catch (e) {
-                console.error("Erro ao auto-criar documento:", e);
-                setProfile(null);
-                setLoading(false);
+              // GUARDIÃO: Documento não existe no Firestore, mas user está autenticado
+              // Auto-criar com role 'usuario' para NUNCA tratá-lo como visitante
+              if (!autoCreateAttempted.current) {
+                autoCreateAttempted.current = true;
+                console.log('🛡️ AuthContext: Auto-criando documento para UID:', firebaseUser.uid);
+                
+                try {
+                  const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+                  const newProfile: UserStats = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email || '',
+                    displayName: firebaseUser.displayName || 'Usuário',
+                    name: firebaseUser.displayName || 'Usuário',
+                    role: initialRole,
+                    createdAt: serverTimestamp() as any,
+                    totalWordsAdded: 0,
+                    masteredCount: 0,
+                    unlockedRewards: []
+                  };
+                  await setDoc(userRef, newProfile, { merge: true });
+                  // O onSnapshot vai atualizar o profile automaticamente quando o doc for criado
+                } catch (e) {
+                  console.error("Erro ao auto-criar documento:", e);
+                  // Fallback: setar profile local mesmo sem Firestore para evitar "visitante"
+                  setProfile({
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email || '',
+                    displayName: firebaseUser.displayName || 'Usuário',
+                    name: firebaseUser.displayName || 'Usuário',
+                    role: 'usuario',
+                    totalWordsAdded: 0,
+                    masteredCount: 0,
+                    unlockedRewards: []
+                  });
+                }
               }
             }
-          }, (error: any) => {
+          }, (error) => {
             console.error("Profile sync error:", error);
-            setLoading(false);
+            // Fallback: se onSnapshot falhar, setar profile local
+            if (firebaseUser) {
+              setProfile({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                displayName: firebaseUser.displayName || 'Usuário',
+                name: firebaseUser.displayName || 'Usuário',
+                role: 'usuario',
+                totalWordsAdded: 0,
+                masteredCount: 0,
+                unlockedRewards: []
+              });
+            }
           });
         } catch (error) {
           console.error("Auth context setup error:", error);
@@ -91,7 +121,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } else {
         setProfile(null);
-        setLoading(false);
       }
     });
 
