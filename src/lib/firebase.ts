@@ -360,3 +360,63 @@ export async function updateUserProfile(uid: string, data: Partial<UserStats>) {
     return false;
   }
 }
+
+// ===================================================================
+// PERSISTÊNCIA DE PROGRESSO — Salva/carrega checklists no Firestore
+// ===================================================================
+
+export interface UserProgress {
+  grammarChecklist?: Record<string, boolean>;
+  mirrorTriggers?: Record<string, boolean>;
+  lastSyncedAt?: any;
+}
+
+/**
+ * Salva progresso do usuário no Firestore (merge para não sobrescrever outros campos)
+ */
+export async function saveUserProgress(uid: string, progressKey: keyof UserProgress, data: any): Promise<boolean> {
+  if (!isFirebaseReady || !db || !uid) return false;
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      [`progress.${progressKey}`]: data,
+      [`progress.lastSyncedAt`]: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error(`Erro ao salvar progresso (${progressKey}):`, error);
+    // Fallback: tenta setDoc com merge se o doc não existir
+    try {
+      const userRef = doc(db, 'users', uid);
+      await setDoc(userRef, {
+        progress: {
+          [progressKey]: data,
+          lastSyncedAt: serverTimestamp()
+        }
+      }, { merge: true });
+      return true;
+    } catch (e2) {
+      console.error("Fallback setDoc também falhou:", e2);
+      return false;
+    }
+  }
+}
+
+/**
+ * Carrega progresso do usuário do Firestore
+ */
+export async function loadUserProgress(uid: string): Promise<UserProgress | null> {
+  if (!isFirebaseReady || !db || !uid) return null;
+  try {
+    const userRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return (data.progress as UserProgress) || null;
+    }
+    return null;
+  } catch (error) {
+    console.error("Erro ao carregar progresso:", error);
+    return null;
+  }
+}

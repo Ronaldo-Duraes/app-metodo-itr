@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, Trophy, Target, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useAuth } from '@/context/AuthContext';
+import { saveUserProgress, loadUserProgress } from '@/lib/firebase';
 
 // Estrutura de Dados
 const GRAMMAR_DATA = {
@@ -26,37 +28,71 @@ const STORAGE_KEY = 'itr_grammar_checklist';
 
 export default function GrammarChecklistPage() {
   const { executeProtectedAction } = useRoleGuard();
+  const { user } = useAuth();
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>({});
   const [isLoaded, setIsLoaded] = useState(false);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Carregar do localStorage com Blindagem SSR
+  // Carregar do localStorage + Firestore (Firestore tem prioridade)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    async function loadProgress() {
+      if (typeof window === 'undefined') return;
+      
+      // 1. Carregar localStorage primeiro (instantâneo)
       const stored = localStorage.getItem(STORAGE_KEY);
+      let localData: Record<string, boolean> = {};
       if (stored) {
+        try { localData = JSON.parse(stored); } catch (e) { console.error(e); }
+      }
+
+      // 2. Se logado, buscar Firestore (fonte de verdade)
+      if (user?.uid) {
         try {
-          setCompletedItems(JSON.parse(stored));
+          const progress = await loadUserProgress(user.uid);
+          if (progress?.grammarChecklist && Object.keys(progress.grammarChecklist).length > 0) {
+            // Merge: Firestore tem prioridade, mas preserva itens locais que não existem no Firestore
+            const merged = { ...localData, ...progress.grammarChecklist };
+            setCompletedItems(merged);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            setIsLoaded(true);
+            return;
+          }
         } catch (e) {
-          console.error("Erro ao carregar checklist", e);
+          console.error("Erro ao carregar progresso do Firestore:", e);
         }
       }
+
+      // Fallback: usar dados locais
+      setCompletedItems(localData);
       setIsLoaded(true);
     }
-  }, []);
 
-  // Salvar no localStorage com Blindagem SSR
-  useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(completedItems));
+    loadProgress();
+  }, [user?.uid]);
+
+  // Debounced save: localStorage imediato + Firestore com delay
+  const persistProgress = useCallback((items: Record<string, boolean>) => {
+    // localStorage: salvar imediatamente
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
-  }, [completedItems, isLoaded]);
+
+    // Firestore: salvar com debounce de 2s para evitar excesso de writes
+    if (user?.uid) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        saveUserProgress(user.uid, 'grammarChecklist', items);
+      }, 2000);
+    }
+  }, [user?.uid]);
 
   const toggleItem = (item: string) => {
     executeProtectedAction(() => {
-      setCompletedItems(prev => ({
-        ...prev,
-        [item]: !prev[item]
-      }));
+      setCompletedItems(prev => {
+        const updated = { ...prev, [item]: !prev[item] };
+        persistProgress(updated);
+        return updated;
+      });
     });
   };
 

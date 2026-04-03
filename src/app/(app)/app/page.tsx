@@ -3,72 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getCards, getPriorityCards } from '@/lib/srs';
-import { Play, Zap, CheckCircle2, Shield, Book, BookOpen as BookIcon, Video, Lightbulb, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Play, Zap, CheckCircle2, Shield, Book, BookOpen as BookIcon, Video, Lightbulb, ExternalLink, GraduationCap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Flashcard } from '@/lib/types';
-import StudyModeModal from '@/components/study/StudyModeModal';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import { useAuth } from '@/context/AuthContext';
-import { User as UserIcon, ArrowRight, Sparkles } from 'lucide-react';
 
-
-function AuthStatusContent() {
-  const { user, profile, loading } = useAuth();
-  const router = useRouter();
-
-  if (loading) return <div className="h-20 animate-pulse bg-white/5 rounded-xl" />;
-
-  if (user) {
-    return (
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center font-black text-blue-500 border border-white/10 overflow-hidden">
-          {profile?.photoURL || user?.photoURL ? (
-            <img src={profile?.photoURL || user?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            <div className="flex items-center justify-center w-full h-full">
-              {profile?.displayName?.charAt(0).toUpperCase() || user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || <UserIcon size={18} />}
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <h4 className="text-white font-black text-lg tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
-            Olá, {profile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário'}!
-          </h4>
-          <span className="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase flex items-center gap-2">
-            Nível: {profile?.role || 'Usuário'} <Sparkles size={10} className="fill-blue-500" />
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h4 className="text-white font-black text-lg tracking-tighter uppercase">Bem-vindo!</h4>
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
-          Faça login para liberar seu Arsenal e sincronizar seu progresso.
-        </p>
-      </div>
-      <button 
-        onClick={() => router.push('/login')}
-        className="w-full py-4 bg-[#1e40af] text-white font-black text-[10px] uppercase tracking-widest hover:bg-[#1e3a8a] transition-all flex items-center justify-center gap-2 shadow-xl"
-      >
-        Entrar no Portal <ArrowRight size={14} />
-      </button>
-    </div>
-  );
-}
+const CAKTO_CHECKOUT = 'https://pay.cakto.com.br/36u8zua_785324';
+const CAKTO_MEMBERS = 'https://aluno.cakto.com.br/app/courses/';
 
 export default function HomePage() {
   const router = useRouter();
-  const { executeProtectedAction } = useRoleGuard();
+  const { executeProtectedAction, isAluno } = useRoleGuard();
+  const { user, profile, isVisitor } = useAuth();
   const [allCards, setAllCards] = useState<Flashcard[]>([]);
-  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
  
   useEffect(() => {
-    // Carregar dados de cards
     setAllCards(getCards());
   }, []);
 
@@ -79,6 +29,17 @@ export default function HomePage() {
   const pendingCount = priorityCards.length;
   const activeCount = allCards.filter(c => !c.isMemorized).length;
   const memorizedCount = allCards.filter(c => c.isMemorized).length;
+
+  // Redirect inteligente: aluno → members, outros → checkout
+  const handleCourseRedirect = () => {
+    if (isAluno) {
+      window.open(CAKTO_MEMBERS, '_blank');
+    } else if (isVisitor) {
+      router.push('/login');
+    } else {
+      window.open(CAKTO_CHECKOUT, '_blank');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col items-center py-8 md:pt-0 md:pb-16 font-outfit relative overflow-hidden">
@@ -170,25 +131,15 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* RIGHT COLUMN: ARSENAL ITR (30%) */}
+        {/* RIGHT COLUMN: ARSENAL ITR (30%) — SEM CARD "OLÁ" */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           className="lg:col-span-4 flex flex-col gap-6"
         >
-          {/* WELCOME CARD (ÁREA PRETA / PREMIUM) */}
-          <div className="bg-[#0a0a0a] border border-white/5 p-8 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.6)] relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="relative z-10">
-              <AuthStatusContent />
-            </div>
-          </div>
-
-          {/* ARSENAL BUTTON CARD */}
+          {/* ARSENAL BUTTON CARD — AGORA NO TOPO */}
           <div className="relative group overflow-hidden">
-            {/* Animated Golden Border Effect */}
             <div className="absolute inset-0 bg-yellow-500 opacity-10 blur-xl group-hover:opacity-30 transition-opacity duration-700 -z-10" />
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-shimmer" />
             
@@ -228,7 +179,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* SHIMMERING CALL TO ACTION BUTTON */}
+              {/* EXPLORAR ARSENAL */}
               <button 
                 onClick={() => executeProtectedAction(() => router.push('/app/pac-actions'))}
                 className="relative w-full mt-8 py-4 bg-slate-900 border border-yellow-500/40 overflow-hidden group/btn hover:border-yellow-500 transition-colors"
@@ -241,7 +192,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* SESSÃO DE APOIO (OPCIONAL/DECORATIVA) */}
+          {/* ACESSAR CURSO - CARD PREMIUM */}
+          <div 
+            onClick={handleCourseRedirect}
+            className="bg-[#0a0a0a] border border-emerald-500/20 p-8 flex items-center gap-6 shadow-[0_0_50px_rgba(0,0,0,0.4)] cursor-pointer hover:border-emerald-500/50 transition-all group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative z-10 flex items-center gap-5 w-full">
+              <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <GraduationCap size={28} className="text-emerald-500" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-black text-white uppercase tracking-tight mb-1">
+                  {isAluno ? 'Acessar Curso' : 'Conhecer o Método ITR'}
+                </h4>
+                <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase">
+                  {isAluno ? 'Cakto Members' : 'Desbloqueie seu acesso'}
+                </span>
+              </div>
+              <ExternalLink size={16} className="text-emerald-500/30 group-hover:text-emerald-500 transition-colors shrink-0" />
+            </div>
+          </div>
+
+          {/* SESSÃO DE APOIO */}
           <div className="p-6 border border-white/5 bg-white/[0.01]">
              <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest block mb-4 italic">Protocolo de Elite ITR v2.2</span>
              <p className="text-[9px] text-slate-600 font-bold uppercase leading-relaxed tracking-wider">

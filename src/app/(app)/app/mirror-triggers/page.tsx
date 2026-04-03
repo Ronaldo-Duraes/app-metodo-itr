@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, Zap, Target, Maximize2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useAuth } from '@/context/AuthContext';
+import { saveUserProgress, loadUserProgress } from '@/lib/firebase';
 
 // Estrutura de Dados dos 50 Gatilhos
 const MIRROR_CATEGORIES = [
@@ -43,7 +45,7 @@ const MIRROR_CATEGORIES = [
     items: [
       'Fale 3 frases com "because".',
       'Use "have to" em 3 frases.',
-      'Use "can" e "can’t" para descrever o que você consegue fazer.',
+      'Use "can" e "can\'t" para descrever o que você consegue fazer.',
       'Fale 3 frases usando "there is / there are".',
       'Use "I would like to..." em 3 contextos.'
     ]
@@ -114,30 +116,69 @@ const STORAGE_KEY = 'itr_mirror_triggers';
 
 export default function MirrorTriggersPage() {
   const { executeProtectedAction } = useRoleGuard();
+  const { user } = useAuth();
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Carregar do localStorage + Firestore (Firestore tem prioridade)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    async function loadProgress() {
+      if (typeof window === 'undefined') return;
+
+      // 1. localStorage instantâneo
       const stored = localStorage.getItem(STORAGE_KEY);
+      let localData: Record<string, boolean> = {};
       if (stored) {
-        try { setCompleted(JSON.parse(stored)); } catch (e) { console.error(e); }
+        try { localData = JSON.parse(stored); } catch (e) { console.error(e); }
       }
+
+      // 2. Firestore (fonte de verdade)
+      if (user?.uid) {
+        try {
+          const progress = await loadUserProgress(user.uid);
+          if (progress?.mirrorTriggers && Object.keys(progress.mirrorTriggers).length > 0) {
+            const merged = { ...localData, ...progress.mirrorTriggers };
+            setCompleted(merged);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            setIsLoaded(true);
+            return;
+          }
+        } catch (e) {
+          console.error("Erro ao carregar progresso do Firestore:", e);
+        }
+      }
+
+      setCompleted(localData);
       setIsLoaded(true);
     }
-  }, []);
 
-  useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
+    loadProgress();
+  }, [user?.uid]);
+
+  // Debounced save: localStorage imediato + Firestore com delay
+  const persistProgress = useCallback((items: Record<string, boolean>) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
-  }, [completed, isLoaded]);
+
+    if (user?.uid) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        saveUserProgress(user.uid, 'mirrorTriggers', items);
+      }, 2000);
+    }
+  }, [user?.uid]);
 
   const toggleComplete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     executeProtectedAction(() => {
-      setCompleted(prev => ({ ...prev, [id]: !prev[id] }));
+      setCompleted(prev => {
+        const updated = { ...prev, [id]: !prev[id] };
+        persistProgress(updated);
+        return updated;
+      });
     });
   };
 

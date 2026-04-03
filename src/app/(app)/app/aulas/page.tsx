@@ -4,8 +4,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Play, Lock, GraduationCap, ArrowRight, ExternalLink, PlayCircle, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 
-const CAKTO_LINK = 'https://pay.cakto.com.br/36u8zua_785324';
+const CAKTO_CHECKOUT = 'https://pay.cakto.com.br/36u8zua_785324';
+const CAKTO_MEMBERS = 'https://aluno.cakto.com.br/app/courses/';
 
 const MODULES = [
   { id: 1, title: 'Módulo 1: Fundamentos do Método ITR', description: 'A base psicológica e técnica para o aprendizado acelerado.', lessons: 8, status: 'current' },
@@ -16,8 +18,15 @@ const MODULES = [
 ];
 
 export default function AulasPage() {
+  const { profile } = useAuth();
+  const isAluno = profile?.role === 'aluno' || profile?.role === 'admin';
+
   const handleRedirect = () => {
-    window.open(CAKTO_LINK, '_blank');
+    if (isAluno) {
+      window.open(CAKTO_MEMBERS, '_blank');
+    } else {
+      window.open(CAKTO_CHECKOUT, '_blank');
+    }
   };
 
   return (
