@@ -6,7 +6,8 @@ import {
   setDoc, 
   updateDoc, 
   collection, 
-  getDocs, 
+  getDocs,
+  addDoc, 
   query, 
   orderBy, 
   onSnapshot,
@@ -21,6 +22,7 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
 
@@ -95,27 +97,91 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
     const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
 
     // PASSO 2: Criar documento no Firestore IMEDIATAMENTE
+    // 🛡️ TRAVA DE SEGURANÇA: Nunca sobrescrever role existente!
     try {
       const userRef = doc(db, 'users', user.uid);
-      const payload = {
-        uid: user.uid,
-        email: user.email,
-        displayName: name,
-        name: name,
-        photoURL: null,
-        role: initialRole,
-        createdAt: serverTimestamp(),
-        totalWordsAdded: 0,
-        masteredCount: 0,
-        unlockedRewards: []
-      };
+      
+      // Verifica se o doc já existe (race condition / re-signup)
+      let existingDoc;
+      try {
+        existingDoc = await Promise.race([
+          getDoc(userRef),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_CHECK')), 3000))
+        ]);
+      } catch {
+        existingDoc = null; // Se timeout, trata como novo
+      }
 
-      // Timeout blindado de 5s
-      await Promise.race([
-        setDoc(userRef, payload, { merge: true }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT_BANCO")), 5000))
-      ]);
+      if (existingDoc && existingDoc.exists() && existingDoc.data()?.role) {
+        // 🛡️ Doc já existe com role definida pelo Admin — NÃO sobrescrever!
+        console.log('🛡️ Role existente preservada:', existingDoc.data()?.role);
+        await Promise.race([
+          setDoc(userRef, {
+            displayName: name,
+            name: name,
+            email: user.email,
+            uid: user.uid,
+            // role OMITIDO PROPOSITALMENTE — preserva o que o Admin definiu
+          }, { merge: true }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_BANCO')), 5000))
+        ]);
+      } else {
+        // Doc novo — pode definir role inicial
+        const payload = {
+          uid: user.uid,
+          email: user.email,
+          displayName: name,
+          name: name,
+          photoURL: null,
+          role: initialRole,
+          createdAt: serverTimestamp(),
+          totalWordsAdded: 0,
+          masteredCount: 0,
+          unlockedRewards: []
+        };
+        await Promise.race([
+          setDoc(userRef, payload, { merge: true }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_BANCO')), 5000))
+        ]);
+      }
       console.log('PASSO 2: FIRESTORE DOC OK');
+
+      // PASSO 2.5: Disparo de e-mail de boas-vindas via coleção 'mail' (Trigger Email Extension)
+      try {
+        await addDoc(collection(db, 'mail'), {
+          to: [user.email],
+          message: {
+            subject: '🏆 Bem-vindo ao Método ITR — Seu acesso foi ativado!',
+            html: `
+              <div style="background-color:#0a0a0a;padding:40px 20px;font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <div style="border:1px solid #d4af37;padding:40px;text-align:center;">
+                  <div style="border-bottom:2px solid #d4af37;padding-bottom:24px;margin-bottom:24px;">
+                    <h1 style="color:#d4af37;font-size:28px;font-weight:900;letter-spacing:2px;margin:0;text-transform:uppercase;">Método ITR</h1>
+                    <p style="color:#888;font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-top:8px;">Protocolo de Elite Ativado</p>
+                  </div>
+                  <h2 style="color:#ffffff;font-size:22px;font-weight:800;margin-bottom:16px;">Bem-vindo(a), ${name}!</h2>
+                  <p style="color:#aaa;font-size:14px;line-height:1.8;margin-bottom:24px;">
+                    Sua conta foi criada com sucesso. Agora você tem acesso ao sistema de fluência mais avançado do Brasil.
+                  </p>
+                  <div style="background:#111;border:1px solid #222;padding:20px;margin-bottom:24px;">
+                    <p style="color:#d4af37;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 8px 0;font-weight:700;">Seus dados de acesso</p>
+                    <p style="color:#fff;font-size:14px;margin:0;">📧 ${user.email}</p>
+                  </div>
+                  <a href="https://app-metodo-itr.vercel.app/login" style="display:inline-block;background:#d4af37;color:#0a0a0a;padding:14px 40px;font-size:12px;font-weight:900;letter-spacing:3px;text-transform:uppercase;text-decoration:none;">
+                    Acessar o Portal
+                  </a>
+                  <div style="border-top:1px solid #222;margin-top:32px;padding-top:16px;">
+                    <p style="color:#444;font-size:10px;letter-spacing:2px;text-transform:uppercase;">© Método ITR — Todos os direitos reservados</p>
+                  </div>
+                </div>
+              </div>
+            `
+          }
+        });
+        console.log('PASSO 2.5: EMAIL DE BOAS-VINDAS ENFILEIRADO');
+      } catch (mailError: any) {
+        console.warn('⚠️ Falha ao enfileirar e-mail de boas-vindas:', mailError.message);
+      }
     } catch (fsError: any) {
       // Log, mas NÃO impede o fluxo — o AuthContext vai auto-criar se necessário
       console.warn("⚠️ Firestore setDoc no SignUp falhou:", fsError.message);
@@ -125,12 +191,7 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
     return user;
   } catch (error: any) {
     console.error("Erro ao registrar:", error);
-    // Alert específico para email duplicado
-    if (error.code === 'auth/email-already-in-use') {
-      if (typeof window !== 'undefined') {
-        window.alert('Este e-mail já está cadastrado! Tente fazer login.');
-      }
-    }
+    // Sem window.alert — o caller (login/page.tsx) trata via setError UI
     throw error;
   }
 }
@@ -146,9 +207,29 @@ export async function loginWithEmail(email: string, pass: string) {
   }
 }
 
+/**
+ * Envia e-mail de recuperação de senha (Firebase Auth)
+ * Seta idioma para PT antes de enviar para que a página de reset seja em português.
+ */
+export async function resetPassword(email: string): Promise<boolean> {
+  if (!isFirebaseReady || !auth) return false;
+  try {
+    auth.languageCode = 'pt';
+    await sendPasswordResetEmail(auth, email);
+    console.log('✅ E-mail de recuperação enviado para:', email);
+    return true;
+  } catch (error: any) {
+    console.error('❌ Erro ao enviar e-mail de recuperação:', error);
+    throw error;
+  }
+}
+
 export async function signInWithGoogle() {
   if (!isFirebaseReady || !auth || !googleProvider) return null;
   try {
+    // 🛡️ Limpa qualquer sessão anterior para evitar "TARGET_ID_ALREADY_EXISTS"
+    await auth.signOut().catch(() => {});
+    
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     
@@ -332,6 +413,25 @@ export async function updateUserRole(uid: string, newRole: UserStats['role']) {
     return true;
   } catch (error) {
     console.error("Erro ao atualizar role:", error);
+    return false;
+  }
+}
+
+/**
+ * ADMIN: Exclui o documento do usuário do Firestore.
+ * Nota: Não remove do Firebase Auth (requer Admin SDK no servidor).
+ * O usuário será re-criado no Firestore se tentar logar novamente.
+ */
+export async function deleteUserDoc(uid: string): Promise<boolean> {
+  if (!isFirebaseReady || !db || !uid) return false;
+  try {
+    const { deleteDoc: deleteDocument } = await import('firebase/firestore');
+    const userRef = doc(db, 'users', uid);
+    await deleteDocument(userRef);
+    console.log('🗑️ Documento do usuário removido:', uid);
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar documento:", error);
     return false;
   }
 }

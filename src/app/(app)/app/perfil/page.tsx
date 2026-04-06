@@ -68,6 +68,21 @@ function ProfileContent() {
     syncData();
   }, [user?.uid, authProfile?.displayName, setThemeByName]);
 
+  // 🔄 REATIVO: Sincroniza masteredCount/unlockedRewards em tempo real via onSnapshot do AuthContext
+  useEffect(() => {
+    if (!authProfile) return;
+    
+    // Se o Firestore (via onSnapshot) tem dados atualizados, use-os
+    if (authProfile.masteredCount !== undefined) {
+      setMasteredCount(authProfile.masteredCount);
+      const pInfo = getUserPatente(authProfile.masteredCount);
+      setThemeByName(pInfo.current.name);
+    }
+    if (authProfile.unlockedRewards) {
+      setUnlockedRewards(authProfile.unlockedRewards);
+    }
+  }, [authProfile?.masteredCount, authProfile?.unlockedRewards, setThemeByName]);
+
   // --- LÓGICA DE FOCO NA JORNADA ---
   useEffect(() => {
     if (highlight && journeyRef.current) {
@@ -78,20 +93,30 @@ function ProfileContent() {
   }, [highlight]);
 
   const handleSave = async () => {
-    if (!user?.uid) return;
+    if (!user?.uid || !newName.trim()) return;
+    
+    // Oculta imediatamente os botões para melhor UX (Optimistic UI)
+    setIsEditing(false);
     
     try {
-       const success = await updateUserProfile(user.uid, { displayName: newName, name: newName } as any);
+       // Atualiza cache local imediatamente para o Header/Sidebar reagirem
+       const updated = { ...profile, name: newName.trim(), displayName: newName.trim() };
+       setProfile(updated);
+       
+       const success = await updateUserProfile(user.uid, { displayName: newName.trim(), name: newName.trim() } as any);
        if (success) {
-          const updated = { ...profile, name: newName, displayName: newName };
           saveUserProfile(updated);
-          setProfile(updated);
-          setIsEditing(false);
           showAlert('Sucesso', 'Perfil atualizado com sucesso no comando ITR!');
        } else {
+          // Reverte o estado em caso de falha do Firebase
+          setProfile(profile);
+          setNewName(profile.displayName || profile.name);
           showAlert('Erro', 'Não foi possível salvar a alteração no servidor.');
        }
     } catch (err) {
+       // Reverte estado local
+       setProfile(profile);
+       setNewName(profile.displayName || profile.name);
        showAlert('Erro', 'Falha ao conectar com o banco de dados.');
     }
   };
@@ -108,23 +133,7 @@ function ProfileContent() {
 
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
-      
-      {/* GUEST WELCOME STATE */}
-      {isVisitor && (
-        <div className="mb-12 bg-[#0a0a0a] border border-white/5 p-12 text-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-white">Bem-Vindo ao Perfil</h2>
-            <p className="text-slate-400 font-bold mb-8 max-w-xl mx-auto text-xs tracking-widest uppercase">
-               Você está navegando como visitante. Para salvar seu progresso, destrinchar conquistas e obter seus certificados ITR, acesse o portal central.
-            </p>
-            <button 
-               onClick={() => router.push('/login')}
-               className="px-8 py-4 bg-emerald-500 text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-400 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.2)]"
-            >
-               Entrar no Portal
-            </button>
-        </div>
-      )}
+
 
       {/* 2. SEÇÃO DE PERFIL */}
       <motion.div 

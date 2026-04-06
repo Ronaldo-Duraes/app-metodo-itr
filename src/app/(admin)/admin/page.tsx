@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,9 +15,10 @@ import {
   ArrowLeft,
   Lock,
   Wifi,
-  WifiOff
+  WifiOff,
+  Trash2
 } from 'lucide-react';
-import { getAllUsers, updateUserRole, UserStats, subscribeToUsers, forceFirestoreOnline } from '@/lib/firebase';
+import { getAllUsers, updateUserRole, deleteUserDoc, UserStats, subscribeToUsers, forceFirestoreOnline } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
@@ -110,10 +111,26 @@ export default function AdminPage() {
   const handleRoleChange = async (uid: string, newRole: UserStats['role']) => {
     const success = await updateUserRole(uid, newRole);
     if (success && syncStatus !== 'live') {
-      // Se não está em modo live, atualiza local
       setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole } : u));
     }
-    // Se estiver em modo live, o onSnapshot entrega a atualização automaticamente
+  };
+
+  const handleDeleteUser = async (uid: string, displayName: string) => {
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir "${displayName}"? Isso apagará os dados de acesso e progresso do aluno no Firestore.`
+    );
+    if (!confirmed) return;
+    
+    const success = await deleteUserDoc(uid);
+    if (success) {
+      // Se não está em modo live, remove local
+      if (syncStatus !== 'live') {
+        setUsers(prev => prev.filter(u => u.uid !== uid));
+      }
+      // Se em modo live, o onSnapshot remove automaticamente
+    } else {
+      window.alert('Erro ao excluir o usuário. Tente novamente.');
+    }
   };
 
   const filteredUsers = users.filter(user => {
@@ -312,7 +329,16 @@ export default function AdminPage() {
                              </button>
                            </div>
                          )}
-                      </div>
+                      
+                          {/* BOTÃO EXCLUIR */}
+                          <button 
+                            onClick={() => handleDeleteUser(user.uid!, user.displayName || user.email || 'Sem nome')}
+                            className="p-2 border border-red-900/30 text-red-900/50 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all ml-2"
+                            title="Excluir Conta"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+</div>
                     </td>
                   </motion.tr>
                 ))

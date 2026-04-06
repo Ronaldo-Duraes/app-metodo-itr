@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signInWithGoogle, loginWithEmail, signUpWithEmail } from '@/lib/firebase';
+import { signInWithGoogle, loginWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Zap, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Zap, Loader2, KeyRound, CheckCircle2, X } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +18,39 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState('');
+
+  const handleResetPassword = async () => {
+    if (!resetEmail || resetLoading) return;
+    setResetError('');
+    setResetLoading(true);
+    try {
+      await resetPassword(resetEmail);
+      setResetSuccess(true);
+    } catch (err: any) {
+      const code = err.code || '';
+      if (code === 'auth/user-not-found') setResetError('Nenhuma conta encontrada com este e-mail.');
+      else if (code === 'auth/invalid-email') setResetError('E-mail inválido. Verifique o formato.');
+      else if (code === 'auth/too-many-requests') setResetError('Muitas tentativas. Aguarde alguns minutos.');
+      else setResetError('Falha ao enviar. Verifique o e-mail e tente novamente.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const openForgotModal = () => {
+    setResetEmail(email); // Pre-fill with current email
+    setResetSuccess(false);
+    setResetError('');
+    setResetLoading(false);
+    setShowForgotModal(true);
+  };
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -78,7 +111,6 @@ export default function LoginPage() {
       if (errorCode === 'auth/empty-fields') setError('Preencha todos os campos obrigatórios.');
       else if (errorCode === 'auth/weak-password') setError('A senha deve ter no mínimo 6 caracteres.');
       else if (errorCode === 'auth/email-already-in-use') {
-        if (typeof window !== 'undefined') window.alert('E-mail já cadastrado!');
         setError('Este e-mail já está em uso. Tente fazer login ou use outro e-mail.');
       }
       else if (errorCode === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
@@ -252,6 +284,18 @@ export default function LoginPage() {
                     className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                   />
                 </div>
+                {/* ESQUECI MINHA SENHA — visível apenas no modo login */}
+                {!isRegistering && (
+                  <div className="text-right pt-1">
+                    <button 
+                      type="button"
+                      onClick={openForgotModal}
+                      className="text-[9px] font-black text-amber-500/70 uppercase tracking-widest hover:text-amber-400 transition-colors"
+                    >
+                      Esqueceu sua senha?
+                    </button>
+                  </div>
+                )}
               </div>
 
               {isRegistering && (
@@ -302,6 +346,137 @@ export default function LoginPage() {
           </footer>
         </motion.div>
       </div>
+
+      {/* ============ FORGOT PASSWORD MODAL ============ */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6"
+            onClick={() => setShowForgotModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0a0a0a] border border-amber-500/20 max-w-md w-full shadow-[0_0_100px_rgba(212,175,55,0.1)] relative overflow-hidden"
+            >
+              {/* Gold shimmer top */}
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+              
+              {/* Close button */}
+              <button 
+                onClick={() => setShowForgotModal(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-600 hover:text-white transition-colors z-10"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="p-10 md:p-12">
+                {!resetSuccess ? (
+                  <>
+                    {/* HEADER */}
+                    <div className="flex flex-col items-center mb-10">
+                      <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
+                        <KeyRound size={28} className="text-amber-500" />
+                      </div>
+                      <h2 className="text-2xl font-black uppercase tracking-tighter text-white mb-2">Recuperar Senha</h2>
+                      <p className="text-[9px] font-black text-amber-500/60 tracking-[0.4em] uppercase">Protocolo de Resgate</p>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-xs text-zinc-400 font-bold text-center mb-8 leading-relaxed">
+                      Digite seu e-mail cadastrado. Enviaremos um link seguro para redefinir sua chave de acesso.
+                    </p>
+
+                    {/* Error */}
+                    {resetError && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 bg-red-500/10 text-red-400 p-4 border border-red-500/20 rounded-xl mb-6 text-[10px] font-black uppercase tracking-widest"
+                      >
+                        <AlertCircle size={14} />
+                        {resetError}
+                      </motion.div>
+                    )}
+
+                    {/* Email Input */}
+                    <div className="space-y-1 mb-6">
+                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">E-mail Cadastrado</label>
+                      <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-amber-500 transition-colors" size={16} />
+                        <input 
+                          type="email" 
+                          value={resetEmail} 
+                          onChange={(e) => setResetEmail(e.target.value)} 
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleResetPassword(); }}
+                          placeholder="seu@email.com"
+                          autoFocus
+                          className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-amber-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button 
+                      onClick={handleResetPassword}
+                      disabled={resetLoading || !resetEmail}
+                      className={`relative w-full py-4 font-black text-[11px] uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-3 overflow-hidden group ${
+                        resetLoading || !resetEmail
+                          ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                          : 'bg-amber-500 text-black hover:bg-amber-400 shadow-[0_0_30px_rgba(212,175,55,0.3)]'
+                      }`}
+                    >
+                      {!resetLoading && resetEmail && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
+                      )}
+                      <KeyRound size={14} />
+                      {resetLoading ? 'Enviando...' : 'Enviar Link de Recuperação'}
+                    </button>
+
+                    {/* Cancel */}
+                    <button 
+                      onClick={() => setShowForgotModal(false)}
+                      className="w-full mt-4 py-3 text-zinc-600 font-black text-[9px] uppercase tracking-widest hover:text-white transition-colors"
+                    >
+                      Voltar ao Login
+                    </button>
+                  </>
+                ) : (
+                  /* SUCCESS STATE */
+                  <div className="flex flex-col items-center text-center py-4">
+                    <div className="w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center mb-8">
+                      <CheckCircle2 size={36} className="text-emerald-500" />
+                    </div>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter text-white mb-3">E-mail Enviado!</h2>
+                    <p className="text-[9px] font-black text-emerald-500/60 tracking-[0.4em] uppercase mb-6">Protocolo Executado</p>
+                    <p className="text-xs text-zinc-400 font-bold leading-relaxed mb-4">
+                      Um link de recuperação foi enviado para:
+                    </p>
+                    <div className="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-lg mb-8">
+                      <span className="text-sm font-black text-amber-500">{resetEmail}</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-8">
+                      Verifique sua caixa de entrada e também a pasta de spam.
+                    </p>
+                    <button 
+                      onClick={() => setShowForgotModal(false)}
+                      className="w-full py-4 bg-emerald-500 text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-emerald-400 transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                    >
+                      Voltar ao Login
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         @keyframes shimmer {

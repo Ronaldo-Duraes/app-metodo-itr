@@ -69,20 +69,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log('🛡️ AuthContext: Auto-criando documento para UID:', firebaseUser.uid);
                 
                 try {
-                  const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
-                  const newProfile: UserStats = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email || '',
-                    displayName: firebaseUser.displayName || 'Usuário',
-                    name: firebaseUser.displayName || 'Usuário',
-                    role: initialRole,
-                    createdAt: serverTimestamp() as any,
-                    totalWordsAdded: 0,
-                    masteredCount: 0,
-                    unlockedRewards: []
-                  };
-                  await setDoc(userRef, newProfile, { merge: true });
-                  // O onSnapshot vai atualizar o profile automaticamente quando o doc for criado
+                  // 🛡️ TRAVA DUPLA: Verificar novamente com getDoc antes de escrever
+                  // (protege contra race conditions onde o doc foi criado entre o onSnapshot e agora)
+                  const { getDoc: getDocCheck } = await import('firebase/firestore');
+                  const freshSnap = await getDocCheck(userRef);
+                  
+                  if (freshSnap.exists() && freshSnap.data()?.role) {
+                    // Doc foi criado por outro fluxo — usar os dados existentes
+                    console.log('🛡️ AuthContext: Doc já existe com role', freshSnap.data()?.role, '— preservando');
+                    setProfile(freshSnap.data() as UserStats);
+                  } else {
+                    // Doc genuinamente novo — pode criar com role padrão
+                    const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+                    const newProfile: UserStats = {
+                      uid: firebaseUser.uid,
+                      email: firebaseUser.email || '',
+                      displayName: firebaseUser.displayName || 'Usuário',
+                      name: firebaseUser.displayName || 'Usuário',
+                      role: initialRole,
+                      createdAt: serverTimestamp() as any,
+                      totalWordsAdded: 0,
+                      masteredCount: 0,
+                      unlockedRewards: []
+                    };
+                    await setDoc(userRef, newProfile, { merge: true });
+                    // O onSnapshot vai atualizar o profile automaticamente quando o doc for criado
+                  }
                 } catch (e) {
                   console.error("Erro ao auto-criar documento:", e);
                   // Fallback: setar profile local mesmo sem Firestore para evitar "visitante"

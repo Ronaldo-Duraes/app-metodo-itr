@@ -4,10 +4,13 @@ import React, { useState, useEffect, useLayoutEffect } from 'react';
 import Sidebar from "@/components/sidebar/Sidebar";
 import Header from "@/components/layout/Header";
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound } from '@/lib/srs';
+import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound, getDictionaryCount } from '@/lib/srs';
 import MasteryModal from './MasteryModal';
 import { initDebugMode } from '@/lib/debug';
 import { startTour } from '@/lib/tour';
+import { useAuth } from '@/context/AuthContext';
+import { updateUserProfile } from '@/lib/firebase';
+import { arrayUnion } from 'firebase/firestore';
 
 const WelcomeScreen = () => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
@@ -61,6 +64,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   }, [showSplash, isInitialized]);
 
   const [activeMilestone, setActiveMilestone] = useState<number | null>(null);
+  const { user, profile: authProfile } = useAuth();
 
   // --- MONITORAMENTO DE MAESTRIA (EPIC) ---
   useEffect(() => {
@@ -78,6 +82,16 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         } else {
           playBlipSound();
         }
+
+        // 🛡️ PERSISTÊNCIA: Sincronizar masteredCount + milestone no Firestore
+        if (user?.uid) {
+          const dictCount = getDictionaryCount();
+          updateUserProfile(user.uid, {
+            masteredCount: dictCount,
+            totalWordsAdded: count,
+            unlockedRewards: arrayUnion(`milestone_${reached.value}`) as any,
+          } as any).catch(err => console.warn('⚠️ Falha ao persistir milestone:', err));
+        }
       }
     };
 
@@ -85,7 +99,22 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
     checkMastery();
     const interval = setInterval(checkMastery, 2000);
     return () => clearInterval(interval);
-  }, [showSplash, isInitialized]);
+  }, [showSplash, isInitialized, user?.uid]);
+
+  // Callback when user claims the mastery modal
+  const handleClaimMastery = () => {
+    const claimedValue = activeMilestone;
+    setActiveMilestone(null);
+    
+    // Sincronização final no Firestore ao reivindicar
+    if (user?.uid && claimedValue) {
+      const dictCount = getDictionaryCount();
+      updateUserProfile(user.uid, {
+        masteredCount: dictCount,
+        totalWordsAdded: getUserProfile().totalWordsAdded || 0,
+      } as any).catch(() => {});
+    }
+  };
 
   // --- LÓGICA ANTI-FLASH: RETORNO ABSOLUTO ---
   // Se a splash deve aparecer, NÃO RENDERIZA NADA (Sidebar, Main, Conteúdo) além dela.
@@ -114,7 +143,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         {activeMilestone && (
           <MasteryModal 
             milestone={activeMilestone} 
-            onClose={() => setActiveMilestone(null)} 
+            onClose={handleClaimMastery} 
           />
         )}
       </AnimatePresence>

@@ -79,6 +79,31 @@ const Sidebar = () => {
               );
             }
 
+            // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
+            if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
+              return (
+                <div 
+                  key={item.path}
+                  id={item.id}
+                  onClick={() => window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank')}
+                  className={`
+                    group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer
+                    ${isActive 
+                      ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
+                      : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
+                  `}
+                >
+                  <Icon 
+                    size={20} 
+                    className={`transition-colors duration-200 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  <span className="font-black text-xs tracking-[0.1em] hidden md:block uppercase">{item.label}</span>
+                  {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
+                </div>
+              );
+            }
+
             return (
               <Link key={item.path} href={item.path}>
                 <div id={item.id} className={`

@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
 const CAKTO_CHECKOUT = 'https://pay.cakto.com.br/36u8zua_785324';
-const CAKTO_MEMBERS = 'https://aluno.cakto.com.br/app/courses/';
+const CAKTO_MEMBERS = 'https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac';
 
 const MODULES = [
   { id: 1, title: 'Módulo 1: Fundamentos do Método ITR', description: 'A base psicológica e técnica para o aprendizado acelerado.', lessons: 8, status: 'current' },
