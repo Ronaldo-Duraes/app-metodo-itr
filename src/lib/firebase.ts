@@ -301,6 +301,18 @@ export async function signInWithGoogle() {
 export async function logout() {
   if (!auth) return;
   await signOut(auth);
+  // 🛡️ Limpa dados locais para evitar "sujeira" entre contas
+  if (typeof window !== 'undefined') {
+    const keysToRemove = [
+      'itr_app_data',
+      'itr_mirror_triggers',
+      'itr_grammar_checklist',
+      'itr-tour-completed',
+      'welcomeShown'
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    sessionStorage.removeItem('welcomeShown');
+  }
 }
 
 export interface UserStats {
@@ -517,6 +529,65 @@ export async function loadUserProgress(uid: string): Promise<UserProgress | null
     return null;
   } catch (error) {
     console.error("Erro ao carregar progresso:", error);
+    return null;
+  }
+}
+
+// ===================================================================
+// SINCRONIZAÇÃO TOTAL — AppData (Vocabulário, SRS, Decks) na Nuvem
+// ===================================================================
+
+/**
+ * Salva TODO o AppData (dicionário, decks, profile local, sprints) no Firestore.
+ * Armazenado em: users/{uid}/appData/main
+ * Usa merge para não sobrescrever campos que possam existir.
+ */
+export async function saveAppDataToCloud(uid: string, data: any): Promise<boolean> {
+  if (!isFirebaseReady || !db || !uid) return false;
+  try {
+    const docRef = doc(db, 'users', uid, 'appData', 'main');
+    // Remove campos undefined/function que o Firestore não aceita
+    const cleanData = JSON.parse(JSON.stringify(data));
+    await setDoc(docRef, { 
+      ...cleanData, 
+      _lastSyncedAt: serverTimestamp() 
+    });
+    console.log('☁️ AppData sincronizado com a nuvem');
+    return true;
+  } catch (error) {
+    console.error("❌ Erro ao salvar AppData na nuvem:", error);
+    return false;
+  }
+}
+
+/**
+ * Carrega o AppData completo do Firestore para restaurar no localStorage.
+ * Retorna null se não houver dados na nuvem (primeiro acesso).
+ */
+export async function loadAppDataFromCloud(uid: string): Promise<any | null> {
+  if (!isFirebaseReady || !db || !uid) return null;
+  try {
+    await enableNetwork(db).catch(() => {});
+    const docRef = doc(db, 'users', uid, 'appData', 'main');
+    const snap = await Promise.race([
+      getDoc(docRef),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_CLOUD_LOAD')), 8000))
+    ]);
+    if (snap.exists()) {
+      const data = snap.data();
+      // Remove metadados do Firestore antes de retornar
+      delete data._lastSyncedAt;
+      console.log('☁️ AppData restaurado da nuvem:', {
+        dictionary: data.dictionary?.length || 0,
+        decks: data.decks?.length || 0,
+        totalWords: data.profile?.totalWordsAdded || 0
+      });
+      return data;
+    }
+    console.log('☁️ Nenhum AppData encontrado na nuvem (primeiro acesso)');
+    return null;
+  } catch (error: any) {
+    console.warn("⚠️ Falha ao carregar AppData da nuvem:", error.message);
     return null;
   }
 }

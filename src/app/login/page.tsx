@@ -111,7 +111,17 @@ export default function LoginPage() {
       if (errorCode === 'auth/empty-fields') setError('Preencha todos os campos obrigatórios.');
       else if (errorCode === 'auth/weak-password') setError('A senha deve ter no mínimo 6 caracteres.');
       else if (errorCode === 'auth/email-already-in-use') {
-        setError('Este e-mail já está em uso. Tente fazer login ou use outro e-mail.');
+        // 🛡️ FALLBACK: E-mail já existe no Auth — tenta login automático
+        try {
+          setLoadingMessage('E-mail já cadastrado. Fazendo login automático...');
+          await loginWithEmail(email, password);
+          clearTimeout(safetyTimeout);
+          setLoadingMessage('Autenticado! Redirecionando...');
+          window.location.href = '/app';
+          return;
+        } catch (loginErr: any) {
+          setError('Este e-mail já está cadastrado. Verifique sua senha ou use "Esqueci minha senha".');
+        }
       }
       else if (errorCode === 'auth/emails-dont-match') setError('Os e-mails informados não conferem.');
       else if (errorCode === 'auth/passwords-dont-match') setError('As chaves não conferem.');

@@ -2,6 +2,25 @@ import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry 
 
 const STORAGE_KEY = 'itr_app_data';
 
+// ===================================================================
+// CLOUD SYNC BRIDGE — Conecta localStorage ao Firestore
+// ===================================================================
+let _cloudSyncCallback: ((data: AppData) => void) | null = null;
+let _cloudSyncTimeout: ReturnType<typeof setTimeout> | null = null;
+const CLOUD_SYNC_DEBOUNCE_MS = 2000; // Debounce de 2s para não spammar o Firestore
+
+/**
+ * Registra o callback que será chamado (com debounce) sempre que o AppData mudar.
+ * Chamado pelo AppWrapper com a função que salva no Firestore.
+ */
+export const setCloudSyncCallback = (cb: ((data: AppData) => void) | null) => {
+  _cloudSyncCallback = cb;
+  if (!cb && _cloudSyncTimeout) {
+    clearTimeout(_cloudSyncTimeout);
+    _cloudSyncTimeout = null;
+  }
+};
+
 export const getAppData = (): AppData => {
   const defaultData: AppData = { 
     cards: [], 
@@ -86,6 +105,14 @@ export const saveAppData = (data: AppData) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    
+    // ☁️ CLOUD SYNC: Dispara sync debounced com Firestore
+    if (_cloudSyncCallback) {
+      if (_cloudSyncTimeout) clearTimeout(_cloudSyncTimeout);
+      _cloudSyncTimeout = setTimeout(() => {
+        _cloudSyncCallback?.(data);
+      }, CLOUD_SYNC_DEBOUNCE_MS);
+    }
   } catch (e) {
     console.error("Failed to save AppData to localStorage", e);
   }

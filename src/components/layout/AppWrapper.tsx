@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Sidebar from "@/components/sidebar/Sidebar";
 import Header from "@/components/layout/Header";
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound, getDictionaryCount } from '@/lib/srs';
+import { getUserProfile, checkMasteryMilestone, playMasterySound, playBlipSound, getDictionaryCount, setCloudSyncCallback, saveAppData, getAppData } from '@/lib/srs';
 import MasteryModal from './MasteryModal';
 import { initDebugMode } from '@/lib/debug';
 import { startTour } from '@/lib/tour';
 import { useAuth } from '@/context/AuthContext';
-import { updateUserProfile } from '@/lib/firebase';
+import { updateUserProfile, saveAppDataToCloud, loadAppDataFromCloud } from '@/lib/firebase';
 import { arrayUnion } from 'firebase/firestore';
 
 const WelcomeScreen = () => (
@@ -65,6 +65,76 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   const [activeMilestone, setActiveMilestone] = useState<number | null>(null);
   const { user, profile: authProfile } = useAuth();
+  const cloudSyncInitialized = useRef(false);
+
+  // ===================================================================
+  // ☁️ CLOUD SYNC ENGINE — Sincronização Total com Firestore
+  // ===================================================================
+  useEffect(() => {
+    if (!user?.uid || !isInitialized) return;
+    
+    // Evita re-inicialização dupla
+    if (cloudSyncInitialized.current) return;
+    cloudSyncInitialized.current = true;
+    
+    const initCloudSync = async () => {
+      try {
+        // PASSO 1: Carregar AppData da nuvem
+        const cloudData = await loadAppDataFromCloud(user.uid);
+        
+        if (cloudData) {
+          const localData = getAppData();
+          const localHasData = (localData.dictionary?.length || 0) > 0;
+          const cloudHasData = (cloudData.dictionary?.length || 0) > 0;
+          
+          if (cloudHasData && !localHasData) {
+            // Nuvem tem dados, local está vazio → RESTAURAR da nuvem
+            console.log('☁️ Restaurando dados da nuvem para localStorage');
+            saveAppData(cloudData);
+          } else if (cloudHasData && localHasData) {
+            // Ambos têm dados → Usar o que tem MAIS conteúdo (merge inteligente)
+            const cloudDictLen = cloudData.dictionary?.length || 0;
+            const localDictLen = localData.dictionary?.length || 0;
+            
+            if (cloudDictLen > localDictLen) {
+              console.log(`☁️ Nuvem tem mais dados (${cloudDictLen} vs ${localDictLen}) → Usando nuvem`);
+              saveAppData(cloudData);
+            } else {
+              console.log(`☁️ Local tem mais dados (${localDictLen} vs ${cloudDictLen}) → Sincronizando para nuvem`);
+              saveAppDataToCloud(user.uid, localData);
+            }
+          } else if (!cloudHasData && localHasData) {
+            // Local tem dados, nuvem não → Upload inicial
+            console.log('☁️ Upload inicial dos dados locais para a nuvem');
+            saveAppDataToCloud(user.uid, localData);
+          }
+        } else {
+          // Primeiro acesso na nuvem → Upload do que tiver localmente
+          const localData = getAppData();
+          if ((localData.dictionary?.length || 0) > 0) {
+            console.log('☁️ Primeiro upload para a nuvem');
+            saveAppDataToCloud(user.uid, localData);
+          }
+        }
+      } catch (err) {
+        console.warn('⚠️ Falha ao inicializar cloud sync:', err);
+      }
+      
+      // PASSO 2: Registrar callback de sync contínuo (debounced)
+      setCloudSyncCallback((data) => {
+        if (user?.uid) {
+          saveAppDataToCloud(user.uid, data).catch(() => {});
+        }
+      });
+    };
+    
+    initCloudSync();
+    
+    return () => {
+      setCloudSyncCallback(null);
+      cloudSyncInitialized.current = false;
+    };
+  }, [user?.uid, isInitialized]);
 
   // --- MONITORAMENTO DE MAESTRIA (EPIC) ---
   useEffect(() => {

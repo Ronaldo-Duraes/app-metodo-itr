@@ -79,13 +79,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     console.log('🛡️ AuthContext: Doc já existe com role', freshSnap.data()?.role, '— preservando');
                     setProfile(freshSnap.data() as UserStats);
                   } else {
-                    // Doc genuinamente novo — pode criar com role padrão
-                    const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+                    // Doc genuinamente novo — cria com role padrão 'visitante' como solicitado
+                    const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'visitante';
                     const newProfile: UserStats = {
                       uid: firebaseUser.uid,
                       email: firebaseUser.email || '',
-                      displayName: firebaseUser.displayName || 'Usuário',
-                      name: firebaseUser.displayName || 'Usuário',
+                      displayName: firebaseUser.displayName || 'Visitante ITR',
+                      name: firebaseUser.displayName || 'Visitante ITR',
                       role: initialRole,
                       createdAt: serverTimestamp() as any,
                       totalWordsAdded: 0,
