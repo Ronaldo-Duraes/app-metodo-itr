@@ -689,8 +689,8 @@ export default function FlashcardsPage() {
                       </div>
 
                       {/* COLUNA 3: STATUS (LARGURA DINÂMICA) */}
-                      <div className="flex justify-center">
-                        <div className={`flex items-center gap-2.5 ${getTimeLeft(card).width} h-10 px-4 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} justify-start shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
+                      <div className="flex w-full md:w-auto justify-start md:justify-center mt-2 md:mt-0">
+                        <div className={`flex items-center gap-2.5 w-full md:w-auto ${getTimeLeft(card).width} h-11 px-4 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} justify-start shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
                           {card.isMemorized ? (
                              <Check size={12} className="text-yellow-400 shrink-0" strokeWidth={4} />
                           ) : (
@@ -703,7 +703,7 @@ export default function FlashcardsPage() {
                       </div>
 
                       {/* COLUNA 4: AÇÕES (FIXO À DIREITA) */}
-                      <div className="flex items-center gap-3 justify-end">
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-end mt-4 md:mt-0 border-t border-white/5 pt-4 md:border-0 md:pt-0">
                         <button 
                           onClick={() => {
                             executeProtectedAction(() => {
@@ -712,19 +712,19 @@ export default function FlashcardsPage() {
                               setIsEditCardModalOpen(true);
                             });
                           }}
-                          className="p-3 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all"
+                          className="flex-1 md:flex-none h-12 min-w-[48px] flex items-center justify-center bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all active:scale-95 cursor-pointer"
                           title="Editar Card"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={18} />
                         </button>
                         <button 
                           onClick={() => {
                             executeProtectedAction(() => handleDeleteCard(card.id));
                           }}
-                          className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/40 hover:text-red-500 hover:border-red-500/30 transition-all"
+                          className="flex-1 md:flex-none h-12 min-w-[48px] flex items-center justify-center bg-red-500/5 border border-red-500/10 text-red-500/50 hover:text-red-500 hover:border-red-500/30 transition-all active:scale-95 cursor-pointer"
                           title="Excluir Card"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </div>

@@ -22,7 +22,7 @@ export default function ActivitiesPage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center">
       {/* BANNER CENTRALIZADO DE CONSTRUÇÃO (DESKTOP & MOBILE) */}
-      <div className="fixed top-1/2 left-0 w-full -translate-y-1/2 z-50 bg-[#0a0a0a]/85 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-none flex flex-col border-b border-black">
+      <div className="fixed top-1/2 left-0 w-full -translate-y-1/2 z-40 bg-[#0a0a0a]/85 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-none flex flex-col border-b border-black">
         {/* Faixa listrada superior */}
         <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
         
