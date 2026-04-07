@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -19,10 +19,40 @@ import {
   Trash2,
   MoreVertical,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
+  CheckCircle2,
+  Ghost,
+  Sparkles
 } from 'lucide-react';
 import { getAllUsers, updateUserRole, deleteUserDoc, UserStats, subscribeToUsers, forceFirestoreOnline } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+
+// ─────────────────────────────────────────────────────────────
+// TOAST NOTIFICATION SYSTEM
+// ─────────────────────────────────────────────────────────────
+function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3500);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-3 px-6 py-4 border shadow-2xl backdrop-blur-sm ${
+        type === 'success' 
+          ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-400' 
+          : 'bg-red-950/90 border-red-500/30 text-red-400'
+      }`}
+    >
+      {type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+      <span className="text-[11px] font-black uppercase tracking-widest">{message}</span>
+    </motion.div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────
 // DELETE CONFIRMATION MODAL (full-screen on mobile)
@@ -30,11 +60,13 @@ import { useRouter } from 'next/navigation';
 function DeleteModal({ 
   isOpen, 
   userName, 
+  isDeleting,
   onConfirm, 
   onCancel 
 }: { 
   isOpen: boolean; 
   userName: string; 
+  isDeleting: boolean;
   onConfirm: () => void; 
   onCancel: () => void; 
 }) {
@@ -64,15 +96,18 @@ function DeleteModal({
         <div className="flex flex-col md:flex-row gap-3 w-full max-w-xs">
           <button 
             onClick={onCancel}
-            className="flex-1 flex items-center justify-center gap-2 min-h-[52px] md:min-h-[44px] px-6 py-3 bg-zinc-900 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all"
+            disabled={isDeleting}
+            className="flex-1 flex items-center justify-center gap-2 min-h-[52px] md:min-h-[44px] px-6 py-3 bg-zinc-900 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <X size={14} /> Cancelar
           </button>
           <button 
             onClick={onConfirm}
-            className="flex-1 flex items-center justify-center gap-2 min-h-[52px] md:min-h-[44px] px-6 py-3 bg-red-600 border border-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-500 transition-all"
+            disabled={isDeleting}
+            className="flex-1 flex items-center justify-center gap-2 min-h-[52px] md:min-h-[44px] px-6 py-3 bg-red-600 border border-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Trash2 size={14} /> Excluir
+            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            {isDeleting ? 'Excluindo...' : 'Excluir'}
           </button>
         </div>
       </motion.div>
@@ -223,6 +258,13 @@ export default function AdminPage() {
 
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; uid: string; name: string }>({ open: false, uid: '', name: '' });
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Toast notification state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Bulk cleanup state
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
 
   // ── Real-time listener with fallback ──
   useEffect(() => {
@@ -309,17 +351,43 @@ export default function AdminPage() {
   };
 
   const confirmDelete = async () => {
-    const { uid } = deleteModal;
-    setDeleteModal({ open: false, uid: '', name: '' });
+    const { uid, name } = deleteModal;
+    setIsDeleting(true);
     
     const success = await deleteUserDoc(uid);
+    
+    setIsDeleting(false);
+    setDeleteModal({ open: false, uid: '', name: '' });
+    
     if (success) {
-      if (syncStatus !== 'live') {
-        setUsers(prev => prev.filter(u => u.uid !== uid));
-      }
+      // Remoção otimista imediata da lista — sem esperar o onSnapshot
+      setUsers(prev => prev.filter(u => u.uid !== uid));
+      setToast({ message: `"${name}" removido do Firestore com sucesso`, type: 'success' });
     } else {
-      window.alert('Erro ao excluir o usuário. Tente novamente.');
+      setToast({ message: 'Erro ao excluir o usuário. Tente novamente.', type: 'error' });
     }
+  };
+
+  // Bulk cleanup: remove all ghost users (users without email or with empty data)
+  const handleBulkCleanup = async () => {
+    const ghostUsers = users.filter(u => !u.email || u.email.trim() === '');
+    if (ghostUsers.length === 0) {
+      setToast({ message: 'Nenhum rastro fantasma encontrado', type: 'success' });
+      return;
+    }
+    setIsCleaningUp(true);
+    let cleaned = 0;
+    for (const ghost of ghostUsers) {
+      if (ghost.uid) {
+        const ok = await deleteUserDoc(ghost.uid);
+        if (ok) {
+          cleaned++;
+          setUsers(prev => prev.filter(u => u.uid !== ghost.uid));
+        }
+      }
+    }
+    setIsCleaningUp(false);
+    setToast({ message: `${cleaned} rastro(s) fantasma removido(s)`, type: 'success' });
   };
 
   const filteredUsers = users.filter(user => {
@@ -345,13 +413,25 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto py-6 md:py-12 px-4 md:px-6">
       
+      {/* ── TOAST NOTIFICATIONS ── */}
+      <AnimatePresence>
+        {toast && (
+          <Toast 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={() => setToast(null)} 
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── DELETE CONFIRMATION MODAL ── */}
       <AnimatePresence>
         <DeleteModal 
           isOpen={deleteModal.open}
           userName={deleteModal.name}
+          isDeleting={isDeleting}
           onConfirm={confirmDelete}
-          onCancel={() => setDeleteModal({ open: false, uid: '', name: '' })}
+          onCancel={() => !isDeleting && setDeleteModal({ open: false, uid: '', name: '' })}
         />
       </AnimatePresence>
 
@@ -431,6 +511,15 @@ export default function AdminPage() {
              className="flex-shrink-0 p-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-zinc-900 border border-white/5 text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all"
            >
              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+           </button>
+           <button 
+             onClick={handleBulkCleanup}
+             disabled={isCleaningUp}
+             title="Limpar Rastros Fantasmas"
+             className="flex-shrink-0 flex items-center gap-2 px-3 md:px-4 py-3 min-h-[44px] bg-zinc-900 border border-red-500/10 text-red-400/60 hover:text-red-400 hover:border-red-500/30 transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-40"
+           >
+             {isCleaningUp ? <Loader2 size={14} className="animate-spin" /> : <Ghost size={14} />}
+             <span className="hidden sm:inline">Limpar Rastros</span>
            </button>
         </div>
       </div>

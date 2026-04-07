@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signInWithGoogle, loginWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
+import { signInWithGoogle, loginWithEmail, signUpWithEmail, resetPassword, db, ADMIN_EMAIL } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -97,7 +98,34 @@ export default function LoginPage() {
         setLoadingMessage('Registrando no sistema...');
         await signUpWithEmail(email, password, name);
       } else {
-        await loginWithEmail(email, password);
+        const loggedUser = await loginWithEmail(email, password);
+        
+        // 🛡️ VERIFICAÇÃO DE INTEGRIDADE: Garante que o Firestore tem o perfil
+        if (loggedUser && db) {
+          try {
+            const userRef = doc(db, 'users', loggedUser.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists() || !snap.data()?.role) {
+              console.log('🛡️ Login Integrity: Perfil Firestore ausente — criando perfil limpo');
+              const initialRole = loggedUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+              await setDoc(userRef, {
+                uid: loggedUser.uid,
+                email: loggedUser.email,
+                displayName: loggedUser.displayName || email.split('@')[0],
+                name: loggedUser.displayName || email.split('@')[0],
+                photoURL: loggedUser.photoURL || null,
+                role: initialRole,
+                createdAt: serverTimestamp(),
+                totalWordsAdded: 0,
+                masteredCount: 0,
+                unlockedRewards: []
+              }, { merge: true });
+              console.log('✅ Perfil recriado com sucesso');
+            }
+          } catch (fsErr) {
+            console.warn('⚠️ Verificação de integridade falhou (não bloqueia login):', fsErr);
+          }
+        }
       }
       clearTimeout(safetyTimeout);
       setLoadingMessage('Autenticado! Redirecionando...');
