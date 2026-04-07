@@ -156,27 +156,27 @@ export default function DicionarioPage() {
         </div>
       </div>
 
-      {/* CONTROLS */}
-      <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={18} />
+      {/* CONTROLS (STICKY ON MOBILE) */}
+      <div className="sticky top-[72px] md:top-0 z-40 bg-black/95 md:bg-transparent backdrop-blur-md pb-4 pt-2 md:pt-0 border-b border-white/5 md:border-0 mb-6 md:mb-12 flex flex-col md:flex-row gap-3 md:gap-4 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="relative flex-1 group w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={20} />
           <input 
             type="text"
             placeholder="BUSCAR (PORTUGUÊS OU INGLÊS)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 p-4 pl-12 text-sm font-bold tracking-widest focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-700 shadow-inner"
+            className="w-full bg-white/5 border border-white/10 p-4 min-h-[52px] pl-12 text-sm font-bold tracking-widest focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-700 shadow-inner rounded-xl md:rounded-none"
           />
         </div>
         <button 
           onClick={cycleSortMode}
-          className={`px-8 py-4 text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 border ${
+          className={`w-full md:w-auto min-h-[52px] px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 border rounded-xl md:rounded-none active:scale-[0.98] md:active:scale-100 ${
             sortMode === 'alphabetical' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 
             sortMode === 'oldest' ? 'bg-white/10 border-white/20 text-white' : 
             'bg-white/5 border-white/10 text-slate-400'
           } hover:border-emerald-500/30`}
         >
-          <Filter size={16} /> 
+          <Filter size={18} /> 
           <span>ORDEM: {sortMode === 'recent' ? 'RECENTES' : sortMode === 'oldest' ? 'ANTIGAS' : 'A-Z'}</span>
         </button>
       </div>
@@ -207,67 +207,107 @@ export default function DicionarioPage() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.01 }}
-            className={`group relative flex flex-col md:grid md:grid-cols-[50px_1.5fr_1.5fr_120px] items-center p-4 md:px-8 md:py-5 border transition-all cursor-pointer ${
+            className={`group relative flex flex-col md:grid md:grid-cols-[50px_1.5fr_1.5fr_120px] items-start md:items-center p-4 md:px-8 md:py-5 border transition-all cursor-pointer rounded-2xl md:rounded-none w-full md:w-auto mb-3 md:mb-1 ${
               selectedIds.includes(item.id) 
-                ? 'bg-emerald-500/5 border-emerald-500/30' 
+                ? 'bg-emerald-500/5 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
                 : 'bg-zinc-900 border-white/5 hover:border-emerald-500/30 hover:bg-zinc-800/60'
             }`}
             onClick={() => handleEditClick(item)}
           >
-            {/* SELECTION CHECKBOX */}
+            {/* NO MOBILE: Topo com Checkbox e Status */}
+            <div className="flex md:hidden justify-between items-center w-full mb-4">
+              <div 
+                onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+                className="flex items-center gap-3 active:scale-95 transition-transform"
+              >
+                <div className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
+                  selectedIds.includes(item.id) 
+                    ? 'border-emerald-500 bg-emerald-500' 
+                    : 'border-white/10 bg-black/50'
+                }`}>
+                  {selectedIds.includes(item.id) && <Check size={16} className="text-black" strokeWidth={4} />}
+                </div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Selecionar</span>
+              </div>
+              
+              {item.isMemorized ? (
+                <div className="px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter rounded-full shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
+                  <Gem size={10} /> Memorizado
+                </div>
+              ) : (
+                <div className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter rounded-full">
+                  Em Revisão
+                </div>
+              )}
+            </div>
+
+            {/* SELECTION CHECKBOX (DESKTOP) */}
             <div 
               onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
-              className="flex justify-center md:justify-start mb-4 md:mb-0"
+              className="hidden md:flex justify-center"
             >
               <div className={`w-5 h-5 border-2 transition-all flex items-center justify-center ${
                 selectedIds.includes(item.id) 
                   ? 'border-emerald-500 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
-                  : 'border-white/10 group-hover:border-white/30'
+                  : 'border-white/10 group-hover:border-white/30 bg-transparent'
               }`}>
                 {selectedIds.includes(item.id) && <Check size={12} className="text-black" strokeWidth={4} />}
               </div>
             </div>
-            {/* Português (Destaque) */}
-            <div className="w-full md:w-auto mb-2 md:mb-0">
-              <h3 className="text-sm md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
-                {item.translation}
-              </h3>
-            </div>
+            
+            {/* Conteúdo: Português e Inglês */}
+            <div className="flex flex-col w-full md:w-auto md:contents gap-2 md:gap-0">
+              {/* Português (Destaque) */}
+              <div className="w-full md:w-auto bg-black/20 md:bg-transparent p-3 md:p-0 rounded-lg md:rounded-none">
+                <div className="text-[9px] md:hidden text-emerald-500 font-black uppercase tracking-widest mb-1 opacity-70">Português</div>
+                <h3 className="text-base md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
+                  {item.translation}
+                </h3>
+              </div>
 
-            {/* Inglês */}
-            <div className="w-full md:w-auto mb-4 md:mb-0">
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-                {item.word}
-              </p>
+              {/* Inglês */}
+              <div className="w-full md:w-auto bg-black/20 md:bg-transparent p-3 md:p-0 rounded-lg md:rounded-none mt-1 md:mt-0">
+                <div className="text-[9px] md:hidden text-slate-500 font-black uppercase tracking-widest mb-1 opacity-70">Inglês</div>
+                <p className="text-[13px] md:text-xs text-slate-300 md:text-slate-500 font-bold uppercase tracking-widest font-mono">
+                  {item.word}
+                </p>
+              </div>
             </div>
             
-            {/* Status & Actions */}
-            <div className="w-full md:w-auto flex justify-start md:justify-end items-center gap-4">
-              {item.isMemorized ? (
-                <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
-                  <Gem size={10} /> Memorizado
-                </div>
-              ) : (
-                <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter">
-                  Em Revisão
-                </div>
-              )}
+            {/* Status & Actions (Desktop) + Ações Mobile */}
+            <div className="w-full md:w-auto flex justify-between md:justify-end items-center gap-4 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-0 relative">
               
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setWordToDelete(item);
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-2 text-slate-600 hover:text-red-500 transition-colors"
-                title="Excluir Permanentemente"
-              >
-                <Trash2 size={16} />
-              </button>
+              {/* Status Desktop (Hidden on mobile as it's at the top now) */}
+              <div className="hidden md:block">
+                {item.isMemorized ? (
+                  <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+                    <Gem size={10} /> Memorizado
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter">
+                    Em Revisão
+                  </div>
+                )}
+              </div>
+              
+              {/* Botões de Ação (Mobile e Desktop) */}
+              <div className="flex w-full md:w-auto justify-end items-center gap-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWordToDelete(item);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="w-12 h-12 md:w-auto md:h-auto md:p-2 text-slate-500 hover:text-red-500 bg-black/30 md:bg-transparent rounded-lg md:rounded-none transition-colors border border-white/5 md:border-0 flex items-center justify-center active:scale-90"
+                  title="Excluir Permanentemente"
+                >
+                  <Trash2 size={18} />
+                </button>
 
-              {/* Indicador Mobile de Edit */}
-              <div className="md:hidden text-slate-700">
-                <Edit2 size={12} />
+                {/* Edit Icon só aparente no Mobile p/ dar dica de clique */}
+                <div className="md:hidden w-12 h-12 text-slate-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center">
+                  <Edit2 size={16} className="text-emerald-500" />
+                </div>
               </div>
             </div>
           </motion.div>
