@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { startTour } from '@/lib/tour';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
-import { logout } from '@/lib/firebase';
+
 
 const PATENTE_ICONS: Record<string, any> = {
   'Sprout': Sprout,
@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
   const [mounted, setMounted] = React.useState(false);
   const [isMentorOpen, setIsMentorOpen] = React.useState(false);
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
 
   React.useEffect(() => {
     setMounted(true);
@@ -77,17 +77,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     onClose?.();
   };
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      onClose?.();
-      window.location.href = '/login';
-    } catch (err) {
-      console.error('Erro ao sair:', err);
-      setIsLoggingOut(false);
-    }
-  };
+
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/app' },
@@ -211,33 +201,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             );
           }
 
-          // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
-          if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
-            return (
-              <div 
-                key={item.path}
-                id={item.id}
-                onClick={() => {
-                  window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank');
-                  handleNavClick();
-                }}
-                className={`
-                  group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer
-                  ${isActive 
-                    ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
-                    : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
-                `}
-              >
-                <Icon 
-                  size={20} 
-                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className="font-black text-xs tracking-[0.1em] uppercase">{item.label}</span>
-                {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
-              </div>
-            );
-          }
+
 
           return (
             <Link key={item.path} href={item.path} onClick={handleNavClick}>
@@ -350,33 +314,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             );
           }
 
-          // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
-          if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
-            return (
-              <div 
-                key={item.path}
-                id={item.id}
-                onClick={() => {
-                  window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank');
-                  handleNavClick();
-                }}
-                className={`
-                  group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer active:bg-white/[0.04]
-                  ${isActive 
-                    ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
-                    : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
-                `}
-              >
-                <Icon 
-                  size={22} 
-                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className="font-black text-[13px] tracking-[0.08em] uppercase">{item.label}</span>
-                {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
-              </div>
-            );
-          }
+
 
           return (
             <Link key={item.path} href={item.path} onClick={handleNavClick}>
@@ -417,39 +355,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         )}
       </nav>
 
-      {/* BOTTOM: Perfil Link (highlighted) + Logout */}
-      <div className="px-3 mt-auto pt-4 border-t border-white/5 space-y-2">
-        
-        {/* Profile link — visually distinct */}
-        <Link href="/app/perfil" onClick={handleProfileClick}>
-          <div className={`
-            flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all cursor-pointer active:bg-white/[0.04]
-            ${pathname === '/app/perfil' 
-              ? 'bg-emerald-500/5 border-l-4 border-emerald-400 text-emerald-400' 
-              : 'text-zinc-400 hover:text-white bg-white/[0.01] border-l-4 border-emerald-500/20 hover:border-emerald-500/50'}
-          `}>
-            <User size={22} className="shrink-0" />
-            <span className="font-black text-[13px] tracking-[0.08em] uppercase">Meu Perfil</span>
-            <ChevronRight size={16} className="ml-auto text-zinc-600" />
-          </div>
-        </Link>
-
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="w-full flex items-center gap-4 px-4 py-4 min-h-[52px] text-red-500/60 hover:text-red-400 hover:bg-red-500/5 border-l-4 border-transparent hover:border-red-500/30 transition-all active:bg-red-500/10 disabled:opacity-40"
-        >
-          {isLoggingOut ? (
-            <div className="w-[22px] h-[22px] border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin shrink-0" />
-          ) : (
-            <LogOut size={22} className="shrink-0" />
-          )}
-          <span className="font-black text-[13px] tracking-[0.08em] uppercase">
-            {isLoggingOut ? 'Saindo...' : 'Sair'}
-          </span>
-        </button>
-      </div>
     </div>
   );
 

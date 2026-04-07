@@ -7,7 +7,7 @@ export default function ActivitiesPage() {
   return (
     <div className="relative min-h-screen">
       {/* OVERLAY 'EM BREVE' - Design Lendário */}
-      <div className="fixed inset-0 z-50 pointer-events-none flex flex-col items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center overflow-hidden">
         {/* Backdrop Blur Leve */}
         <div className="absolute inset-0 backdrop-blur-[2px] bg-black/20" />
 
