@@ -435,15 +435,13 @@ export default function FlashcardsPage() {
               </div>
 
               {pendingCards.length > 0 && (
-                <div 
-                  onClick={() => executeProtectedAction(() => router.push('/app/estudar'))}
-                  className="w-full cursor-pointer relative z-10"
+                <button 
+                  onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
+                  className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)] relative z-10"
                 >
-                  <button className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)]">
                     <Play size={16} fill="black" stroke="black" />
                     Iniciar Sessão
-                  </button>
-                </div>
+                </button>
               )}
             </motion.div>
           </div>
@@ -640,7 +638,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
                 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto md:flex-1 md:max-w-2xl md:justify-end">
+                    <div className="flex flex-row items-center gap-2 md:gap-4 w-full md:w-auto md:flex-1 md:max-w-2xl md:justify-end mt-4 md:mt-0">
                       {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
                         <button 
                           onClick={() => {
@@ -649,9 +647,9 @@ export default function FlashcardsPage() {
                               setIsModeModalOpen(true);
                             });
                           }}
-                          className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[inset_0_0_15px_rgba(255,255,255,0.4),_0_0_25px_rgba(16,185,129,0.6)]"
+                          className="flex-1 md:flex-none h-10 md:h-14 px-4 md:px-8 flex items-center justify-center gap-2 bg-emerald-500 text-black font-black text-[9px] md:text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[inset_0_0_15px_rgba(255,255,255,0.4),_0_0_25px_rgba(16,185,129,0.6)]"
                         >
-                          <Play size={14} fill="currentColor" />
+                          <Play size={12} fill="currentColor" />
                           INICIAR ESTUDO
                         </button>
                       )}
@@ -663,10 +661,10 @@ export default function FlashcardsPage() {
                         setIsCardModalOpen(true);
                       });
                     }}
-                    className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                    className="flex-1 md:flex-none h-10 md:h-14 px-4 md:px-8 flex items-center justify-center gap-2 bg-white text-black font-black text-[9px] md:text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                   >
-                    <Plus size={14} strokeWidth={3} />
-                    ADICIONAR NOVO CARD
+                    <Plus size={12} strokeWidth={3} />
+                    ADICIONAR CARD
                   </button>
                 </div>
               </header>
@@ -675,35 +673,30 @@ export default function FlashcardsPage() {
                 {cards
                   .filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id)
                   .map(card => (
-                    <div key={card.id} className="px-4 md:px-8 py-4 md:py-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:grid md:grid-cols-[1fr_1fr_180px_110px] gap-3 md:gap-8 items-start md:items-center group">
-                      {/* COLUNA 1: INGLÊS */}
-                      <div className="min-w-0">
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">INGLÊS</span>
-                        <p className="text-white font-black uppercase text-base tracking-tight truncate">{card.front}</p>
-                      </div>
-
-                      {/* COLUNA 2: PORTUGUÊS */}
-                      <div className="min-w-0">
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">PORTUGUÊS</span>
-                        <p className="text-emerald-500 font-bold uppercase text-base tracking-tight truncate">{card.back}</p>
-                      </div>
-
-                      {/* COLUNA 3: STATUS (LARGURA DINÂMICA) */}
-                      <div className="flex w-full md:w-auto justify-start md:justify-center mt-2 md:mt-0">
-                        <div className={`flex items-center gap-2.5 w-full md:w-auto ${getTimeLeft(card).width} h-11 px-4 border ${getTimeLeft(card).border} ${getTimeLeft(card).bg} justify-start shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all`}>
+                    <div key={card.id} className="px-3 md:px-6 py-3 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-6 group">
+                      
+                      {/* DADOS LADO A LADO NO MOBILE */}
+                      <div className="grid grid-cols-3 items-center gap-2 w-full md:w-auto md:flex-1">
+                        <div className="min-w-0 pr-1">
+                          <p className="text-white font-black uppercase text-xs md:text-sm tracking-tight truncate">{card.front}</p>
+                        </div>
+                        <div className="min-w-0 pr-1 border-l border-white/10 pl-2">
+                          <p className="text-emerald-500 font-bold uppercase text-xs md:text-sm tracking-tight truncate">{card.back}</p>
+                        </div>
+                        <div className="flex justify-end items-center border-l border-white/10 pl-2">
                           {card.isMemorized ? (
-                             <Check size={12} className="text-yellow-400 shrink-0" strokeWidth={4} />
+                             <Check size={10} className="text-yellow-400 shrink-0 mr-1 hidden sm:block" strokeWidth={4} />
                           ) : (
-                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot}`} />
+                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot} mr-1 hidden sm:block`} />
                           )}
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${getTimeLeft(card).color} whitespace-nowrap`}>
+                          <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-tight md:tracking-widest ${getTimeLeft(card).color} whitespace-nowrap text-right`}>
                             {getTimeLeft(card).text}
                           </span>
                         </div>
                       </div>
 
-                      {/* COLUNA 4: AÇÕES (FIXO À DIREITA) */}
-                      <div className="flex items-center gap-2 w-full md:w-auto justify-end mt-4 md:mt-0 border-t border-white/5 pt-4 md:border-0 md:pt-0">
+                      {/* AÇÕES MINIMALISTAS EMBAIXO */}
+                      <div className="flex items-center justify-end gap-3 w-full md:w-auto border-t border-white/5 pt-2 mt-1 md:border-transparent md:pt-0 md:mt-0">
                         <button 
                           onClick={() => {
                             executeProtectedAction(() => {
@@ -712,19 +705,19 @@ export default function FlashcardsPage() {
                               setIsEditCardModalOpen(true);
                             });
                           }}
-                          className="flex-1 md:flex-none h-12 min-w-[48px] flex items-center justify-center bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition-all active:scale-95 cursor-pointer"
+                          className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition-colors p-1"
                           title="Editar Card"
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={10} /> EDITAR
                         </button>
                         <button 
                           onClick={() => {
                             executeProtectedAction(() => handleDeleteCard(card.id));
                           }}
-                          className="flex-1 md:flex-none h-12 min-w-[48px] flex items-center justify-center bg-red-500/5 border border-red-500/10 text-red-500/50 hover:text-red-500 hover:border-red-500/30 transition-all active:scale-95 cursor-pointer"
+                          className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-slate-600 hover:text-red-500 uppercase tracking-widest transition-colors p-1"
                           title="Excluir Card"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={10} /> EXCLUIR
                         </button>
                       </div>
                     </div>
