@@ -179,16 +179,17 @@ export default function WelcomeTour({ isSidebarOpen, setIsSidebarOpen }: Props) 
       .itr-tour-popover {
         background-color: #0a0a0a !important;
         color: #ffffff !important;
-        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        border: 1px solid rgba(245, 158, 11, 0.5) !important;
         border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.15) !important;
+        box-shadow: 0 0 50px rgba(245, 158, 11, 0.3), inset 0 0 20px rgba(245, 158, 11, 0.1) !important;
         font-family: inherit !important;
       }
       .itr-tour-popover .driver-popover-title {
-        color: #10b981 !important;
+        color: #f59e0b !important;
         font-weight: 900 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.05em !important;
+        text-shadow: 0 0 10px rgba(245, 158, 11, 0.5) !important;
       }
       .itr-tour-popover .driver-popover-description {
         color: #d1d5db !important;
@@ -197,13 +198,14 @@ export default function WelcomeTour({ isSidebarOpen, setIsSidebarOpen }: Props) 
       }
       .itr-tour-popover .driver-popover-next-btn, 
       .itr-tour-popover .driver-popover-done-btn {
-        background-color: #10b981 !important;
+        background-color: #f59e0b !important;
         color: #000 !important;
         text-shadow: none !important;
         font-weight: 900 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.1em !important;
         border-radius: 6px !important;
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.4) !important;
       }
       .itr-tour-popover .driver-popover-prev-btn {
         color: #9ca3af !important;
@@ -216,8 +218,12 @@ export default function WelcomeTour({ isSidebarOpen, setIsSidebarOpen }: Props) 
         color: #ef4444 !important;
       }
       .itr-tour-popover .driver-popover-progress-text {
-        color: #10b981 !important;
+        color: #f59e0b !important;
         font-weight: bold !important;
+      }
+      body .driver-active-element {
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.5), 0 0 30px rgba(245, 158, 11, 0.8) !important;
+        border-radius: 8px !important;
       }
     `}</style>
   );

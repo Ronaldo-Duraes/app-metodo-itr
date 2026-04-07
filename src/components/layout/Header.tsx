@@ -48,7 +48,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         {/* Botão de Ajuda (Tour Manual) */}
         <button 
           onClick={handleStartTour}
-          className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full group"
+          className="hidden md:flex p-3 min-h-[44px] min-w-[44px] items-center justify-center text-yellow-500/50 hover:text-yellow-500 hover:bg-yellow-500/10 transition-all rounded-full group"
           title="Iniciar Tour de Boas-vindas"
         >
           <HelpCircle size={20} className="group-hover:scale-110 transition-transform" />
