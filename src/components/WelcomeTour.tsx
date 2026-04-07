@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 // @ts-ignore
-import Joyride, { STATUS } from 'react-joyride';
+import { Joyride, STATUS } from 'react-joyride';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firebase';
 
@@ -97,64 +97,66 @@ export default function WelcomeTour() {
 
   return (
     <Joyride
-      steps={STEPS}
-      run={run}
-      continuous={true}
-      scrollToFirstStep={true}
-      showProgress={true}
-      showSkipButton={true}
-      callback={handleJoyrideCallback}
-      disableScrolling={true}
-      styles={{
-        options: {
-          arrowColor: '#0a0a0a',
-          backgroundColor: '#0a0a0a',
-          overlayColor: 'rgba(0, 0, 0, 0.85)',
-          primaryColor: '#10b981',
-          textColor: '#ffffff',
-          zIndex: 10000,
+      {...({
+        steps: STEPS,
+        run: run,
+        continuous: true,
+        scrollToFirstStep: true,
+        showProgress: true,
+        showSkipButton: true,
+        callback: handleJoyrideCallback,
+        disableScrolling: true,
+        styles: {
+          options: {
+            arrowColor: '#0a0a0a',
+            backgroundColor: '#0a0a0a',
+            overlayColor: 'rgba(0, 0, 0, 0.85)',
+            primaryColor: '#10b981',
+            textColor: '#ffffff',
+            zIndex: 10000,
+          },
+          tooltip: {
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(16, 185, 129, 0.1)',
+          },
+          tooltipContainer: {
+            textAlign: 'left'
+          },
+          buttonNext: {
+            backgroundColor: '#10b981',
+            color: '#000',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontSize: '11px',
+            padding: '10px 20px',
+            borderRadius: '8px'
+          },
+          buttonBack: {
+            color: '#9ca3af',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontSize: '11px',
+            marginRight: '12px'
+          },
+          buttonSkip: {
+            color: '#ef4444',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontSize: '11px',
+          }
         },
-        tooltip: {
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          borderRadius: '16px',
-          boxShadow: '0 10px 40px rgba(16, 185, 129, 0.1)',
-        },
-        tooltipContainer: {
-          textAlign: 'left'
-        },
-        buttonNext: {
-          backgroundColor: '#10b981',
-          color: '#000',
-          fontWeight: 900,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          fontSize: '11px',
-          padding: '10px 20px',
-          borderRadius: '8px'
-        },
-        buttonBack: {
-          color: '#9ca3af',
-          fontWeight: 900,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          fontSize: '11px',
-          marginRight: '12px'
-        },
-        buttonSkip: {
-          color: '#ef4444',
-          fontWeight: 900,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          fontSize: '11px',
+        locale: {
+          back: 'Voltar',
+          close: 'Fechar',
+          last: 'Finalizar',
+          next: 'Avançar',
+          skip: 'Pular Tour'
         }
-      }}
-      locale={{
-        back: 'Voltar',
-        close: 'Fechar',
-        last: 'Finalizar',
-        next: 'Avançar',
-        skip: 'Pular Tour'
-      }}
+      } as any)}
     />
   );
 }
