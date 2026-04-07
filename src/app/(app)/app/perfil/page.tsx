@@ -50,15 +50,7 @@ function ProfileContent() {
       try {
         const stats = await fetchUserStats(user.uid);
         if (stats) {
-          setMasteredCount(stats.masteredCount);
           setUnlockedRewards(stats.unlockedRewards || []);
-          const pInfo = getUserPatente(stats.masteredCount);
-          setThemeByName(pInfo.current.name);
-        } else {
-          const totalVocab = getDictionaryCount();
-          setMasteredCount(totalVocab);
-          const pInfo = getUserPatente(totalVocab);
-          setThemeByName(pInfo.current.name);
         }
       } catch (error) {
         console.error("Erro ao sincronizar com Firebase:", error);
@@ -66,22 +58,30 @@ function ProfileContent() {
     }
     
     syncData();
-  }, [user?.uid, authProfile?.displayName, setThemeByName]);
+  }, [user?.uid, authProfile?.displayName]);
 
-  // 🔄 REATIVO: Sincroniza masteredCount/unlockedRewards em tempo real via onSnapshot do AuthContext
+  // 🔄 REATIVO: Sincroniza unlockedRewards via onSnapshot do authProfile, mas a contagem VEM DO DICIONÁRIO DIRETAMENTE
   useEffect(() => {
-    if (!authProfile) return;
-    
-    // Se o Firestore (via onSnapshot) tem dados atualizados, use-os
-    if (authProfile.masteredCount !== undefined) {
-      setMasteredCount(authProfile.masteredCount);
-      const pInfo = getUserPatente(authProfile.masteredCount);
-      setThemeByName(pInfo.current.name);
-    }
-    if (authProfile.unlockedRewards) {
+    if (authProfile?.unlockedRewards) {
       setUnlockedRewards(authProfile.unlockedRewards);
     }
-  }, [authProfile?.masteredCount, authProfile?.unlockedRewards, setThemeByName]);
+  }, [authProfile?.unlockedRewards]);
+
+  // 🔄 REATIVO: Atualiza a métrica em tempo real observando o Array local (que é espelhado do cloud)
+  useEffect(() => {
+    const syncCounter = () => {
+      const realTotal = getDictionaryCount();
+      if (masteredCount !== realTotal) {
+        setMasteredCount(realTotal);
+        const pInfo = getUserPatente(realTotal);
+        setThemeByName(pInfo.current.name);
+      }
+    };
+    
+    syncCounter();
+    const intervalId = setInterval(syncCounter, 1000);
+    return () => clearInterval(intervalId);
+  }, [masteredCount, setThemeByName]);
 
   // --- LÓGICA DE FOCO NA JORNADA ---
   useEffect(() => {

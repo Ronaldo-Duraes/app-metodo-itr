@@ -346,7 +346,6 @@ export default function FlashcardsPage() {
   };
 
   const pendingCards = getTodayPendingCards(cards);
-  const totalMastered = cards.filter(c => c.isLearned).length;
 
 
 
@@ -413,16 +412,13 @@ export default function FlashcardsPage() {
                 
                 {pendingCards.length > 0 ? (
                   <>
-                    <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tighter uppercase whitespace-pre-line group-hover:text-emerald-500 transition-colors">
+                    <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tighter uppercase whitespace-pre-line group-hover:text-amber-500 transition-colors">
                       Revisar Agora
                     </h2>
                     
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="px-5 py-2 bg-emerald-500 text-black text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.4)]">
-                        {pendingCards.length} pendentes
-                      </div>
-                      <div className="px-4 py-2 border-l-2 border-white/10 text-white/40 text-[10px] font-bold tracking-widest uppercase">
-                        Mastered: {totalMastered}
+                    <div className="flex items-center">
+                      <div className="px-6 py-3 bg-amber-500 text-black text-xs md:text-sm font-black tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(245,158,11,0.6)]">
+                        {pendingCards.length} Pendentes
                       </div>
                     </div>
                   </>

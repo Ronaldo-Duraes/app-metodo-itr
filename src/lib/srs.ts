@@ -302,7 +302,7 @@ export const deleteCard = (cardId: string) => deleteDictionaryEntry(cardId);
 
 export const getDictionary = (): DictionaryEntry[] => getAppData().dictionary || [];
 
-export const getDictionaryCount = (): number => getDictionary().length;
+export const getDictionaryCount = (): number => getDictionary().filter(e => e.inDictionary !== false).length;
 
 export const saveDictionary = (dictionary: DictionaryEntry[]) => {
   const data = getAppData();
