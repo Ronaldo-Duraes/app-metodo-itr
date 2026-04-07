@@ -18,13 +18,18 @@ export default function WelcomeTour({ isSidebarOpen, setIsSidebarOpen }: Props) 
 
   useEffect(() => {
     if (profile && profile.firstLogin === true) {
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        // Silenty mark as completed on mobile to prevent any loading footprint overhead or freezes
+        if (user?.uid) updateUserProfile(user.uid, { firstLogin: false } as any);
+        return;
+      }
       // Delay initial render slightly to allow React DOM stability
       const timer = setTimeout(() => {
         setShouldRun(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [profile]);
+  }, [profile, user]);
 
   useEffect(() => {
     if (!shouldRun) return;

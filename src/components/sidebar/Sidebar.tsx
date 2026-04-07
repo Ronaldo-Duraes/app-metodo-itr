@@ -58,13 +58,24 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
 
   if (!mounted) return null;
 
-  // Compute fluency data
-  const masteredCount = profile?.masteredCount ?? getDictionaryCount();
+  // Compute fluency data in real time directly from the local array
+  const [masteredCount, setMasteredCount] = React.useState(0);
+  
+  React.useEffect(() => {
+    const updateCount = () => {
+       const count = getDictionaryCount();
+       if (masteredCount !== count) setMasteredCount(count);
+    };
+    updateCount();
+    const interval = setInterval(updateCount, 1000);
+    return () => clearInterval(interval);
+  }, [masteredCount]);
+
   const patenteInfo = getUserPatente(masteredCount);
   const patenteName = patenteInfo.current.name;
   const PatenteIcon = PATENTE_ICONS[patenteInfo.current.iconName] || Trophy;
   const progressPercent = patenteInfo.next 
-    ? Math.min(100, Math.round(((masteredCount - patenteInfo.current.minWords) / (patenteInfo.next.minWords - patenteInfo.current.minWords)) * 100))
+    ? Math.min(100, Math.round(((masteredCount - patenteInfo.current.minWords) / ((patenteInfo.next.minWords - patenteInfo.current.minWords) || 1)) * 100))
     : 100;
 
   const handleProfileClick = (e: React.MouseEvent) => {

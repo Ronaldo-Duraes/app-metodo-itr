@@ -365,14 +365,14 @@ export default function FlashcardsPage() {
           <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 md:gap-4 w-full lg:w-auto mt-2 lg:mt-0">
             <button 
               onClick={() => executeProtectedAction(() => router.push('/app/vocabulary'))}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-3 md:px-6 py-3 rounded-lg font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.1)] min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-3 md:px-6 py-3 rounded-lg font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 hover:scale-105 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] min-h-[48px]"
             >
               <Rocket size={16} strokeWidth={3} />
               Sprint 600 palavras
             </button>
             <button 
               onClick={() => executeProtectedAction(() => setIsCardModalOpen(true))}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-white text-black px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95 min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-white text-black px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.5),_0_0_30px_rgba(16,185,129,0.4)] active:scale-95 hover:scale-105 cursor-pointer min-h-[48px]"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Card
@@ -383,7 +383,7 @@ export default function FlashcardsPage() {
                 setShowErrors(false);
                 setIsModalOpen(true);
               })}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-white/10 text-white px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95 min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-white/10 text-white px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 hover:scale-105 cursor-pointer min-h-[48px]"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Deck
@@ -439,7 +439,7 @@ export default function FlashcardsPage() {
                   onClick={() => executeProtectedAction(() => router.push('/app/estudar'))}
                   className="w-full cursor-pointer relative z-10"
                 >
-                  <button className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all">
+                  <button className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)]">
                     <Play size={16} fill="black" stroke="black" />
                     Iniciar Sessão
                   </button>
@@ -649,7 +649,7 @@ export default function FlashcardsPage() {
                               setIsModeModalOpen(true);
                             });
                           }}
-                          className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all shadow-xl"
+                          className="h-14 px-8 flex items-center justify-center gap-3 bg-emerald-500 text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-400 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[inset_0_0_15px_rgba(255,255,255,0.4),_0_0_25px_rgba(16,185,129,0.6)]"
                         >
                           <Play size={14} fill="currentColor" />
                           INICIAR ESTUDO
@@ -663,7 +663,7 @@ export default function FlashcardsPage() {
                         setIsCardModalOpen(true);
                       });
                     }}
-                    className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-xl"
+                    className="h-14 px-8 flex items-center justify-center gap-3 bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                   >
                     <Plus size={14} strokeWidth={3} />
                     ADICIONAR NOVO CARD

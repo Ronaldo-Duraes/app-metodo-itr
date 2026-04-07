@@ -7,20 +7,22 @@ import { useState, useEffect } from 'react';
 export default function ActivitiesPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(true);
+
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      // Intentionally delay the heavy roadmap rendering on mobile
-      const timer = setTimeout(() => setIsLoaded(true), 600);
-      return () => clearTimeout(timer);
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    if (mobile) {
+      // Estático e quase imediato no mobile para zero travamentos
+      setIsLoaded(true);
     } else {
       setIsLoaded(true);
     }
   }, []);
   return (
     <div className="relative min-h-screen flex flex-col items-center">
-      {/* BANNER STICKY DE CONSTRUÇÃO */}
-      <div className="sticky top-0 z-40 w-full bg-[#0a0a0a]/85 backdrop-blur-md shadow-2xl pointer-events-none flex flex-col border-b border-black">
+      {/* BANNER CENTRALIZADO DE CONSTRUÇÃO (DESKTOP & MOBILE) */}
+      <div className="fixed top-1/2 left-0 w-full -translate-y-1/2 z-50 bg-[#0a0a0a]/85 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-none flex flex-col border-b border-black">
         {/* Faixa listrada superior */}
         <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
         
@@ -55,8 +57,9 @@ export default function ActivitiesPage() {
         <div className="max-w-6xl mx-auto py-12 px-6 pb-40 relative z-10">
           {/* Header Estilizado - Foco na Evolução */}
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: isMobile ? 1 : 0, y: isMobile ? 0 : -20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: isMobile ? 0 : 0.5 }}
             className="mb-16 text-center md:text-left"
           >
             <span className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500 mb-4 block">
@@ -73,9 +76,9 @@ export default function ActivitiesPage() {
 
           {/* ROADMAP DE ATIVIDADES CAKTO - ESTRELA DA PÁGINA */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
+            initial={{ opacity: isMobile ? 1 : 0, scale: isMobile ? 1 : 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ delay: isMobile ? 0 : 0.2, duration: isMobile ? 0 : 0.5 }}
             className="mt-20"
           >
             {isLoaded ? (
