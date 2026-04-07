@@ -53,7 +53,7 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
         <span className="text-xs text-slate-400 font-bold tracking-widest uppercase">Evolução</span>
       </div>
 
-      <div className="relative mb-12">
+      <div className="relative mb-8 md:mb-12 block">
         {/* Linha Fina (Base) - Centralizada entre as fileiras */}
         <div className="absolute top-[50%] left-2 right-2 h-[1px] md:h-0.5 -translate-y-1/2 bg-slate-800 rounded-full z-0 opacity-50" />
         
@@ -150,7 +150,7 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
       </div>
 
       {/* Seção Rubi (500 Palavras) */}
-      <div className={`mt-8 transition-all duration-700 ${masteredCount < 500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
+      <div className={`mt-6 md:mt-8 block transition-all duration-700 ${masteredCount < 500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -179,11 +179,11 @@ export default function VocabularyMilestones({ masteredCount, uid, unlockedRewar
       </div>
 
       {/* Card Épico da Árvore da Fluência */}
-      <div className={`transition-all duration-700 ${masteredCount < 1500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
+      <div className={`block transition-all duration-700 ${masteredCount < 1500 ? 'grayscale opacity-40' : 'opacity-100'}`}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mt-10 p-8 rounded-[2.5rem] border-2 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
+          className="mt-6 md:mt-10 p-6 md:p-8 rounded-[2.5rem] border-2 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative overflow-hidden transition-all duration-500 shadow-[0_0_40px_rgba(255,215,0,0.15)]"
           style={{ 
             backgroundColor: '#050505',
             borderColor: '#FFD700',

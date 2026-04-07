@@ -1,12 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signInWithGoogle, loginWithEmail, signUpWithEmail, resetPassword, db, ADMIN_EMAIL } from '@/lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import { auth, googleProvider, db, ADMIN_EMAIL, loginWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, enableNetwork } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Mail, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Zap, Loader2, KeyRound, CheckCircle2, X } from 'lucide-react';
+
+// ─────────────────────────────────────────────────────────────
+// 🧹 LIMPEZA DE CACHE — Anti sessão corrompida
+// ─────────────────────────────────────────────────────────────
+function clearStaleSession() {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.clear();
+    ['itr_app_data', 'itr_mirror_triggers', 'itr_grammar_checklist', 'itr-tour-completed', 'welcomeShown', 'admin_authenticated']
+      .forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,31 +59,127 @@ export default function LoginPage() {
   };
 
   const openForgotModal = () => {
-    setResetEmail(email); // Pre-fill with current email
+    setResetEmail(email);
     setResetSuccess(false);
     setResetError('');
     setResetLoading(false);
     setShowForgotModal(true);
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // 🔥 GOOGLE LOGIN — FLUXO UNIFICADO "SIGN IN OR UP"
+  //
+  // PASSO 1: signOut() — limpa sessão anterior (anti TARGET_ID)
+  // PASSO 2: signInWithPopup — autenticação Google
+  // PASSO 3: Firestore check — doc existe? update : create
+  // PASSO 4: Redirect SÓ após Firestore confirmado
+  // ─────────────────────────────────────────────────────────────
   const handleGoogleLogin = async () => {
+    if (!auth || !googleProvider || !db) {
+      setError('Sistema de autenticação não inicializado.');
+      return;
+    }
+
     setError('');
     setLoading(true);
-    setLoadingMessage('Conectando com o Google...');
+    setLoadingMessage('Preparando autenticação...');
+
     try {
-      const user = await signInWithGoogle();
-      if (user) {
+      // ── PASSO 1: Limpar sessão anterior para evitar TARGET_ID ──
+      await firebaseSignOut(auth).catch(() => {});
+      clearStaleSession();
+
+      // ── PASSO 2: Autenticar com Google ──
+      setLoadingMessage('Conectando com o Google...');
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      if (!user) {
+        throw new Error('Autenticação falhou — nenhum usuário retornado.');
+      }
+
+      // ── PASSO 3: Verificar/Criar documento Firestore ──
+      setLoadingMessage('Sincronizando perfil...');
+
+
+      const userRef = doc(db, 'users', user.uid);
+      
+      let firestoreConfirmed = false;
+      try {
+        const snap = await Promise.race([
+          getDoc(userRef),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT_FIRESTORE')), 6000)
+          )
+        ]);
+
+        if (snap.exists()) {
+          // ── USUÁRIO EXISTENTE: Atualiza último acesso ──
+          await updateDoc(userRef, {
+            lastAccessAt: serverTimestamp(),
+            displayName: user.displayName || snap.data()?.displayName,
+            photoURL: user.photoURL || snap.data()?.photoURL,
+          }).catch(() => {});
+          
+          console.log('✅ Google Login: Perfil existente — role:', snap.data()?.role);
+          firestoreConfirmed = true;
+        } else {
+          // ── USUÁRIO NOVO: Cria perfil como 'visitante' ──
+          const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'visitante';
+          
+          await setDoc(userRef, {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            name: user.displayName,
+            photoURL: user.photoURL,
+            role: initialRole,
+            createdAt: serverTimestamp(),
+            totalWordsAdded: 0,
+            masteredCount: 0,
+            unlockedRewards: []
+          }, { merge: true });
+
+          console.log('✅ Google Login: Novo perfil criado — role:', initialRole);
+          firestoreConfirmed = true;
+        }
+      } catch (fsError: any) {
+        console.warn('⚠️ Firestore check falhou (não bloqueia):', fsError.message);
+        // Não bloqueia — AuthContext vai lidar com isso
+        firestoreConfirmed = true; // Permite continuar mesmo com falha parcial
+      }
+
+      // ── PASSO 4: Redirect SÓ após confirmação Firestore ──
+      if (firestoreConfirmed) {
         setLoadingMessage('Autenticado! Entrando no sistema...');
         window.location.href = '/app';
       }
     } catch (err: any) {
-      console.error("Google Auth Error:", err);
-      setError('Falha na autenticação com Google. ' + (err.message || ''));
+      console.error('❌ Google Auth Error:', err);
+      
+      // Limpeza de emergência em caso de erro
+      clearStaleSession();
+      
+      const code = err.code || '';
+      if (code === 'auth/popup-closed-by-user') {
+        setError('Login cancelado. Tente novamente.');
+      } else if (code === 'auth/popup-blocked') {
+        setError('Popup bloqueado. Permita popups para este site.');
+      } else if (err.message?.includes('TARGET') || err.message?.includes('target')) {
+        setError('Erro de sessão. Limpando cache e tentando novamente...');
+        await firebaseSignOut(auth).catch(() => {});
+        clearStaleSession();
+      } else {
+        setError('Falha na autenticação com Google. ' + (err.message || ''));
+      }
       setLoading(false);
       setLoadingMessage('');
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // ✉️ E-MAIL LOGIN / REGISTRO
+  // ─────────────────────────────────────────────────────────────
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -79,15 +188,12 @@ export default function LoginPage() {
     setLoading(true);
     setLoadingMessage(isRegistering ? 'Criando sua conta...' : 'Verificando credenciais...');
 
-    // TIMEOUT DE SEGURANÇA: Reseta o botão em 10s e força redirect
+    // TIMEOUT DE SEGURANÇA: Reseta o botão em 12s
     const safetyTimeout = setTimeout(() => {
-      console.warn('⏱️ Safety timeout (10s): resetando botão e forçando entrada');
+      console.warn('⏱️ Safety timeout (12s): resetando estado');
       setLoading(false);
       setLoadingMessage('');
-      if (isRegistering) {
-        window.location.href = '/app';
-      }
-    }, 10000);
+    }, 12000);
 
     try {
       if (isRegistering) {
@@ -100,13 +206,20 @@ export default function LoginPage() {
       } else {
         const loggedUser = await loginWithEmail(email, password);
         
-        // 🛡️ VERIFICAÇÃO DE INTEGRIDADE: Garante que o Firestore tem o perfil
+        // 🛡️ VERIFICAÇÃO DE INTEGRIDADE: Garante que Firestore tem o perfil
         if (loggedUser && db) {
           try {
+            setLoadingMessage('Verificando perfil...');
             const userRef = doc(db, 'users', loggedUser.uid);
-            const snap = await getDoc(userRef);
+            const snap = await Promise.race([
+              getDoc(userRef),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('TIMEOUT')), 5000)
+              )
+            ]);
+            
             if (!snap.exists() || !snap.data()?.role) {
-              console.log('🛡️ Login Integrity: Perfil Firestore ausente — criando perfil limpo');
+              console.log('🛡️ Login: Perfil ausente — criando...');
               const initialRole = loggedUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
               await setDoc(userRef, {
                 uid: loggedUser.uid,
@@ -120,10 +233,12 @@ export default function LoginPage() {
                 masteredCount: 0,
                 unlockedRewards: []
               }, { merge: true });
-              console.log('✅ Perfil recriado com sucesso');
+            } else {
+              // Atualiza último acesso
+              await updateDoc(userRef, { lastAccessAt: serverTimestamp() }).catch(() => {});
             }
           } catch (fsErr) {
-            console.warn('⚠️ Verificação de integridade falhou (não bloqueia login):', fsErr);
+            console.warn('⚠️ Verificação de integridade falhou (não bloqueia):', fsErr);
           }
         }
       }
@@ -132,14 +247,17 @@ export default function LoginPage() {
       window.location.href = '/app';
     } catch (err: any) {
       clearTimeout(safetyTimeout);
-      console.error("❌ Auth error:", err);
-      
+      console.error('❌ Auth error:', err);
+
+      // 🧹 Limpeza em caso de erro grave
       const errorCode = err.code || '';
+      if (errorCode.includes('internal') || err.message?.includes('TARGET')) {
+        clearStaleSession();
+      }
       
       if (errorCode === 'auth/empty-fields') setError('Preencha todos os campos obrigatórios.');
       else if (errorCode === 'auth/weak-password') setError('A senha deve ter no mínimo 6 caracteres.');
       else if (errorCode === 'auth/email-already-in-use') {
-        // 🛡️ FALLBACK: E-mail já existe no Auth — tenta login automático
         try {
           setLoadingMessage('E-mail já cadastrado. Fazendo login automático...');
           await loginWithEmail(email, password);
@@ -253,7 +371,7 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* GOOGLE AUTH - ELITE STYLE */}
+          {/* GOOGLE AUTH - UNIFIED SIGN IN OR UP */}
           <button 
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -322,7 +440,7 @@ export default function LoginPage() {
                     className="w-full bg-white/[0.02] border border-white/5 p-4 pl-12 rounded-xl text-white font-bold focus:bg-white/[0.04] focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-800 text-sm"
                   />
                 </div>
-                {/* ESQUECI MINHA SENHA — visível apenas no modo login */}
+                {/* ESQUECI MINHA SENHA */}
                 {!isRegistering && (
                   <div className="text-right pt-1">
                     <button 
@@ -417,7 +535,6 @@ export default function LoginPage() {
               <div className="p-10 md:p-12">
                 {!resetSuccess ? (
                   <>
-                    {/* HEADER */}
                     <div className="flex flex-col items-center mb-10">
                       <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
                         <KeyRound size={28} className="text-amber-500" />
@@ -426,12 +543,10 @@ export default function LoginPage() {
                       <p className="text-[9px] font-black text-amber-500/60 tracking-[0.4em] uppercase">Protocolo de Resgate</p>
                     </div>
 
-                    {/* Description */}
                     <p className="text-xs text-zinc-400 font-bold text-center mb-8 leading-relaxed">
                       Digite seu e-mail cadastrado. Enviaremos um link seguro para redefinir sua chave de acesso.
                     </p>
 
-                    {/* Error */}
                     {resetError && (
                       <motion.div 
                         initial={{ opacity: 0, y: -5 }}
@@ -443,7 +558,6 @@ export default function LoginPage() {
                       </motion.div>
                     )}
 
-                    {/* Email Input */}
                     <div className="space-y-1 mb-6">
                       <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest ml-1">E-mail Cadastrado</label>
                       <div className="relative group">
@@ -460,7 +574,6 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    {/* Submit Button */}
                     <button 
                       onClick={handleResetPassword}
                       disabled={resetLoading || !resetEmail}
@@ -477,7 +590,6 @@ export default function LoginPage() {
                       {resetLoading ? 'Enviando...' : 'Enviar Link de Recuperação'}
                     </button>
 
-                    {/* Cancel */}
                     <button 
                       onClick={() => setShowForgotModal(false)}
                       className="w-full mt-4 py-3 text-zinc-600 font-black text-[9px] uppercase tracking-widest hover:text-white transition-colors"
@@ -486,7 +598,6 @@ export default function LoginPage() {
                     </button>
                   </>
                 ) : (
-                  /* SUCCESS STATE */
                   <div className="flex flex-col items-center text-center py-4">
                     <div className="w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center mb-8">
                       <CheckCircle2 size={36} className="text-emerald-500" />

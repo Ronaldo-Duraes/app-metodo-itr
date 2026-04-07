@@ -86,7 +86,7 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
   if (!isFirebaseReady || !auth || !db) return null;
   try {
     // Garante rede ativa antes de qualquer operação
-    await enableNetwork(db).catch(() => {});
+
     
     console.log('Iniciando Auth...');
     const result = await createUserWithEmailAndPassword(auth, email, pass);
@@ -203,7 +203,7 @@ export async function loginWithEmail(email: string, pass: string) {
     await auth.signOut().catch(() => {});
     
     // Força rede ativa
-    if (db) await enableNetwork(db).catch(() => {});
+
     
     const result = await signInWithEmailAndPassword(auth, email, pass);
     return result.user;
@@ -240,7 +240,7 @@ export async function signInWithGoogle() {
     const user = result.user;
     
     // Força rede ativa
-    await enableNetwork(db).catch(() => {});
+
     
     const userRef = doc(db, 'users', user.uid);
     
@@ -300,6 +300,14 @@ export async function signInWithGoogle() {
       message: error.message,
       domain: typeof window !== 'undefined' ? window.location.hostname : 'SSR'
     });
+    // 🧹 Limpeza de cache em caso de erro crítico
+    if (typeof window !== 'undefined') {
+      const msg = error.message?.toLowerCase() || '';
+      if (msg.includes('target') || msg.includes('already exists')) {
+        console.warn('🚨 TARGET_ID em signInWithGoogle — limpando cache');
+        sessionStorage.clear();
+      }
+    }
     throw error;
   }
 }
@@ -307,17 +315,20 @@ export async function signInWithGoogle() {
 export async function logout() {
   if (!auth) return;
   await signOut(auth);
-  // 🛡️ Limpa dados locais para evitar "sujeira" entre contas
+  // 🛡️ Limpa TUDO para evitar "sujeira" entre contas e TARGET_ID
   if (typeof window !== 'undefined') {
+    // Limpa localStorage seletivamente
     const keysToRemove = [
       'itr_app_data',
       'itr_mirror_triggers',
       'itr_grammar_checklist',
       'itr-tour-completed',
-      'welcomeShown'
+      'welcomeShown',
+      'admin_authenticated'
     ];
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    sessionStorage.removeItem('welcomeShown');
+    // Limpa sessionStorage completamente
+    sessionStorage.clear();
   }
 }
 
@@ -326,7 +337,7 @@ export interface UserStats {
   email?: string;
   displayName?: string;
   name?: string;
-  photoURL?: string;
+  photoURL?: string | null;
   role: 'usuario' | 'aluno' | 'admin' | 'visitante';
   masteredCount: number;
   totalWordsAdded: number;
@@ -374,7 +385,7 @@ export async function getAllUsers(): Promise<UserStats[]> {
   if (!isFirebaseReady || !db) return [];
   try {
     // Força rede ativa antes de buscar
-    await enableNetwork(db).catch(() => {});
+
     
     const usersRef = collection(db, 'users');
     
@@ -573,7 +584,7 @@ export async function saveAppDataToCloud(uid: string, data: any): Promise<boolea
 export async function loadAppDataFromCloud(uid: string): Promise<any | null> {
   if (!isFirebaseReady || !db || !uid) return null;
   try {
-    await enableNetwork(db).catch(() => {});
+
     const docRef = doc(db, 'users', uid, 'appData', 'main');
     const snap = await Promise.race([
       getDoc(docRef),

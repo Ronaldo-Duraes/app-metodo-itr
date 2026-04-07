@@ -100,7 +100,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
 
   const displayName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante';
   const firstName = displayName.split(' ')[0];
-  const roleLabel = profile?.role === 'admin' ? 'Admin' : profile?.role === 'aluno' ? 'Aluno ITR' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante';
+  const roleLabel = profile?.role === 'admin' ? 'Admin' : profile?.role === 'aluno' ? 'Aluno ITR' : profile?.role === 'usuario' ? 'Usuário' : profile?.role === 'visitante' ? 'Visitante' : user ? 'Usuário' : 'Visitante';
 
   // ─────────────────────────────────────────────────────────────
   // MOBILE PROFILE HEADER (shown only on mobile drawer)
@@ -471,7 +471,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={onClose}
-              className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
+              className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[200]"
             />
             
             {/* Drawer panel */}
@@ -480,7 +480,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="md:hidden fixed left-0 top-0 h-screen w-[80vw] max-w-[320px] bg-[#050505] border-r border-white/5 z-[100] overflow-y-auto overscroll-contain"
+              className="md:hidden fixed left-0 top-0 h-screen w-[80vw] max-w-[320px] bg-[#050505] border-r border-white/5 z-[210] overflow-y-auto overscroll-contain"
             >
               {mobileSidebarContent}
             </motion.aside>

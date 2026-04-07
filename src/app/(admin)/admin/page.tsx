@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
@@ -133,6 +133,7 @@ function UserCard({
     const styles = 
       role === 'admin' ? 'border-amber-500/30 text-amber-500 bg-amber-500/5' :
       role === 'aluno' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' :
+      role === 'visitante' ? 'border-zinc-500/30 text-zinc-400 bg-zinc-500/5' :
       'border-blue-500/30 text-blue-500 bg-blue-500/5';
     return (
       <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest border rounded-full ${styles}`}>
@@ -193,7 +194,7 @@ function UserCard({
           >
             <div className="border-t border-white/5 mt-4 pt-4 flex flex-col gap-2">
               {/* Quick action: Liberar acesso */}
-              {user.role === 'usuario' && (
+              {(user.role === 'usuario' || user.role === 'visitante') && (
                 <button 
                   onClick={() => { onRoleChange(user.uid!, 'aluno'); setActionsOpen(false); }}
                   className="flex items-center gap-3 w-full min-h-[48px] px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all"
@@ -251,7 +252,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'aluno' | 'usuario' | 'admin'>('all');
+  const [filter, setFilter] = useState<'all' | 'aluno' | 'usuario' | 'admin' | 'visitante'>('all');
   const [timeoutError, setTimeoutError] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'live' | 'fallback' | 'error'>('live');
   const unsubRef = useRef<(() => void) | null>(null);
@@ -403,6 +404,7 @@ export default function AdminPage() {
     alunos: users.filter(u => u.role === 'aluno').length,
     usuarios: users.filter(u => u.role === 'usuario').length,
     admins: users.filter(u => u.role === 'admin').length,
+    visitantes: users.filter(u => u.role === 'visitante').length,
   };
 
   const handleClearAdminSession = () => {
@@ -494,7 +496,7 @@ export default function AdminPage() {
 
         {/* Filter pills — scrollable on mobile */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-           {(['all', 'aluno', 'usuario', 'admin'] as const).map(f => (
+           {(['all', 'aluno', 'usuario', 'visitante', 'admin'] as const).map(f => (
              <button
                key={f}
                onClick={() => setFilter(f)}
@@ -578,6 +580,7 @@ export default function AdminPage() {
                       <span className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border rounded-full ${
                         user.role === 'admin' ? 'border-amber-500/30 text-amber-500 bg-amber-500/5' :
                         user.role === 'aluno' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' :
+                        user.role === 'visitante' ? 'border-zinc-500/30 text-zinc-400 bg-zinc-500/5' :
                         'border-blue-500/30 text-blue-500 bg-blue-500/5'
                       }`}>
                         {user.role}
@@ -585,7 +588,7 @@ export default function AdminPage() {
                     </td>
                     <td className="p-6 text-right">
                       <div className="flex items-center justify-end gap-3">
-                         {user.role === 'usuario' ? (
+                         {(user.role === 'usuario' || user.role === 'visitante') ? (
                            <button 
                              onClick={() => handleRoleChange(user.uid!, 'aluno')}
                              className="flex items-center gap-2 px-4 py-2 min-h-[44px] bg-emerald-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all rounded-sm shadow-lg shadow-emerald-500/10"
