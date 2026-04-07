@@ -1,0 +1,67 @@
+﻿diff --git a/src/app/(app)/app/atividades/page.tsx b/src/app/(app)/app/atividades/page.tsx
+index c5ab578..908cb37 100644
+--- a/src/app/(app)/app/atividades/page.tsx
++++ b/src/app/(app)/app/atividades/page.tsx
+@@ -6,45 +6,46 @@ import ActivitiesRoadmap from '@/components/roadmap/ActivitiesRoadmap';
+ export default function ActivitiesPage() {
+   return (
+     <div className="relative min-h-screen flex flex-col items-center">
+-      {/* BANNER STICKY 'EM BREVE' */}
+-      <div className="sticky top-0 z-40 w-full flex flex-col items-center justify-center border-b border-amber-500/30 overflow-hidden shadow-[0_10px_50px_rgba(0,0,0,0.8)] backdrop-blur-md bg-black/80">
++      
++      {/* V├ëU DE FUNDO (BACKGROUND BLUR TOTAL) */}
++      <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[8px] pointer-events-none" />
++
++      {/* POP-UP 'EM BREVE' CENTRALIZADO */}
++      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 w-[90%] max-w-lg flex flex-col items-center justify-center bg-[#0a0a0a]/95 backdrop-blur-2xl border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden pointer-events-none">
+         
+         {/* Faixa Central Lend├íria */}
+         <motion.div 
+-          initial={{ opacity: 0, y: -20 }}
+-          animate={{ opacity: 1, y: 0 }}
++          initial={{ opacity: 0, scale: 0.9, y: 20 }}
++          animate={{ opacity: 1, scale: 1, y: 0 }}
+           transition={{ duration: 0.6, ease: "easeOut" }}
+-          className="relative w-full py-4 md:py-8 flex flex-col items-center justify-center"
++          className="relative w-full py-10 md:py-14 flex flex-col items-center justify-center"
+         >
+           {/* Efeito de Brilho de Fundo (Glow) */}
+-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
++          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-3xl" />
+           
+-          {/* Linhas de Scanner Animadas (Sut├¡s) */}
+-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent animate-pulse" />
+-
+-          <div className="relative w-full flex flex-col items-center px-4 md:px-0">
++          <div className="relative w-full flex flex-col items-center px-6 md:px-8 text-center">
+             <motion.span 
+               animate={{ opacity: [0.7, 1, 0.7] }}
+               transition={{ duration: 3, repeat: Infinity }}
+-              className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[1em] text-amber-500/60 mb-2 md:mb-3 block"
++              className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[1em] text-amber-500/60 mb-3 md:mb-4 block"
+             >
+               Industrial Gateway
+             </motion.span>
+             
+-            <h2 className="text-xl md:text-3xl lg:text-5xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-3 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
++            <h2 className="text-3xl md:text-5xl lg:text-5xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-3 md:mb-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+               EM BREVE
+             </h2>
+             
+-            <p className="text-amber-200/60 text-[10px] md:text-sm font-bold tracking-wider max-w-sm md:max-w-md text-center">
+-              Novas formas de dominar o idioma est├úo sendo preparadas.
++            <p className="text-amber-200/60 text-xs md:text-sm font-bold tracking-wider max-w-sm md:max-w-md">
++              Novas atividades interativas est├úo sendo preparadas. Sua jornada est├í apenas come├ºando.
+             </p>
+           </div>
+         </motion.div>
+       </div>
+ 
+       {/* CONTE├ÜDO BLOQUEADO PARA CLIQUES, MAS SCROLL├üVEL */}
+-      <div className="w-full pointer-events-none opacity-80 filter grayscale-[0.3] -mt-4">
+-        <div className="max-w-6xl mx-auto py-12 px-6 pb-40">
++      <div className="w-full pointer-events-none opacity-40 filter grayscale-[0.6]">
++        <div className="max-w-6xl mx-auto py-12 px-6 pb-40 relative z-10">
+           {/* Header Estilizado - Foco na Evolu├º├úo */}
+           <motion.div 
+             initial={{ opacity: 0, y: -20 }}

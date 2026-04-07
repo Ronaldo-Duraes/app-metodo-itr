@@ -1,0 +1,29 @@
+﻿commit 118ac1d7c2dfbd31a2aff46a0277e9fa5a2fee8b
+Author: Seu Nome <seu-email@exemplo.com>
+Date:   Tue Apr 7 19:08:17 2026 -0300
+
+    UI: Reordering Arsenal ITR and sticky 'Soon' banner
+
+commit 6a1cf320e5794a0639099db7385276a2edd7376f
+Author: Seu Nome <seu-email@exemplo.com>
+Date:   Tue Apr 7 19:01:34 2026 -0300
+
+    Fix: React Error #130 and AppData initialization
+
+commit 6c61c340beaf32a09347d468896ac4a74d2ea8b6
+Author: Seu Nome <seu-email@exemplo.com>
+Date:   Tue Apr 7 18:57:58 2026 -0300
+
+    UI: Dictionary mobile layout optimization
+
+commit b04dadb6be5b4da25e371e63a71da538f60b5b7c
+Author: Seu Nome <seu-email@exemplo.com>
+Date:   Tue Apr 7 18:47:40 2026 -0300
+
+    Feature: User tour and default student role
+
+commit 2d0d7f2eb68abbfa4c7ed90d18b5057d301c9dc4
+Author: Seu Nome <seu-email@exemplo.com>
+Date:   Tue Apr 7 18:28:48 2026 -0300
+
+    Feature: Implementation of new module
