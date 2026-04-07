@@ -56,8 +56,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     };
   }, [isOpen]);
 
-  if (!mounted) return null;
-
   // Compute fluency data in real time directly from the local array
   const [masteredCount, setMasteredCount] = React.useState(0);
   
@@ -70,6 +68,8 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     const interval = setInterval(updateCount, 1000);
     return () => clearInterval(interval);
   }, [masteredCount]);
+
+  if (!mounted) return null;
 
   const patenteInfo = getUserPatente(masteredCount);
   const patenteName = patenteInfo.current.name;
