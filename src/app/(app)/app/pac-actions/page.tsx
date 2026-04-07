@@ -19,9 +19,9 @@ export default function PacActionsPage() {
       {/* BACKGROUND GRADIENT */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,#062417_0%,#000000_70%)] -z-10" />
 
-      <div className="max-w-4xl mx-auto px-6 pt-12">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8 md:pt-12">
         {/* HEADER NAVIGATION */}
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center justify-between mb-8 md:mb-16">
           <Link href="/app" className="group flex items-center gap-2 text-zinc-500 hover:text-emerald-400 transition-colors">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Arsenal ITR</span>
@@ -37,7 +37,7 @@ export default function PacActionsPage() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-[0.9] mb-6"
+            className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter uppercase italic leading-[0.9] mb-6"
           >
             Dinâmica de <br />
             <span className="text-emerald-500 underline decoration-zinc-800 underline-offset-[12px]">Ações PAC</span>

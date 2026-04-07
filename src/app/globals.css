@@ -213,3 +213,43 @@ body {
   margin: 0 !important;
   font-size: 9px !important; /* Levemente menor */
 }
+
+/* ============================================= */
+/* 📱 MOBILE-FIRST RESPONSIVE UTILITIES          */
+/* ============================================= */
+
+/* Safe area inset for notched phones (iPhone X+) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Hide scrollbar on mobile drawer overlay */
+.mobile-drawer-scroll::-webkit-scrollbar {
+  display: none;
+}
+.mobile-drawer-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Touch improvements (global) */
+@media (max-width: 767px) {
+  /* Remove tap highlight on all interactive elements */
+  button, a, [role="button"], input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Ensure modals use dynamic viewport height on iOS Safari */
+  .fixed.inset-0 {
+    height: 100dvh;
+  }
+
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}

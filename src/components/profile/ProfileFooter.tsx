@@ -40,11 +40,11 @@ const ProfileFooter = ({
   const displayName = authProfile?.displayName || authProfile?.name || profile.displayName || profile.name || 'Visitante';
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full mb-12">
+    <div className="flex flex-col md:flex-row items-center gap-5 md:gap-8 relative z-10 w-full mb-8 md:mb-12">
       
       {/* Avatar / Rank Icon */}
       <div className="relative group shrink-0 mt-2">
-        <div className="w-32 h-32 md:w-36 md:h-36 rounded-[2rem] border flex items-center justify-center bg-slate-800/80 transition-all relative z-10 box-border overflow-hidden" 
+        <div className="w-24 h-24 md:w-36 md:h-36 rounded-[1.5rem] md:rounded-[2rem] border flex items-center justify-center bg-slate-800/80 transition-all relative z-10 box-border overflow-hidden" 
              style={{ borderColor: 'var(--itr-glow)', boxShadow: '0 0 40px var(--itr-glow)' }}>
           {profile.photoURL ? (
             <img src={profile.photoURL} alt="Avatar" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -52,7 +52,7 @@ const ProfileFooter = ({
             <PatenteIcon size={64} className="transition-transform duration-500 group-hover:scale-110" style={{ color: 'var(--itr-primary)' }} strokeWidth={1.5} />
           )}
         </div>
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg border whitespace-nowrap z-20" style={{ backgroundColor: 'var(--itr-primary)', borderColor: 'var(--itr-glow)' }}>
+        <div className="absolute -bottom-2 md:-bottom-3 left-1/2 -translate-x-1/2 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg border whitespace-nowrap z-20" style={{ backgroundColor: 'var(--itr-primary)', borderColor: 'var(--itr-glow)' }}>
           {patenteInfo.current.name}
         </div>
       </div>
@@ -62,7 +62,7 @@ const ProfileFooter = ({
           {!isEditing ? (
             <motion.div key="display" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3 pt-2">
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 justify-center md:justify-start">
-                <h1 className="text-4xl md:text-5xl font-black font-outfit text-white tracking-tight">{displayName}</h1>
+                <h1 className="text-2xl md:text-5xl font-black font-outfit text-white tracking-tight">{displayName}</h1>
                 {user && (
                   <button onClick={() => setIsEditing(true)} className="text-slate-500 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800 self-center">
                     <Edit3 size={18} />

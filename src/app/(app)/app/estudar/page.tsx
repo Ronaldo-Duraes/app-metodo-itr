@@ -100,7 +100,7 @@ export default function EstudarPage() {
   // 2. CONTEXTO DE SESSÃO ENCERRADA (VITÓRIA)
   if (isFinished) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 text-center font-outfit">
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 md:p-8 text-center font-outfit">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -110,11 +110,11 @@ export default function EstudarPage() {
              <Trophy size={100} className="text-emerald-500 mb-8 mx-auto" />
              <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] -z-10" />
           </div>
-          <h1 className="text-6xl font-black text-white uppercase tracking-tighter mb-4">Sessão Concluída</h1>
-          <p className="text-emerald-500 uppercase font-black tracking-[0.4em] mb-12">
+          <h1 className="text-3xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">Sessão Concluída</h1>
+          <p className="text-emerald-500 uppercase font-black tracking-[0.2em] md:tracking-[0.4em] text-xs md:text-base mb-8 md:mb-12">
             {studyMode === 'manual' ? 'REVISÃO RÁPIDA FINALIZADA' : 'MAESTRIA ITR: 100% CONCLUÍDA'}
           </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center w-full max-w-md">
             <button 
               onClick={() => {
                 setCurrentIndex(0);
@@ -141,11 +141,11 @@ export default function EstudarPage() {
   // 3. SEM CARDS PARA ESTUDAR
   if (pile.length === 0) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8 text-center font-outfit">
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 md:p-8 text-center font-outfit">
         <div className="mb-8 p-6 bg-white/[0.02] border border-white/10 rounded-full">
           <CheckCircle2 size={64} className="text-emerald-500" />
         </div>
-        <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Vazia</h1>
+        <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter mb-4">Pilha Vazia</h1>
         <p className="text-slate-500 uppercase font-bold tracking-widest max-w-sm mb-12">
           {isFreeStudy 
             ? "Não há cards neste baralho para praticar no momento." 
@@ -174,10 +174,10 @@ export default function EstudarPage() {
 
   // 5. INTERFACE DE ESTUDO (MAESTRIA)
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col items-center p-8 md:p-12 font-outfit relative overflow-hidden">
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center p-4 md:p-8 lg:p-12 font-outfit relative overflow-hidden">
       
       {/* HEADER */}
-      <header className="w-full max-w-4xl flex items-center justify-between mb-12 relative z-10">
+      <header className="w-full max-w-4xl flex items-center justify-between mb-6 md:mb-12 relative z-10">
         <div className="flex items-center gap-6">
           <Link href="/app">
             <button className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
@@ -219,7 +219,7 @@ export default function EstudarPage() {
             >
             <div 
               onClick={() => !isRevealed && setIsRevealed(true)}
-              className={`relative w-full aspect-[16/9] md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01] cursor-pointer'} transition-all duration-500 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden select-none`}
+              className={`relative w-full min-h-[280px] md:min-h-0 md:aspect-[21/9] border-2 ${isRevealed ? 'border-emerald-500 bg-emerald-500/[0.02]' : 'border-white/10 bg-white/[0.01] cursor-pointer'} transition-all duration-500 flex flex-col items-center justify-center p-6 md:p-12 overflow-hidden select-none`}
             >
               <div className="absolute top-0 right-0 p-8 opacity-5">
                 <Brain size={120} className="text-white" />
@@ -229,7 +229,7 @@ export default function EstudarPage() {
                 <div className="mb-6 flex flex-col items-center">
                   <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">Termo Original</span>
                   <div className="flex flex-row items-baseline gap-3 justify-center">
-                    <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
+                    <h3 className="text-2xl md:text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
                       {currentCard.front}
                     </h3>
                     
@@ -237,7 +237,7 @@ export default function EstudarPage() {
                       <motion.span 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="text-xl md:text-2xl font-bold text-amber-500/40 uppercase tracking-[0.3em] italic"
+                        className="text-sm md:text-xl lg:text-2xl font-bold text-amber-500/40 uppercase tracking-[0.1em] md:tracking-[0.3em] italic"
                       >
                         ({currentCard.pronunciation})
                       </motion.span>
@@ -262,7 +262,7 @@ export default function EstudarPage() {
                       className="flex flex-col items-center mt-4 gap-y-4"
                     >
                       <div className="h-[1px] w-24 bg-emerald-500/30 mb-2" />
-                      <h4 className="text-3xl md:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-2">
+                      <h4 className="text-xl md:text-3xl lg:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-2">
                         {currentCard.back}
                       </h4>
                       {currentCard.association && (
@@ -279,13 +279,13 @@ export default function EstudarPage() {
               </div>
             </div>
 
-            <div className="mt-12 h-32">
+            <div className="mt-6 md:mt-12 min-h-[80px] md:h-32">
               <AnimatePresence>
                 {isRevealed && (
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-row gap-4 w-full"
+                    className="flex flex-row gap-2 md:gap-4 w-full"
                   >
                     {studyMode === 'manual' ? (
                       <>
@@ -315,9 +315,9 @@ export default function EstudarPage() {
                           <button 
                             key={opt.interval}
                             onClick={() => handleReview(opt.interval)}
-                            className={`flex-1 flex flex-col items-center justify-center p-4 border bg-white/[0.02] hover:bg-white/5 transition-all group`}
+                            className={`flex-1 flex flex-col items-center justify-center p-2 md:p-4 min-h-[60px] border bg-white/[0.02] hover:bg-white/5 transition-all group active:scale-95`}
                           >
-                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-white transition-colors">{opt.top}</span>
+                            <span className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-wider md:tracking-widest mb-1 group-hover:text-white transition-colors">{opt.top}</span>
                             <span className={`text-[10px] font-black uppercase tracking-tighter ${opt.color.split(' ')[0]} group-hover:text-white transition-colors`}>{opt.bottom}</span>
                           </button>
                         ))}
@@ -332,7 +332,7 @@ export default function EstudarPage() {
         </AnimatePresence>
       </main>
 
-      <footer className="w-full max-w-4xl mt-12 pt-8 border-t border-white/5 relative z-10 flex justify-between items-center opacity-30">
+      <footer className="w-full max-w-4xl mt-6 md:mt-12 pt-4 md:pt-8 border-t border-white/5 relative z-10 flex justify-between items-center opacity-30">
         <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-slate-500">
           <Clock size={12} />
           {studyMode === 'manual' ? 'MODO MANUAL ATIVO' : 'SISTEMA SRS ATIVO'}

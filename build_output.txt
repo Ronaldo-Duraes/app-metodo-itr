@@ -1,0 +1,40 @@
+﻿  Ôû▓ Next.js 14.2.0
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ Ô£ô Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Ôöî Ôùï /                                    424 B          87.5 kB
+Ôö£ Ôùï /_not-found                          147 B          87.3 kB
+Ôö£ Ôùï /admin                               6.59 kB         253 kB
+Ôö£ Ôùï /admin/leads                         128 kB          374 kB
+Ôö£ Ôùï /app                                 8.45 kB         258 kB
+Ôö£ Ôùï /app/atividades                      8.05 kB         131 kB
+Ôö£ Ôùï /app/aulas                           4.3 kB          251 kB
+Ôö£ Ôùï /app/dicionario                      6.05 kB         137 kB
+Ôö£ Ôùï /app/estudar                         6.17 kB         140 kB
+Ôö£ Ôùï /app/flashcards                      10.8 kB         265 kB
+Ôö£ Ôùï /app/grammar-checklist               8.12 kB         262 kB
+Ôö£ Ôùï /app/mirror-triggers                 5.68 kB         259 kB
+Ôö£ Ôùï /app/pac-actions                     1.91 kB         132 kB
+Ôö£ Ôùï /app/perfil                          62.6 kB         319 kB
+Ôö£ Ôùï /app/prompts                         8.43 kB         139 kB
+Ôö£ Ôùï /app/vocabulary                      20.9 kB         278 kB
+Ôöö Ôùï /login                               5.36 kB         262 kB
++ First Load JS shared by all            87.1 kB
+  Ôö£ chunks/1582-eefe2665bc07832c.js      31.5 kB
+  Ôö£ chunks/fd9d1056-990d53882db80393.js  53.6 kB
+  Ôöö other shared chunks (total)          1.98 kB
+
+
+Ôùï  (Static)  prerendered as static content
+

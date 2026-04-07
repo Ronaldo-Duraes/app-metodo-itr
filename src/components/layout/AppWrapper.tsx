@@ -21,7 +21,7 @@ const WelcomeScreen = () => (
       className="text-center"
     >
       <span className="text-[10px] font-black text-emerald-500 tracking-[0.6em] uppercase mb-4 block animate-pulse text-center w-full">Ambiente de Elite</span>
-      <h1 className="text-7xl md:text-9xl font-black text-emerald-500 tracking-[-0.05em] uppercase drop-shadow-[0_0_50px_rgba(16,185,129,0.4)] leading-none px-4 text-center">
+      <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-emerald-500 tracking-[-0.05em] uppercase drop-shadow-[0_0_50px_rgba(16,185,129,0.4)] leading-none px-4 text-center">
         Boas-vindas
       </h1>
     </motion.div>
@@ -31,6 +31,7 @@ const WelcomeScreen = () => (
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
@@ -199,10 +200,10 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 ml-0 md:ml-64 relative min-h-screen">
-        <Header />
-        <main className="p-8 pt-28 h-screen overflow-y-auto scroll-smooth transition-all duration-300">
+        <Header onMenuToggle={() => setIsSidebarOpen(prev => !prev)} />
+        <main className="p-3 md:p-8 pt-[72px] md:pt-28 pb-6 md:pb-8 h-screen overflow-y-auto scroll-smooth transition-all duration-300 safe-bottom">
           <div className="max-w-6xl mx-auto">
             {children}
           </div>

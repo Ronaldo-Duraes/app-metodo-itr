@@ -12,7 +12,12 @@ import { useAuth } from '@/context/AuthContext';
 import { startTour } from '@/lib/tour';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, isAdmin, isVisitor } = useAuth();
@@ -30,7 +35,12 @@ const Sidebar = () => {
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    onClose?.();
     router.push('/app/perfil?t=' + Date.now());
+  };
+
+  const handleNavClick = () => {
+    onClose?.();
   };
 
   const menuItems = [
@@ -42,131 +52,179 @@ const Sidebar = () => {
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 
-  return (
-    <aside className="fixed left-0 top-0 h-screen w-20 md:w-64 bg-[#050505] border-r border-white/5 z-50 transition-all duration-300">
-      <div className="flex flex-col h-full py-8">
-        
-        {/* LOGO AREA (FIXED WITH NEXT/IMAGE) */}
-        <div className="px-6 mb-12 flex items-center justify-between">
-            <Link href="/" className="relative w-16 h-16">
-              <Image 
-                src='/logo-itr.png' 
-                alt='Logo ITR' 
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-                className='object-contain hover:scale-105 transition-transform' 
-              />
-            </Link>
-        </div>
+  const sidebarContent = (
+    <div className="flex flex-col h-full py-8">
+      
+      {/* LOGO AREA */}
+      <div className="px-6 mb-12 flex items-center justify-between">
+        <Link href="/" className="relative w-16 h-16" onClick={handleNavClick}>
+          <Image 
+            src='/logo-itr.png' 
+            alt='Logo ITR' 
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+            className='object-contain hover:scale-105 transition-transform' 
+          />
+        </Link>
+        {/* Close button — mobile only */}
+        <button 
+          onClick={onClose}
+          className="md:hidden p-2 text-slate-500 hover:text-white transition-colors"
+          aria-label="Fechar menu"
+        >
+          <X size={24} />
+        </button>
+      </div>
 
-        {/* NAVIGATION LINKS */}
-        <nav className="flex-1 px-4 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.path;
-            const Icon = item.icon;
+      {/* NAVIGATION LINKS */}
+      <nav className="flex-1 px-4 space-y-1">
+        {menuItems.map((item) => {
+          const isActive = pathname === item.path;
+          const Icon = item.icon;
 
-            if (item.isAction) {
-              return (
-                <div 
-                  key={item.label}
-                  onClick={() => executeProtectedAction(() => setIsMentorOpen(true))}
-                  className="group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500"
-                >
-                  <Icon size={20} className="transition-colors duration-200" />
-                  <span className="font-black text-xs tracking-[0.1em] hidden md:block uppercase">{item.label}</span>
-                </div>
-              );
-            }
-
-            // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
-            if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
-              return (
-                <div 
-                  key={item.path}
-                  id={item.id}
-                  onClick={() => window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank')}
-                  className={`
-                    group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer
-                    ${isActive 
-                      ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
-                      : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
-                  `}
-                >
-                  <Icon 
-                    size={20} 
-                    className={`transition-colors duration-200 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  <span className="font-black text-xs tracking-[0.1em] hidden md:block uppercase">{item.label}</span>
-                  {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
-                </div>
-              );
-            }
-
+          if (item.isAction) {
             return (
-              <Link key={item.path} href={item.path}>
-                <div id={item.id} className={`
-                  group relative flex items-center gap-4 px-4 py-4 rounded-none transition-all duration-200 cursor-pointer
+              <div 
+                key={item.label}
+                onClick={() => {
+                  executeProtectedAction(() => setIsMentorOpen(true));
+                  handleNavClick();
+                }}
+                className="group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500"
+              >
+                <Icon size={20} className="transition-colors duration-200 shrink-0" />
+                <span className="font-black text-xs tracking-[0.1em] uppercase">{item.label}</span>
+              </div>
+            );
+          }
+
+          // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
+          if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
+            return (
+              <div 
+                key={item.path}
+                id={item.id}
+                onClick={() => {
+                  window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank');
+                  handleNavClick();
+                }}
+                className={`
+                  group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer
                   ${isActive 
                     ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
                     : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
-                `}>
-                  <Icon 
-                    size={20} 
-                    className={`transition-colors duration-200 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  <span className="font-black text-xs tracking-[0.1em] hidden md:block uppercase">{item.label}</span>
-                  
-                  {/* ACTIVE INDICATOR GLOW */}
-                  {isActive && (
-                    <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />
-                  )}
-                </div>
-              </Link>
+                `}
+              >
+                <Icon 
+                  size={20} 
+                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className="font-black text-xs tracking-[0.1em] uppercase">{item.label}</span>
+                {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
+              </div>
             );
-          })}
-        </nav>
+          }
 
-        {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
-        <div className="px-4 mt-auto pt-8 border-t border-white/5">
-          <Link href="/app/perfil" onClick={handleProfileClick}>
-            <div id="tour-perfil" className="flex items-center gap-3 p-3 text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
-              <div className="relative shrink-0">
-                <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
-                  {isVisitor ? (
-                    <UserCircle size={24} className="text-zinc-500 opacity-60" />
-                  ) : user?.photoURL || profile?.photoURL ? (
-                    <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
-                      {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
-                    </span>
-                  )}
-                </div>
-                {/* Online Status */}
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#050505] rounded-full"></div>
+          return (
+            <Link key={item.path} href={item.path} onClick={handleNavClick}>
+              <div id={item.id} className={`
+                group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer
+                ${isActive 
+                  ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
+                  : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
+              `}>
+                <Icon 
+                  size={20} 
+                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className="font-black text-xs tracking-[0.1em] uppercase">{item.label}</span>
+                
+                {/* ACTIVE INDICATOR GLOW */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />
+                )}
               </div>
-              
-              <div className="flex flex-col hidden md:flex justify-center overflow-hidden">
-                <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none mb-1">
-                  {profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante'}
-                </span>
-                <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
-                  {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'aluno') ? 'Aluno' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante'}
-                </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
+      <div className="px-4 mt-auto pt-8 border-t border-white/5">
+        <Link href="/app/perfil" onClick={handleProfileClick}>
+          <div id="tour-perfil" className="flex items-center gap-3 p-3 min-h-[52px] text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
+                {isVisitor ? (
+                  <UserCircle size={24} className="text-zinc-500 opacity-60" />
+                ) : user?.photoURL || profile?.photoURL ? (
+                  <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
+                    {profile?.displayName?.slice(0, 2).toUpperCase() || user?.displayName?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase() || <User size={18} className="text-zinc-500" />}
+                  </span>
+                )}
               </div>
+              {/* Online Status */}
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#050505] rounded-full"></div>
             </div>
-          </Link>
-        </div>
-
+            
+            <div className="flex flex-col justify-center overflow-hidden">
+              <span className="text-[12px] font-semibold text-white truncate uppercase tracking-tight leading-none mb-1">
+                {profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante'}
+              </span>
+              <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
+                {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'aluno') ? 'Aluno' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante'}
+              </span>
+            </div>
+          </div>
+        </Link>
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ===================== DESKTOP SIDEBAR (≥768px) ===================== */}
+      <aside className="hidden md:block fixed left-0 top-0 h-screen w-64 bg-[#050505] border-r border-white/5 z-50 transition-all duration-300">
+        {sidebarContent}
+      </aside>
+
+      {/* ===================== MOBILE DRAWER (<768px) ===================== */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={onClose}
+              className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
+            />
+            
+            {/* Drawer panel */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="md:hidden fixed left-0 top-0 h-screen w-[80vw] max-w-[320px] bg-[#050505] border-r border-white/5 z-[100] overflow-y-auto overscroll-contain"
+            >
+              {sidebarContent}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* MENTOR MODAL OVERLAY - BLINDAGEM VERCEL & PREMIUM STYLE */}
       <AnimatePresence>
         {isMentorOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/80 backdrop-blur-md">
             {/* Background Click to Close */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -182,7 +240,7 @@ const Sidebar = () => {
           </div>
         )}
       </AnimatePresence>
-    </aside>
+    </>
   );
 };
 

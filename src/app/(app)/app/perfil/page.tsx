@@ -132,7 +132,7 @@ function ProfileContent() {
   const PatenteIcon = ICON_MAP[realPatenteName === 'Semente ITR' ? 'Sprout' : realPatenteName === 'Broto de Fluência' ? 'Leaf' : realPatenteName === 'Raiz Forte' ? 'Activity' : realPatenteName === 'Arbusto de Diálogo' ? 'Shrub' : 'Trees'] || Trophy;
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-6">
+    <div className="max-w-5xl mx-auto py-4 md:py-12 px-2 md:px-6">
 
 
       {/* 2. SEÇÃO DE PERFIL */}

@@ -351,29 +351,29 @@ export default function FlashcardsPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#050505] p-8 md:px-12 md:pb-12 md:pt-0 font-outfit">
+    <div className="min-h-screen bg-[#050505] p-3 md:px-12 md:pb-12 md:pt-0 font-outfit">
       <div className="max-w-7xl mx-auto">
         
         {/* HEADER AREA */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 px-6">
+        <header className="flex flex-col gap-4 md:gap-8 mb-6 md:mb-16 px-1 md:px-6">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500 mb-4 block">Módulo de Retenção</span>
-            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-emerald-500 mb-3 md:mb-4 block">Módulo de Retenção</span>
+            <h1 className="text-xl md:text-4xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
               Flashcards
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 md:gap-4 w-full md:w-auto">
             <button 
               onClick={() => executeProtectedAction(() => router.push('/app/vocabulary'))}
-              className="flex items-center gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-6 py-3 rounded-lg font-black text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-3 md:px-6 py-3 rounded-lg font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.1)] min-h-[48px]"
             >
               <Rocket size={16} strokeWidth={3} />
               Sprint 600 palavras
             </button>
             <button 
               onClick={() => executeProtectedAction(() => setIsCardModalOpen(true))}
-              className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-white text-black px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95 min-h-[48px]"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Card
@@ -384,7 +384,7 @@ export default function FlashcardsPage() {
                 setShowErrors(false);
                 setIsModalOpen(true);
               })}
-              className="flex items-center gap-3 bg-transparent border-2 border-white/10 text-white px-6 py-3 rounded-none font-black text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-white/10 text-white px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 transition-colors active:scale-95 min-h-[48px]"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Deck
@@ -394,7 +394,7 @@ export default function FlashcardsPage() {
         </header>
 
         {/* MAIN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
           
           {/* LEFT COLUMN: ACTION BOARDS */}
           <div className="lg:col-span-4 space-y-12">
@@ -402,7 +402,7 @@ export default function FlashcardsPage() {
             {/* STUDY ACTION CARD */}
             <motion.div 
               whileHover={{ y: -5 }}
-              className="relative p-8 rounded-none border-2 border-emerald-500 bg-white/[0.02] backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] group cursor-pointer"
+              className="relative p-5 md:p-8 rounded-none border-2 border-emerald-500 bg-white/[0.02] backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] group cursor-pointer"
             >
               <div className="absolute top-0 right-0 p-4 opacity-20">
                 <Zap size={40} className="text-emerald-500" />
@@ -473,7 +473,7 @@ export default function FlashcardsPage() {
             </div>
 
             {/* --- ANCORA: MEUS DECKS --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pb-20">
               {decks.map((deck) => {
                 const deckCards = cards.filter(c => c.deck === deck.name || c.deck === deck.id);
                 return (
@@ -620,10 +620,10 @@ export default function FlashcardsPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="fixed inset-0 z-[60] bg-[#050505] p-8 md:p-12 overflow-y-auto"
+            className="fixed inset-0 z-[60] bg-[#050505] p-4 md:p-12 overflow-y-auto"
           >
             <div className="max-w-5xl mx-auto">
-              <header className="flex flex-row items-center justify-between gap-12 mb-16 px-4">
+              <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-12 mb-8 md:mb-16 px-2 md:px-4">
                 <div className="flex items-center gap-6">
                   <button 
                     onClick={() => {
@@ -646,7 +646,7 @@ export default function FlashcardsPage() {
                   >
                     <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-1 block">Gerenciamento de Baralho</span>
                     <h2 
-                      className="text-4xl md:text-6xl font-black text-white tracking-normal whitespace-pre-wrap leading-tight"
+                      className="text-2xl md:text-4xl lg:text-6xl font-black text-white tracking-normal whitespace-pre-wrap leading-tight"
                       style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
                     >
                       {viewingDeck.name}
@@ -654,7 +654,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
                 
-                    <div className="flex flex-col md:flex-row items-center gap-4 flex-1 max-w-2xl justify-end">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto md:flex-1 md:max-w-2xl md:justify-end">
                       {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
                         <button 
                           onClick={() => {
@@ -689,7 +689,7 @@ export default function FlashcardsPage() {
                 {cards
                   .filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id)
                   .map(card => (
-                    <div key={card.id} className="px-8 py-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all grid grid-cols-[1fr_1fr_180px_110px] gap-8 items-center group">
+                    <div key={card.id} className="px-4 md:px-8 py-4 md:py-6 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:grid md:grid-cols-[1fr_1fr_180px_110px] gap-3 md:gap-8 items-start md:items-center group">
                       {/* COLUNA 1: INGLÊS */}
                       <div className="min-w-0">
                         <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-2 block">INGLÊS</span>

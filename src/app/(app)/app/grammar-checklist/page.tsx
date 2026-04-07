@@ -115,9 +115,9 @@ export default function GrammarChecklistPage() {
       {/* Efeito de Brilho de Fundo */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-      <div className="max-w-4xl mx-auto px-6 pt-12">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8 md:pt-12">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-8 md:mb-12">
           <Link href="/app" className="group flex items-center gap-2 text-zinc-500 hover:text-emerald-500 transition-colors">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Arsenal</span>
@@ -133,11 +133,11 @@ export default function GrammarChecklistPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tighter uppercase italic leading-[0.9]">
+          <h1 className="text-3xl md:text-5xl lg:text-7xl font-black mb-4 tracking-tighter uppercase italic leading-[0.9]">
             Mapa da Mina:<br />
             <span className="text-emerald-500">Gramática ITR</span>
           </h1>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.3em] mb-16">
+          <p className="text-zinc-500 text-xs md:text-sm font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-10 md:mb-16">
             Estrutura Completa • {completedCount}/{totalItems} Tópicos Dominados
           </p>
         </motion.div>
@@ -147,12 +147,12 @@ export default function GrammarChecklistPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="relative z-10 mb-20 p-8 bg-black/60 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+          className="relative z-10 mb-12 md:mb-20 p-4 md:p-8 bg-black/60 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
         >
-          <div className="flex justify-between items-end mb-6">
+          <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 md:mb-6 gap-3">
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em] mb-2">Maestria Gramatical</span>
-              <span className="text-5xl font-black tracking-tighter tabular-nums">{progressPercentage}%</span>
+              <span className="text-3xl md:text-5xl font-black tracking-tighter tabular-nums">{progressPercentage}%</span>
             </div>
             {progressPercentage === 100 ? (
               <motion.div 
@@ -181,7 +181,7 @@ export default function GrammarChecklistPage() {
         </motion.div>
 
         {/* SEÇÕES POR NÍVEL */}
-        <div className="space-y-24">
+        <div className="space-y-16 md:space-y-24">
           {(Object.entries(GRAMMAR_DATA) as [keyof typeof GRAMMAR_DATA, string[]][]).map(([level, items], idx) => {
             const colors = {
               Iniciante: { text: 'text-emerald-500', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', dot: 'bg-emerald-500', hoverBorder: 'hover:border-emerald-500/50' },
@@ -198,9 +198,9 @@ export default function GrammarChecklistPage() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <div className="flex items-center gap-6 mb-10">
-                  <div className={`w-4 h-4 rounded-none ${colors.dot} shadow-[0_0_20px_currentColor] rotate-45`} />
-                  <h2 className={`text-3xl font-black uppercase tracking-tighter ${colors.text}`}>
+                <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-10">
+                  <div className={`w-3 h-3 md:w-4 md:h-4 rounded-none ${colors.dot} shadow-[0_0_20px_currentColor] rotate-45`} />
+                  <h2 className={`text-xl md:text-3xl font-black uppercase tracking-tighter ${colors.text}`}>
                     {level}
                   </h2>
                   <div className="h-[2px] flex-1 bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
@@ -211,7 +211,7 @@ export default function GrammarChecklistPage() {
                     <button
                       key={item}
                       onClick={() => toggleItem(item)}
-                      className={`group relative flex items-center p-6 border-2 transition-all duration-500 text-left ${
+                      className={`group relative flex items-center p-4 md:p-6 border-2 transition-all duration-500 text-left ${
                         completedItems[item] 
                         ? `${colors.bg} ${colors.border} opacity-80 scale-[0.98]` 
                         : `bg-white/[0.02] border-white/5 ${colors.hoverBorder} hover:bg-white/[0.04] scale-100`
@@ -260,7 +260,7 @@ export default function GrammarChecklistPage() {
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="mt-32 p-16 border-2 border-white/5 bg-white/[0.01] flex flex-col items-center text-center relative overflow-hidden"
+          className="mt-16 md:mt-32 p-8 md:p-16 border-2 border-white/5 bg-white/[0.01] flex flex-col items-center text-center relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-[1px] bg-emerald-500/20 shadow-[0_0_15px_emerald-500]" />
           <BookOpen size={48} className="text-zinc-800 mb-8" />

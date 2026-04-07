@@ -192,9 +192,9 @@ export default function MirrorTriggersPage() {
     <div className="min-h-screen bg-black text-white font-outfit pb-40 relative">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,#062417_0%,#000000_70%)] -z-10" />
 
-      <div className="max-w-5xl mx-auto px-6 pt-12">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 pt-8 md:pt-12">
         {/* HEADER NAVIGATION */}
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center justify-between mb-8 md:mb-16">
           <Link href="/app" className="group flex items-center gap-2 text-zinc-500 hover:text-emerald-400 transition-colors">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Arsenal ITR</span>
@@ -206,11 +206,11 @@ export default function MirrorTriggersPage() {
         </div>
 
         {/* TITLE & PROGRESS */}
-        <div className="mb-20">
+        <div className="mb-12 md:mb-20">
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-[0.8] mb-8"
+            className="text-3xl md:text-5xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.8] mb-6 md:mb-8"
           >
             50 Gatilhos<br/>
             <span className="text-emerald-500">Lendários</span>
@@ -220,7 +220,7 @@ export default function MirrorTriggersPage() {
             <div className="flex-1 max-w-xl">
               <div className="flex justify-between items-end mb-4">
                 <span className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.4em]">Domínio do Espelho</span>
-                <span className="text-4xl font-black tracking-tighter tabular-nums">{count}<span className="text-zinc-700 mx-1">/</span>50</span>
+                <span className="text-2xl md:text-4xl font-black tracking-tighter tabular-nums">{count}<span className="text-zinc-700 mx-1">/</span>50</span>
               </div>
               <div className="w-full h-1 bg-zinc-900 overflow-hidden relative">
                 <motion.div 
@@ -237,7 +237,7 @@ export default function MirrorTriggersPage() {
         </div>
 
         {/* CATEGORIES GRID */}
-        <div className="space-y-16">
+        <div className="space-y-10 md:space-y-16">
           {MIRROR_CATEGORIES.map((cat, catIdx) => (
             <motion.div 
               key={cat.title}
@@ -246,8 +246,8 @@ export default function MirrorTriggersPage() {
               viewport={{ once: true, margin: "-50px" }}
               className="relative"
             >
-              <div className="flex items-center gap-6 mb-8">
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-200">{cat.title}</h2>
+              <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
+                <h2 className="text-lg md:text-2xl font-black uppercase tracking-tighter text-zinc-200">{cat.title}</h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-emerald-500/20 to-transparent" />
               </div>
 
@@ -262,8 +262,8 @@ export default function MirrorTriggersPage() {
                       layout
                       className={`relative overflow-hidden cursor-pointer transition-all duration-500 group border-2 ${
                         isExpanded 
-                        ? 'border-emerald-500 bg-emerald-950/20 p-10 z-20' 
-                        : 'border-white/5 bg-white/[0.02] hover:border-emerald-500/30 p-6'
+                        ? 'border-emerald-500 bg-emerald-950/20 p-6 md:p-10 z-20' 
+                        : 'border-white/5 bg-white/[0.02] hover:border-emerald-500/30 p-4 md:p-6'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-6">
@@ -272,7 +272,7 @@ export default function MirrorTriggersPage() {
                             {String(itemIdx + 1).padStart(2, '0')}
                           </span>
                           <span className={`font-black uppercase tracking-tight transition-all duration-500 ${
-                            isExpanded ? 'text-4xl text-white' : 'text-sm text-zinc-400 group-hover:text-zinc-200'
+                            isExpanded ? 'text-xl md:text-4xl text-white' : 'text-sm text-zinc-400 group-hover:text-zinc-200'
                           } ${completed[id] ? 'line-through opacity-30 text-zinc-600' : ''}`}>
                             {item}
                           </span>
@@ -325,7 +325,7 @@ export default function MirrorTriggersPage() {
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="mt-40 p-20 border-2 border-dashed border-zinc-900 bg-white/[0.01] flex flex-col items-center text-center relative"
+          className="mt-20 md:mt-40 p-10 md:p-20 border-2 border-dashed border-zinc-900 bg-white/[0.01] flex flex-col items-center text-center relative"
         >
           <div className="absolute top-0 left-0 w-full h-[1px] bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]" />
           <Target size={48} className="text-zinc-900 mb-8" />

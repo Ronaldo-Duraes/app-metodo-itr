@@ -321,7 +321,7 @@ export interface UserStats {
   displayName?: string;
   name?: string;
   photoURL?: string;
-  role: 'usuario' | 'aluno' | 'admin';
+  role: 'usuario' | 'aluno' | 'admin' | 'visitante';
   masteredCount: number;
   totalWordsAdded: number;
   unlockedRewards: string[]; 

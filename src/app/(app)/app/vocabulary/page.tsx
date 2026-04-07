@@ -121,9 +121,9 @@ export default function VocabularyPage() {
   return (
     <div className="min-h-screen bg-transparent pb-20">
       {/* Header Fixo de Progresso */}
-      <div className="sticky top-0 z-30 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 py-6 px-4 md:px-8">
+      <div className="sticky top-0 z-30 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 py-4 md:py-6 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-col gap-4 md:gap-6 md:flex-row md:items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/app">
                 <button className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all">
@@ -131,8 +131,8 @@ export default function VocabularyPage() {
                 </button>
               </Link>
               <div>
-                <h1 className="text-2xl font-black text-white uppercase tracking-tighter">Vocabulários Essenciais</h1>
-                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Maestria de 600 Palavras</p>
+                <h1 className="text-lg md:text-2xl font-black text-white uppercase tracking-tighter">Vocabulários Essenciais</h1>
+                <p className="text-[9px] md:text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] md:tracking-[0.4em]">Maestria de 600 Palavras</p>
               </div>
             </div>
 
@@ -153,7 +153,7 @@ export default function VocabularyPage() {
             <button 
               onClick={handleGenerateCards}
               disabled={isGenerating || sprintMemorized === sprintTotal}
-              className={`flex items-center gap-3 px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+              className={`w-full md:w-auto flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all min-h-[44px] ${
                 isGenerating || sprintMemorized === sprintTotal
                   ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
                   : 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.3)]'
@@ -166,7 +166,7 @@ export default function VocabularyPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 md:mt-12">
         {/* Sprint Selector with drag-to-scroll */}
         <div 
           ref={scrollRef}
@@ -195,9 +195,9 @@ export default function VocabularyPage() {
           })}
         </div>
 
-        <div className="mb-12 flex items-center justify-between border-l-4 border-emerald-500/30 pl-6">
+        <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-emerald-500/30 pl-4 md:pl-6">
           <div>
-            <h2 className="text-xl font-black text-white uppercase tracking-tighter">Sprint {activeSprint}</h2>
+            <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-tighter">Sprint {activeSprint}</h2>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
               Foco: {activeSprint === 1 ? 'Verbos e Conectivos Básicos' : activeSprint === 2 ? 'Objetos do Dia a Dia' : 'Expansão de Vocabulário'}
             </p>

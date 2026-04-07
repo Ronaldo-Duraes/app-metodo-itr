@@ -60,9 +60,9 @@ export default function PromptPage() {
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-500/5 blur-[120px] rounded-full -z-5" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-emerald-500/5 blur-[100px] rounded-full -z-5" />
 
-      <div className="max-w-4xl mx-auto px-6 pt-12">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-8 md:pt-12">
         {/* HEADER NAVIGATION */}
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex items-center justify-between mb-8 md:mb-16">
           <Link href="/app" className="group flex items-center gap-2 text-zinc-500 hover:text-emerald-400 transition-colors">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Arsenal ITR</span>
@@ -78,7 +78,7 @@ export default function PromptPage() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic leading-[0.9] mb-6"
+            className="text-2xl md:text-4xl lg:text-6xl font-black tracking-tighter uppercase italic leading-[0.9] mb-6"
           >
             Copiloto ITR: <br />
             <span className="text-emerald-500 underline decoration-zinc-800 underline-offset-[8px]">Seu Mentor 24h</span>
@@ -140,7 +140,7 @@ export default function PromptPage() {
           </div>
 
           {/* CODE / TEXT AREA */}
-          <div className="p-8 md:p-12 max-h-[600px] overflow-y-auto custom-scrollbar bg-black/40">
+          <div className="p-4 md:p-8 lg:p-12 max-h-[600px] overflow-y-auto custom-scrollbar bg-black/40">
             <pre className="whitespace-pre-wrap text-zinc-300 font-medium text-sm md:text-base leading-relaxed font-mono">
               {ITR_PROMPT}
             </pre>

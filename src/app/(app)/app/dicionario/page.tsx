@@ -102,7 +102,7 @@ export default function DicionarioPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-12 select-none">
+    <div className="min-h-screen bg-black text-white p-4 md:p-8 lg:p-12 select-none">
       <style jsx global>{`
         * {
           -webkit-tap-highlight-color: transparent;
@@ -113,12 +113,12 @@ export default function DicionarioPage() {
         }
       `}</style>
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 border-b border-white/5 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 mb-8 md:mb-16 border-b border-white/5 pb-8 md:pb-12">
         <div>
           <span className="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em] mb-4 block">
             Repositório de Inteligência
           </span>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
+          <h1 className="text-2xl md:text-5xl lg:text-7xl font-black tracking-tighter uppercase leading-none italic">
             Dicionário <span className="text-emerald-500">Pessoal</span>
           </h1>
           <button 
@@ -134,22 +134,22 @@ export default function DicionarioPage() {
           </button>
         </div>
         
-        <div className="flex flex-col gap-4 min-w-[240px]">
+        <div className="flex flex-row md:flex-col gap-3 md:gap-4 min-w-0 md:min-w-[240px]">
           {/* TOTAL VOCABULÁRIO */}
-          <div className="bg-zinc-900/50 border border-white/10 p-6 flex flex-col items-center justify-center">
+          <div className="bg-zinc-900/50 border border-white/10 p-4 md:p-6 flex flex-col items-center justify-center flex-1">
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Total de Vocabulário</span>
-            <div className="text-4xl font-black text-white leading-none">
+            <div className="text-2xl md:text-4xl font-black text-white leading-none">
               {dictionary.length} <span className="text-sm text-emerald-500 uppercase tracking-tighter">palavras</span>
             </div>
           </div>
 
           {/* MEMORIZADOS (LENDÁRIO) */}
-          <div className="bg-zinc-900/80 border border-yellow-500/30 p-6 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(234,179,8,0.05)] relative overflow-hidden group">
+          <div className="bg-zinc-900/80 border border-yellow-500/30 p-4 md:p-6 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(234,179,8,0.05)] relative overflow-hidden group flex-1">
             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
               <Gem size={32} className="text-yellow-500" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-yellow-600 mb-2">Memorizados</span>
-            <div className="text-4xl font-black text-yellow-500 leading-none drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+            <div className="text-2xl md:text-4xl font-black text-yellow-500 leading-none drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">
               {dictionary.filter(item => item.isMemorized).length} <span className="text-sm text-yellow-700 uppercase tracking-tighter italic">mastery</span>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function DicionarioPage() {
       </div>
 
       {/* CONTROLS */}
-      <div className="flex flex-col md:flex-row gap-4 mb-12">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={18} />
           <input 
@@ -387,7 +387,7 @@ export default function DicionarioPage() {
             initial={{ y: 100, x: '-50%', opacity: 0 }}
             animate={{ y: 0, x: '-50%', opacity: 1 }}
             exit={{ y: 100, x: '-50%', opacity: 0 }}
-            className="fixed bottom-12 left-1/2 z-[100] bg-zinc-950 border-2 border-emerald-500/30 px-8 py-5 flex items-center gap-10 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+            className="fixed bottom-6 left-1/2 z-[100] bg-zinc-950 border-2 border-emerald-500/30 px-4 md:px-8 py-4 md:py-5 flex flex-col sm:flex-row items-center gap-4 md:gap-10 shadow-[0_0_50px_rgba(0,0,0,0.8)] w-[calc(100%-2rem)] sm:w-auto"
           >
             <div className="flex items-center gap-4 border-r border-white/10 pr-10">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -527,7 +527,7 @@ export default function DicionarioPage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-10 right-10 z-[250] bg-emerald-500 text-black px-8 py-4 font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3"
+            className="fixed bottom-6 left-1/2 md:right-10 z-[250] bg-emerald-500 text-black px-6 py-3 md:px-8 md:py-4 font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3 -translate-x-1/2 md:translate-x-0 md:left-auto w-[calc(100%-3rem)] md:w-auto"
           >
             <Check size={18} strokeWidth={3} />
             Progresso resetado com sucesso

@@ -30,12 +30,12 @@ export default function AulasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-outfit pb-24">
+    <div className="min-h-screen bg-[#050505] text-white font-outfit pb-20 md:pb-24">
 
-      <div className="max-w-7xl mx-auto px-6 pt-12">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-12">
         
         {/* HEADER AREA */}
-        <header className="mb-16">
+        <header className="mb-6 md:mb-16">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -48,22 +48,22 @@ export default function AulasPage() {
               <span className="text-[10px] font-black uppercase tracking-[0.6em] text-amber-500">Área de Membros ITR</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-[0.9]">
-              Domine o Método ITR <br />
+            <h1 className="text-xl md:text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-[0.9]">
+              Domine o Método ITR <br className="hidden md:block" />
               <span className="text-emerald-500">Seu Arsenal de Conhecimento</span>
             </h1>
           </motion.div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-10">
           
           {/* MAIN PLAYER SECTION (LEFT) */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-3 md:space-y-8">
             <motion.div 
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="relative aspect-video group cursor-pointer overflow-hidden border-2 border-white/5 bg-[#050505]"
+              className="relative aspect-video group cursor-pointer overflow-hidden border border-white/5 md:border-2 bg-[#050505] rounded-none"
               onClick={handleRedirect}
             >
               {/* Fake Video Thumb */}
@@ -80,9 +80,9 @@ export default function AulasPage() {
                 <motion.div 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.4)] group-hover:bg-emerald-400 transition-colors"
+                  className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.4)] group-hover:bg-emerald-400 transition-colors"
                 >
-                  <Play size={40} fill="black" className="text-black ml-2" />
+                  <Play size={28} className="text-black ml-1 md:ml-2 md:!w-10 md:!h-10" fill="black" />
                 </motion.div>
                 <div className="mt-6 text-[10px] font-black uppercase tracking-[0.4em] text-white opacity-60 group-hover:opacity-100 transition-opacity">
                   Continuar Aula Anterior
@@ -90,9 +90,9 @@ export default function AulasPage() {
               </div>
 
               {/* Video Info Footer */}
-              <div className="absolute bottom-0 left-0 w-full p-8 z-20 flex justify-between items-end">
+              <div className="absolute bottom-0 left-0 w-full p-3 md:p-8 z-20 flex justify-between items-end">
                 <div>
-                  <h3 className="text-2xl font-black uppercase tracking-tight mb-2">Introdução ao ITR</h3>
+                  <h3 className="text-sm md:text-2xl font-black uppercase tracking-tight mb-1 md:mb-2">Introdução ao ITR</h3>
                   <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span>Módulo 1</span>
                     <span>•</span>
@@ -111,8 +111,8 @@ export default function AulasPage() {
             </motion.div>
 
             {/* DESCRIPTION & CTA */}
-            <div className="p-10 border border-white/5 bg-white/[0.02] backdrop-blur-xl">
-               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="p-4 md:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-xl">
+               <div className="flex flex-col gap-4 md:gap-8 md:flex-row md:items-center justify-between">
                  <div className="max-w-xl">
                    <h4 className="text-xl font-black uppercase tracking-tight mb-4 flex items-center gap-3 text-emerald-500">
                      <ShieldCheck size={20} />
@@ -127,7 +127,7 @@ export default function AulasPage() {
                  
                  <button 
                    onClick={handleRedirect}
-                   className="flex-shrink-0 px-10 py-5 bg-white text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-500 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group"
+                   className="flex-shrink-0 w-full md:w-auto px-8 md:px-10 py-4 md:py-5 bg-white text-black font-black text-xs tracking-[0.2em] uppercase hover:bg-emerald-500 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-4 group min-h-[48px]"
                  >
                    Assistir no Cakto
                    <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -137,7 +137,7 @@ export default function AulasPage() {
           </div>
 
           {/* MODULE LIST SECTION (RIGHT) */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-3 md:space-y-6">
             <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 mb-8 pb-4 border-b border-white/5">
               Grade de Módulos
             </h3>
@@ -148,7 +148,7 @@ export default function AulasPage() {
                   key={mod.id}
                   whileHover={mod.status !== 'locked' ? { x: 10 } : {}}
                   onClick={handleRedirect}
-                  className={`p-6 border transition-all cursor-pointer relative group ${
+                  className={`p-3 md:p-6 border transition-all cursor-pointer relative group min-h-[48px] ${
                     mod.status === 'locked' 
                       ? 'border-white/5 bg-transparent opacity-40 grayscale pointer-events-none' 
                       : mod.status === 'current'
@@ -186,7 +186,7 @@ export default function AulasPage() {
             </div>
 
             {/* SIDEBAR FOOTER */}
-            <div className="mt-12 p-8 border border-white/5 bg-white/[0.01] text-center">
+            <div className="mt-8 md:mt-12 p-5 md:p-8 border border-white/5 bg-white/[0.01] text-center">
                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-relaxed">
                  O progresso nas aulas é sincronizado automaticamente com sua área de membros oficial.
                </p>
