@@ -2,8 +2,21 @@
 
 import { motion } from 'framer-motion';
 import ActivitiesRoadmap from '@/components/roadmap/ActivitiesRoadmap';
+import { useState, useEffect } from 'react';
 
 export default function ActivitiesPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      // Intentionally delay the heavy roadmap rendering on mobile
+      const timer = setTimeout(() => setIsLoaded(true), 600);
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoaded(true);
+    }
+  }, []);
   return (
     <div className="relative min-h-screen flex flex-col items-center">
       {/* BANNER STICKY DE CONSTRUÇÃO */}
@@ -65,7 +78,16 @@ export default function ActivitiesPage() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mt-20"
           >
-            <ActivitiesRoadmap />
+            {isLoaded ? (
+              <ActivitiesRoadmap />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 gap-8 opacity-40 animate-pulse">
+                <div className="w-20 h-20 bg-white/10 rounded-full" />
+                <div className="w-1/2 max-w-sm h-6 bg-white/10 rounded-md" />
+                <div className="w-64 h-4 bg-white/5 rounded-md" />
+                <div className="text-[10px] uppercase font-black tracking-[0.3em] text-emerald-500/50 mt-4">Priozirando Interface...</div>
+              </div>
+            )}
           </motion.div>
 
           {/* Footer / Nota Sutil no Final da Jornada */}

@@ -97,6 +97,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   // ─────────────────────────────────────────────────────────────
   const MobileProfileHeader = () => (
     <div 
+      id="mobile-tour-perfil"
       onClick={handleProfileClick}
       className="mx-4 mb-6 p-4 bg-white/[0.02] border border-white/5 cursor-pointer group hover:border-emerald-500/20 transition-all relative overflow-hidden"
     >
@@ -318,7 +319,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
 
           return (
             <Link key={item.path} href={item.path} onClick={handleNavClick}>
-              <div id={item.id} className={`
+              <div id={item.id ? `mobile-${item.id}` : undefined} className={`
                 group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer active:bg-white/[0.04]
                 ${isActive 
                   ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 

@@ -220,7 +220,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
         )}
       </AnimatePresence>
 
-      <WelcomeTour />
+      <WelcomeTour isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
     </>
   );
 }

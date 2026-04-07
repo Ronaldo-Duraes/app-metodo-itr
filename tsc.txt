@@ -1,0 +1,10 @@
+﻿src/components/WelcomeTour.tsx(40,11): error TS2322: Type '"center"' is not assignable to type 'Side | undefined'.
+src/components/WelcomeTour.tsx(52,11): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Popover'.
+src/components/WelcomeTour.tsx(62,11): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Popover'.
+src/components/WelcomeTour.tsx(72,11): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Popover'.
+src/components/WelcomeTour.tsx(82,11): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Popover'.
+src/components/WelcomeTour.tsx(92,11): error TS2353: Object literal may only specify known properties, and 'className' does not exist in type 'Popover'.
+src/components/WelcomeTour.tsx(98,48): error TS2339: Property 'className' does not exist on type 'Popover'.
+src/components/WelcomeTour.tsx(133,28): error TS18048: 'state.activeIndex' is possibly 'undefined'.
+src/components/WelcomeTour.tsx(141,28): error TS18048: 'state.activeIndex' is possibly 'undefined'.
+src/components/WelcomeTour.tsx(158,40): error TS2339: Property 'className' does not exist on type 'Popover'.

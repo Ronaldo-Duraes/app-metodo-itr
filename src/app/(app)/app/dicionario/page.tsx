@@ -156,8 +156,8 @@ export default function DicionarioPage() {
         </div>
       </div>
 
-      {/* CONTROLS (STICKY ON MOBILE) */}
-      <div className="sticky top-[72px] md:top-0 z-40 bg-black/95 md:bg-transparent backdrop-blur-md pb-4 pt-2 md:pt-0 border-b border-white/5 md:border-0 mb-6 md:mb-12 flex flex-col md:flex-row gap-3 md:gap-4 -mx-4 px-4 md:mx-0 md:px-0">
+      {/* CONTROLS (FIXED ON MOBILE, RELATIVE ON DESKTOP) */}
+      <div className="fixed md:relative top-[72px] md:top-auto left-0 md:left-auto right-0 md:right-auto z-40 bg-black/95 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none border-b border-emerald-500/20 md:border-0 px-4 py-4 md:p-0 flex flex-col md:flex-row gap-3 md:gap-4 md:mb-12 shadow-[0_10px_30px_rgba(0,0,0,0.8)] md:shadow-none">
         <div className="relative flex-1 group w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={20} />
           <input 
@@ -181,23 +181,25 @@ export default function DicionarioPage() {
         </button>
       </div>
 
-      {/* LIST HEADERS (DESKTOP) */}
-      <div className="hidden md:grid grid-cols-[50px_1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
-        <div className="flex justify-center">
-          <div 
-            onClick={() => {
-              if (selectedIds.length === filteredWords.length) setSelectedIds([]);
-              else setSelectedIds(filteredWords.map(w => w.id));
-            }}
-            className={`w-4 h-4 border transition-all cursor-pointer flex items-center justify-center ${selectedIds.length === filteredWords.length && filteredWords.length > 0 ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 hover:border-white/30'}`}
-          >
-             {selectedIds.length === filteredWords.length && filteredWords.length > 0 && <Check size={10} className="text-black" strokeWidth={4} />}
+      {/* COMPENSATORY PADDING FOR MOBILE FIXED CONTROLS */}
+      <div className="pt-[140px] md:pt-0">
+        {/* LIST HEADERS (DESKTOP) */}
+        <div className="hidden md:grid grid-cols-[50px_1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
+          <div className="flex justify-center">
+            <div 
+              onClick={() => {
+                if (selectedIds.length === filteredWords.length) setSelectedIds([]);
+                else setSelectedIds(filteredWords.map(w => w.id));
+              }}
+              className={`w-4 h-4 border transition-all cursor-pointer flex items-center justify-center ${selectedIds.length === filteredWords.length && filteredWords.length > 0 ? 'bg-emerald-500 border-emerald-500' : 'border-white/10 hover:border-white/30'}`}
+            >
+               {selectedIds.length === filteredWords.length && filteredWords.length > 0 && <Check size={10} className="text-black" strokeWidth={4} />}
+            </div>
           </div>
+          <div>Português</div>
+          <div>Inglês</div>
+          <div className="text-right">Status</div>
         </div>
-        <div>Português</div>
-        <div>Inglês</div>
-        <div className="text-right">Status</div>
-      </div>
 
       {/* LIST ROWS */}
       <div className="flex flex-col gap-1 relative z-0">
@@ -319,6 +321,7 @@ export default function DicionarioPage() {
             <p className="text-sm font-bold uppercase tracking-widest">Repositório vazio ou nenhum resultado para a busca.</p>
           </div>
         )}
+      </div>
       </div>
 
       {/* EDIT MODAL */}

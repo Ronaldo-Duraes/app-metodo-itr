@@ -1,162 +1,219 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-// @ts-ignore
-import { Joyride, STATUS } from 'react-joyride';
+import React, { useEffect, useState, useRef } from 'react';
+import { driver, DriveStep } from 'driver.js';
+import 'driver.js/dist/driver.css';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firebase';
 
-const STEPS: any[] = [
-  {
-    target: 'body',
-    content: (
-      <div className="font-outfit text-white">
-        <h2 className="text-xl font-black text-emerald-500 uppercase mb-2">Bem-vindo(a) ao ITR!</h2>
-        <p className="text-sm font-semibold text-zinc-300">
-          Você já está com acesso de aluno ativo. Vamos fazer um tour rápido para você dominar o portal.
-        </p>
-      </div>
-    ),
-    placement: 'center',
-    disableBeacon: true,
-  },
-  {
-    target: '#tour-aulas',
-    content: 'Acesse suas aulas em vídeo com o método completo do Método ITR.',
-    placement: 'right',
-    disableBeacon: true,
-  },
-  {
-    target: '#tour-atividades',
-    content: 'Desafios e tarefas diárias que você deve seguir para atingir a fluência.',
-    placement: 'right',
-  },
-  {
-    target: '#tour-flashcards',
-    content: 'Sistema de Revisão Espaçada (SRS). Memorize palavras para sempre.',
-    placement: 'right',
-  },
-  {
-    target: '#tour-dicionario',
-    content: 'Guarde novas palavras, expressões e sentences das suas sessões de mining.',
-    placement: 'right',
-  },
-  {
-    target: '#tour-perfil',
-    content: 'Acompanhe seu progresso, defina suas metas e gerencie seus dados.',
-    placement: 'top',
-  }
-];
+interface Props {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (v: boolean) => void;
+}
 
-export default function WelcomeTour() {
+export default function WelcomeTour({ isSidebarOpen, setIsSidebarOpen }: Props) {
   const { user, profile } = useAuth();
-  const [run, setRun] = useState(false);
+  const [shouldRun, setShouldRun] = useState(false);
+  const driverRef = useRef<any>(null);
 
   useEffect(() => {
-    // Only run if the user's profile specifies firstLogin: true
     if (profile && profile.firstLogin === true) {
-      const isMobile = window.innerWidth < 768;
-      
-      // On mobile, elements in the sidebar may be hidden.
-      // So we might skip the tour on mobile, or just run it and let Joyride handle missing elements.
-      // Let's run it after a short delay for smooth rendering.
+      // Delay initial render slightly to allow React DOM stability
       const timer = setTimeout(() => {
-        // If mobile, we should probably only show the welcome modal since the sidebar is hidden.
-        if (isMobile) {
-          // We can dynamically shrink STEPS for mobile if we want, or rely on Joyride skipping missing targets.
-        }
-        setRun(true);
-      }, 2500);
-
+        setShouldRun(true);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [profile]);
 
-  const handleJoyrideCallback = async (data: any) => {
-    const { status, action, index } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+  useEffect(() => {
+    if (!shouldRun) return;
 
-    // Se o target não foi encontrado, react-joyride emite status="error".
-    // Isso acontece muito no mobile porque a sidebar tá escondida (hidden md:block).
-    // Para resolver sem travar o app, deixamos o Joyride pular o elemento ou finalizar.
+    const isMobile = window.innerWidth < 768;
 
-    if (finishedStatuses.includes(status) || action === 'close') {
-      setRun(false);
-      
-      if (user?.uid) {
-        try {
-          await updateUserProfile(user.uid, { firstLogin: false } as any);
-        } catch (error) {
-          console.error("Erro ao atualizar firstLogin no Firestore:", error);
-        }
+    const steps: any[] = [
+      {
+        element: 'body',
+        popover: {
+          title: 'Bem-vindo(a) ao ITR!',
+          description: 'Você acaba de ganhar acesso de aluno. Vamos a um rápido tour para você conhecer sua nova área de elite.',
+          side: 'bottom',
+          align: 'center',
+        },
+        _isSidebarStep: false
+      },
+      {
+        element: isMobile ? '#mobile-tour-aulas' : '#tour-aulas',
+        popover: {
+          title: 'Portal de Aulas',
+          description: 'Acesse todo o conteúdo em vídeo e as lições completas por aqui.',
+          side: 'right',
+          align: 'start',
+        },
+        _isSidebarStep: true
+      },
+      {
+        element: isMobile ? '#mobile-tour-atividades' : '#tour-atividades',
+        popover: {
+          title: 'Atividades e Desafios',
+          description: 'Aplicações práticas para você exercitar sua fluência em cenários reais.',
+          side: 'right',
+          align: 'start',
+        },
+        _isSidebarStep: true
+      },
+      {
+        element: isMobile ? '#mobile-tour-flashcards' : '#tour-flashcards',
+        popover: {
+          title: 'Sistema de Revisão (SRS)',
+          description: 'Memorize as palavras com eficiência máxima usando nossos Flashcards de repetição espaçada.',
+          side: 'right',
+          align: 'start',
+        },
+        _isSidebarStep: true
+      },
+      {
+        element: isMobile ? '#mobile-tour-dicionario' : '#tour-dicionario',
+        popover: {
+          title: 'Dicionário Pessoal',
+          description: 'Seu arsenal de vocabulário privado. Tudo que você aprende fica salvo aqui.',
+          side: 'right',
+          align: 'start',
+        },
+        _isSidebarStep: true
+      },
+      {
+        element: isMobile ? '#mobile-tour-perfil' : '#tour-perfil',
+        popover: {
+          title: 'Perfil',
+          description: 'Veja sua progressão (Rank), seus certificados conquistados e configure sua conta.',
+          side: isMobile ? 'top' : 'right',
+          align: 'start',
+        },
+        _isSidebarStep: true
       }
-    }
-  };
+    ];
 
-  if (!run) return null;
+    const handleSidebarAndMove = (targetStep: any, action: () => void) => {
+      const isSidebarReq = targetStep._isSidebarStep;
+      if (isMobile && isSidebarReq) {
+        setIsSidebarOpen(true);
+        // Atraso para aguardar a AnimatePresence do sidebar no DOM
+        setTimeout(() => {
+          action();
+        }, 400); 
+      } else {
+        if (isMobile) setIsSidebarOpen(false);
+        action();
+      }
+    };
+
+    const driverObj = driver({
+      showProgress: true,
+      animate: !isMobile, // Disable complex animations on mobile for pure performance
+      stagePadding: 5,
+      allowClose: true,
+      nextBtnText: 'Avançar',
+      prevBtnText: 'Voltar',
+      doneBtnText: 'Começar',
+      showButtons: ['next', 'previous', 'close'],
+      steps: steps,
+      popoverClass: 'itr-tour-popover',
+      onPopoverRender: (popover) => {
+        // High z-index to overlay EVERYTHING including fixed sticky headers and portals
+        if (popover.wrapper) {
+            popover.wrapper.style.zIndex = '2147483647';
+        }
+        const overlay = document.querySelector('.driver-overlay') as HTMLElement;
+        if (overlay) {
+            overlay.style.zIndex = '2147483646';
+        }
+      },
+      onNextClick: (element, step, { config, state }) => {
+         const activeId = state?.activeIndex ?? 0;
+         const nextIndex = activeId + 1;
+         if (nextIndex >= (config.steps?.length ?? 0)) {
+            driverObj.destroy();
+            return;
+         }
+         handleSidebarAndMove(config.steps![nextIndex], () => driverObj.moveNext());
+      },
+      onPrevClick: (element, step, { config, state }) => {
+         const activeId = state?.activeIndex ?? 0;
+         const prevIndex = activeId - 1;
+         if (prevIndex < 0) return;
+         handleSidebarAndMove(config.steps![prevIndex], () => driverObj.movePrevious());
+      },
+      onDestroyed: () => {
+         setIsSidebarOpen(false);
+         setShouldRun(false);
+         if (user?.uid) {
+           updateUserProfile(user.uid, { firstLogin: false } as any).catch(console.error);
+         }
+      }
+    });
+
+    driverRef.current = driverObj;
+    
+    // First step logic
+    const firstStep = steps[0];
+    if (isMobile && firstStep._isSidebarStep) {
+       setIsSidebarOpen(true);
+       setTimeout(() => driverObj.drive(), 400);
+    } else {
+       driverObj.drive();
+    }
+
+    return () => {
+      if (driverRef.current) driverRef.current.destroy();
+    };
+  }, [shouldRun, user, setIsSidebarOpen]);
 
   return (
-    <Joyride
-      {...({
-        steps: STEPS,
-        run: run,
-        continuous: true,
-        scrollToFirstStep: true,
-        showProgress: true,
-        showSkipButton: true,
-        callback: handleJoyrideCallback,
-        disableScrolling: true,
-        styles: {
-          options: {
-            arrowColor: '#0a0a0a',
-            backgroundColor: '#0a0a0a',
-            overlayColor: 'rgba(0, 0, 0, 0.85)',
-            primaryColor: '#10b981',
-            textColor: '#ffffff',
-            zIndex: 10000,
-          },
-          tooltip: {
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            borderRadius: '16px',
-            boxShadow: '0 10px 40px rgba(16, 185, 129, 0.1)',
-          },
-          tooltipContainer: {
-            textAlign: 'left'
-          },
-          buttonNext: {
-            backgroundColor: '#10b981',
-            color: '#000',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            fontSize: '11px',
-            padding: '10px 20px',
-            borderRadius: '8px'
-          },
-          buttonBack: {
-            color: '#9ca3af',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            fontSize: '11px',
-            marginRight: '12px'
-          },
-          buttonSkip: {
-            color: '#ef4444',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            fontSize: '11px',
-          }
-        },
-        locale: {
-          back: 'Voltar',
-          close: 'Fechar',
-          last: 'Finalizar',
-          next: 'Avançar',
-          skip: 'Pular Tour'
-        }
-      } as any)}
-    />
+    <style jsx global>{`
+      .itr-tour-popover {
+        background-color: #0a0a0a !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.15) !important;
+        font-family: inherit !important;
+      }
+      .itr-tour-popover .driver-popover-title {
+        color: #10b981 !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+      }
+      .itr-tour-popover .driver-popover-description {
+        color: #d1d5db !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+      }
+      .itr-tour-popover .driver-popover-next-btn, 
+      .itr-tour-popover .driver-popover-done-btn {
+        background-color: #10b981 !important;
+        color: #000 !important;
+        text-shadow: none !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        border-radius: 6px !important;
+      }
+      .itr-tour-popover .driver-popover-prev-btn {
+        color: #9ca3af !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      .itr-tour-popover .driver-popover-close-btn {
+        color: #ef4444 !important;
+      }
+      .itr-tour-popover .driver-popover-progress-text {
+        color: #10b981 !important;
+        font-weight: bold !important;
+      }
+    `}</style>
   );
 }
