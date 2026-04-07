@@ -70,7 +70,12 @@ const ProfileFooter = ({
                 )}
               </div>
               <p className="font-bold flex items-center justify-center md:justify-start gap-2" style={{ color: 'var(--itr-primary)' }}>
-                <Gem size={16} /> Aluno Premium Método ITR
+                <Gem size={16} /> {
+                  authProfile?.role === 'admin' ? 'Administrador ITR' :
+                  authProfile?.role === 'aluno' ? 'Aluno Premium Método ITR' :
+                  authProfile?.role === 'usuario' ? 'Usuário Método ITR' :
+                  'Visitante'
+                }
               </p>
               
               {/* TOGGLE DE SOM (INDUSTRIAL) */}

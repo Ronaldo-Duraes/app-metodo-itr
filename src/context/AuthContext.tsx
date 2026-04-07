@@ -123,8 +123,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 }
               }
             }
-          }, (error) => {
+          }, async (error) => {
             console.error("Profile sync error:", error);
+            
+            // 🛡️ TARGET_ID recovery: se o erro for de sessão corrompida, força logout
+            const errorMsg = error.message?.toLowerCase() || '';
+            if (errorMsg.includes('target') || errorMsg.includes('already exists') || errorMsg.includes('internal')) {
+              console.warn('🚨 Possível TARGET_ID — forçando signOut para limpar sessão');
+              try {
+                const { signOut: emergencySignOut } = await import('firebase/auth');
+                await emergencySignOut(auth);
+                setUser(null);
+                setProfile(null);
+              } catch (signOutErr) {
+                console.error('Falha no emergency signOut:', signOutErr);
+              }
+              return;
+            }
+            
             // Fallback: se onSnapshot falhar, setar profile local
             if (firebaseUser) {
               setProfile({

@@ -260,7 +260,7 @@ export async function signInWithGoogle() {
     }
     
     if (!userSnap.exists()) {
-      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'visitante';
 
       try {
         const payload = {

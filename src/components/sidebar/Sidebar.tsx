@@ -41,6 +41,21 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     setMounted(true);
   }, []);
 
+  // 🛡️ Lock body scroll when mobile drawer is open
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
+
   if (!mounted) return null;
 
   // Compute fluency data
