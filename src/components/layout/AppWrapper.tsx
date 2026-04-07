@@ -11,6 +11,7 @@ import { startTour } from '@/lib/tour';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile, saveAppDataToCloud, loadAppDataFromCloud } from '@/lib/firebase';
 import { arrayUnion } from 'firebase/firestore';
+import WelcomeTour from '@/components/WelcomeTour';
 
 const WelcomeScreen = () => (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000] font-outfit overflow-hidden">
@@ -218,6 +219,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
           />
         )}
       </AnimatePresence>
+
+      <WelcomeTour />
     </>
   );
 }

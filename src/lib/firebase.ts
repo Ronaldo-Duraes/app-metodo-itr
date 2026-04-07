@@ -94,7 +94,7 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
     const user = result.user;
 
     await updateProfile(user, { displayName: name });
-    const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+    const initialRole = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'aluno';
 
     // PASSO 2: Criar documento no Firestore IMEDIATAMENTE
     // 🛡️ TRAVA DE SEGURANÇA: Nunca sobrescrever role existente!
@@ -137,7 +137,8 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
           createdAt: serverTimestamp(),
           totalWordsAdded: 0,
           masteredCount: 0,
-          unlockedRewards: []
+          unlockedRewards: [],
+          firstLogin: true
         };
         await Promise.race([
           setDoc(userRef, payload, { merge: true }),
@@ -260,7 +261,7 @@ export async function signInWithGoogle() {
     }
     
     if (!userSnap.exists()) {
-      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'visitante';
+      const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'aluno';
 
       try {
         const payload = {
@@ -273,7 +274,8 @@ export async function signInWithGoogle() {
           createdAt: serverTimestamp(),
           totalWordsAdded: 0,
           masteredCount: 0,
-          unlockedRewards: []
+          unlockedRewards: [],
+          firstLogin: true
         };
         
         await Promise.race([
@@ -343,6 +345,7 @@ export interface UserStats {
   totalWordsAdded: number;
   unlockedRewards: string[]; 
   createdAt?: any;
+  firstLogin?: boolean;
 }
 
 /**

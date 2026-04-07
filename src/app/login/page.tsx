@@ -124,8 +124,8 @@ export default function LoginPage() {
           console.log('✅ Google Login: Perfil existente — role:', snap.data()?.role);
           firestoreConfirmed = true;
         } else {
-          // ── USUÁRIO NOVO: Cria perfil como 'visitante' ──
-          const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'visitante';
+          // ── USUÁRIO NOVO: Cria perfil como 'aluno' ──
+          const initialRole = user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'aluno';
           
           await setDoc(userRef, {
             uid: user.uid,
@@ -137,7 +137,8 @@ export default function LoginPage() {
             createdAt: serverTimestamp(),
             totalWordsAdded: 0,
             masteredCount: 0,
-            unlockedRewards: []
+            unlockedRewards: [],
+            firstLogin: true
           }, { merge: true });
 
           console.log('✅ Google Login: Novo perfil criado — role:', initialRole);
@@ -220,7 +221,7 @@ export default function LoginPage() {
             
             if (!snap.exists() || !snap.data()?.role) {
               console.log('🛡️ Login: Perfil ausente — criando...');
-              const initialRole = loggedUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'usuario';
+              const initialRole = loggedUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'aluno';
               await setDoc(userRef, {
                 uid: loggedUser.uid,
                 email: loggedUser.email,
@@ -231,7 +232,8 @@ export default function LoginPage() {
                 createdAt: serverTimestamp(),
                 totalWordsAdded: 0,
                 masteredCount: 0,
-                unlockedRewards: []
+                unlockedRewards: [],
+                firstLogin: true
               }, { merge: true });
             } else {
               // Atualiza último acesso

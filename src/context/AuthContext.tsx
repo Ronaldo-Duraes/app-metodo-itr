@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // ── Doc NÃO existe → criar como 'visitante' ──
             const initialRole = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
               ? 'admin'
-              : 'visitante';
+              : 'aluno';
 
             const newProfile: UserStats = {
               uid: firebaseUser.uid,
@@ -144,7 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               createdAt: serverTimestamp() as any,
               totalWordsAdded: 0,
               masteredCount: 0,
-              unlockedRewards: []
+              unlockedRewards: [],
+              firstLogin: true
             };
 
             await setDoc(userRef, newProfile, { merge: true });
@@ -176,7 +177,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             role: 'visitante',
             totalWordsAdded: 0,
             masteredCount: 0,
-            unlockedRewards: []
+            unlockedRewards: [],
+            firstLogin: true
           };
           setProfile(initialProfile);
         }
