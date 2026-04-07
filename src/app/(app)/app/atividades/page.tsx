@@ -6,41 +6,35 @@ import ActivitiesRoadmap from '@/components/roadmap/ActivitiesRoadmap';
 export default function ActivitiesPage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center">
-      
-      {/* VÉU DE FUNDO (BACKGROUND BLUR TOTAL) */}
-      <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[8px] pointer-events-none" />
-
-      {/* POP-UP 'EM BREVE' CENTRALIZADO */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 w-[90%] max-w-lg flex flex-col items-center justify-center bg-[#0a0a0a]/95 backdrop-blur-2xl border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden pointer-events-none">
+      {/* BANNER STICKY DE CONSTRUÇÃO */}
+      <div className="sticky top-0 z-40 w-full bg-[#0a0a0a]/85 backdrop-blur-md shadow-2xl pointer-events-none flex flex-col border-b border-black">
+        {/* Faixa listrada superior */}
+        <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
         
-        {/* Faixa Central Lendária */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative w-full py-10 md:py-14 flex flex-col items-center justify-center"
-        >
-          {/* Efeito de Brilho de Fundo (Glow) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-3xl" />
+        <div className="relative w-full py-4 md:py-6 flex flex-col items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-xl" />
           
-          <div className="relative w-full flex flex-col items-center px-6 md:px-8 text-center">
+          <div className="relative z-10 flex flex-col items-center px-4 text-center">
             <motion.span 
               animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[1em] text-amber-500/60 mb-3 md:mb-4 block"
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[0.8em] text-amber-500 mb-1.5 block drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
             >
-              Industrial Gateway
+              Área em Construção
             </motion.span>
             
-            <h2 className="text-3xl md:text-5xl lg:text-5xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-3 md:mb-4 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+            <h2 className="text-2xl md:text-4xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-1.5">
               EM BREVE
             </h2>
             
-            <p className="text-amber-200/60 text-xs md:text-sm font-bold tracking-wider max-w-sm md:max-w-md">
-              Novas atividades interativas estão sendo preparadas. Sua jornada está apenas começando.
+            <p className="text-amber-200/60 text-[10px] md:text-xs font-bold tracking-widest max-w-sm">
+              Novas atividades interativas estão sendo preparadas.
             </p>
           </div>
-        </motion.div>
+        </div>
+        
+        {/* Faixa listrada inferior */}
+        <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
       </div>
 
       {/* CONTEÚDO BLOQUEADO PARA CLIQUES, MAS SCROLLÁVEL */}
