@@ -60,7 +60,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           unsubscribeProfile = onSnapshot(userRef, async (docSnap) => {
             if (docSnap.exists()) {
-              setProfile(docSnap.data() as UserStats);
+              const data = docSnap.data() as UserStats;
+              
+              // 🛡️ UID CONSISTENCY CHECK: Se o doc tem uid diferente, força logout
+              if (data.uid && data.uid !== firebaseUser.uid) {
+                console.error('🚨 UID mismatch! Doc UID:', data.uid, '!= Auth UID:', firebaseUser.uid, '— forçando logout');
+                const { signOut: forceSignOut } = await import('firebase/auth');
+                await forceSignOut(auth);
+                setUser(null);
+                setProfile(null);
+                return;
+              }
+              
+              setProfile(data);
             } else {
               // GUARDIÃO: Documento não existe no Firestore, mas user está autenticado
               // Auto-criar com role 'usuario' para NUNCA tratá-lo como visitante

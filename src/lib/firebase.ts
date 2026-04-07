@@ -199,6 +199,12 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
 export async function loginWithEmail(email: string, pass: string) {
   if (!isFirebaseReady || !auth) return null;
   try {
+    // 🛡️ Limpa sessão anterior para evitar "TARGET_ID_ALREADY_EXISTS"
+    await auth.signOut().catch(() => {});
+    
+    // Força rede ativa
+    if (db) await enableNetwork(db).catch(() => {});
+    
     const result = await signInWithEmailAndPassword(auth, email, pass);
     return result.user;
   } catch (error) {

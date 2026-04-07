@@ -4,13 +4,22 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap, Settings, UserCircle } from 'lucide-react';
-import { getUserProfile } from '@/lib/srs';
+import { Home, Zap, BookOpen, User, Library, Star, X, HelpCircle, GraduationCap, Settings, UserCircle, LogOut, ChevronRight, Sprout, Leaf, Activity, Shrub, Trees, Trophy } from 'lucide-react';
+import { getUserProfile, getUserPatente, getDictionaryCount } from '@/lib/srs';
 import MentorCard from '@/components/MentorCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { startTour } from '@/lib/tour';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { logout } from '@/lib/firebase';
+
+const PATENTE_ICONS: Record<string, any> = {
+  'Sprout': Sprout,
+  'Leaf': Leaf,
+  'Activity': Activity,
+  'Shrub': Shrub,
+  'Trees': Trees,
+};
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -26,12 +35,22 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   // VERCEL BLINDAGEM: Prevents SSR/Hydration errors
   const [mounted, setMounted] = React.useState(false);
   const [isMentorOpen, setIsMentorOpen] = React.useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
+  // Compute fluency data
+  const masteredCount = profile?.masteredCount ?? getDictionaryCount();
+  const patenteInfo = getUserPatente(masteredCount);
+  const patenteName = patenteInfo.current.name;
+  const PatenteIcon = PATENTE_ICONS[patenteInfo.current.iconName] || Trophy;
+  const progressPercent = patenteInfo.next 
+    ? Math.min(100, Math.round(((masteredCount - patenteInfo.current.minWords) / (patenteInfo.next.minWords - patenteInfo.current.minWords)) * 100))
+    : 100;
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,6 +62,18 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     onClose?.();
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      onClose?.();
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Erro ao sair:', err);
+      setIsLoggingOut(false);
+    }
+  };
+
   const menuItems = [
     { icon: Home, label: 'Home', path: '/app' },
     { icon: Zap, label: 'Atividades', path: '/app/atividades', id: 'tour-atividades' },
@@ -52,7 +83,81 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     { icon: Star, label: 'Fale com o Mentor', path: '#mentor', isAction: true },
   ];
 
-  const sidebarContent = (
+  const displayName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante';
+  const firstName = displayName.split(' ')[0];
+  const roleLabel = profile?.role === 'admin' ? 'Admin' : profile?.role === 'aluno' ? 'Aluno ITR' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante';
+
+  // ─────────────────────────────────────────────────────────────
+  // MOBILE PROFILE HEADER (shown only on mobile drawer)
+  // ─────────────────────────────────────────────────────────────
+  const MobileProfileHeader = () => (
+    <div 
+      onClick={handleProfileClick}
+      className="mx-4 mb-6 p-4 bg-white/[0.02] border border-white/5 cursor-pointer group hover:border-emerald-500/20 transition-all relative overflow-hidden"
+    >
+      {/* Subtle glow */}
+      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 -translate-y-1/2 translate-x-1/2 rounded-full blur-[30px] group-hover:scale-150 transition-transform duration-500" />
+      
+      <div className="relative flex items-center gap-3">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-white/10 overflow-hidden flex items-center justify-center group-hover:border-emerald-500/40 transition-colors">
+            {isVisitor ? (
+              <UserCircle size={28} className="text-zinc-500 opacity-60" />
+            ) : user?.photoURL || profile?.photoURL ? (
+              <img src={user?.photoURL || profile?.photoURL || ''} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-black text-emerald-500 uppercase tracking-tighter">
+                {firstName.slice(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+          {/* Online Status */}
+          {!isVisitor && (
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#050505] rounded-full" />
+          )}
+        </div>
+
+        {/* Name + Role */}
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-black text-white uppercase tracking-tight truncate leading-none mb-1">
+            {firstName}
+          </div>
+          <div className="text-[9px] font-black text-emerald-500/70 tracking-[0.15em] uppercase leading-none">
+            {roleLabel}
+          </div>
+        </div>
+
+        <ChevronRight size={16} className="text-zinc-600 group-hover:text-emerald-500 transition-colors shrink-0" />
+      </div>
+
+      {/* Fluency Power Bar */}
+      <div className="mt-3 pt-3 border-t border-white/5">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <PatenteIcon size={12} className="text-emerald-500" />
+            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+              {patenteName}
+            </span>
+          </div>
+          <span className="text-[8px] font-black text-emerald-500/60 tracking-widest">
+            {masteredCount} palavras
+          </span>
+        </div>
+        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-700"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // DESKTOP SIDEBAR CONTENT
+  // ─────────────────────────────────────────────────────────────
+  const desktopSidebarContent = (
     <div className="flex flex-col h-full py-8">
       
       {/* LOGO AREA */}
@@ -67,14 +172,6 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             className='object-contain hover:scale-105 transition-transform' 
           />
         </Link>
-        {/* Close button — mobile only */}
-        <button 
-          onClick={onClose}
-          className="md:hidden p-2 text-slate-500 hover:text-white transition-colors"
-          aria-label="Fechar menu"
-        >
-          <X size={24} />
-        </button>
       </div>
 
       {/* NAVIGATION LINKS */}
@@ -152,7 +249,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         })}
       </nav>
 
-      {/* PROFILE FOOTER (DYNAMIC & CLEAN) */}
+      {/* PROFILE FOOTER (DESKTOP) */}
       <div className="px-4 mt-auto pt-8 border-t border-white/5">
         <Link href="/app/perfil" onClick={handleProfileClick}>
           <div id="tour-perfil" className="flex items-center gap-3 p-3 min-h-[52px] text-slate-500 hover:text-white transition-all cursor-pointer group bg-transparent hover:bg-white/[0.03]">
@@ -177,7 +274,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
                 {profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Visitante'}
               </span>
               <span className="text-[9px] font-black text-emerald-500/70 tracking-[0.2em] uppercase leading-none truncate">
-                {profile?.role === 'admin' ? 'Admin' : (profile?.role === 'aluno') ? 'Aluno' : (profile?.role === 'usuario' || user) ? 'Usuário' : 'Visitante'}
+                {roleLabel}
               </span>
             </div>
           </div>
@@ -186,11 +283,166 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     </div>
   );
 
+  // ─────────────────────────────────────────────────────────────
+  // MOBILE SIDEBAR CONTENT (enhanced with profile header + logout)
+  // ─────────────────────────────────────────────────────────────
+  const mobileSidebarContent = (
+    <div className="flex flex-col h-full py-6">
+      
+      {/* TOP: Logo + Close */}
+      <div className="px-5 mb-4 flex items-center justify-between">
+        <Link href="/" className="relative w-14 h-14" onClick={handleNavClick}>
+          <Image 
+            src='/logo-itr.png' 
+            alt='Logo ITR' 
+            fill
+            sizes="100vw"
+            priority
+            className='object-contain hover:scale-105 transition-transform' 
+          />
+        </Link>
+        <button 
+          onClick={onClose}
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
+          aria-label="Fechar menu"
+        >
+          <X size={24} />
+        </button>
+      </div>
+
+      {/* MOBILE PROFILE HEADER */}
+      <MobileProfileHeader />
+
+      {/* NAVIGATION LINKS (with visible labels and aligned icons) */}
+      <nav className="flex-1 px-3 space-y-0.5">
+        {menuItems.map((item) => {
+          const isActive = pathname === item.path;
+          const Icon = item.icon;
+
+          if (item.isAction) {
+            return (
+              <div 
+                key={item.label}
+                onClick={() => {
+                  executeProtectedAction(() => setIsMentorOpen(true));
+                  handleNavClick();
+                }}
+                className="group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer text-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5 border-l-4 border-transparent hover:border-emerald-500 active:bg-emerald-500/10"
+              >
+                <Icon size={22} className="transition-colors duration-200 shrink-0" />
+                <span className="font-black text-[13px] tracking-[0.08em] uppercase">{item.label}</span>
+              </div>
+            );
+          }
+
+          // REDIRECIONAMENTO CAKTO AUTOMÁTICO PARA ALUNO
+          if (item.path === '/app/aulas' && (profile?.role === 'aluno' || profile?.role === 'admin')) {
+            return (
+              <div 
+                key={item.path}
+                id={item.id}
+                onClick={() => {
+                  window.open('https://aluno.cakto.com.br/app/courses/cmm3k0qt50006jp04z4cjcg0m/view?lesson=cmm3k0qvk0009jp04jm12m6ac', '_blank');
+                  handleNavClick();
+                }}
+                className={`
+                  group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer active:bg-white/[0.04]
+                  ${isActive 
+                    ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
+                    : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
+                `}
+              >
+                <Icon 
+                  size={22} 
+                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className="font-black text-[13px] tracking-[0.08em] uppercase">{item.label}</span>
+                {isActive && <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />}
+              </div>
+            );
+          }
+
+          return (
+            <Link key={item.path} href={item.path} onClick={handleNavClick}>
+              <div id={item.id} className={`
+                group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer active:bg-white/[0.04]
+                ${isActive 
+                  ? 'bg-white/[0.03] border-l-4 border-emerald-500 text-white shadow-[inset_10px_0_20px_rgba(16,185,129,0.02)]' 
+                  : 'text-slate-500 hover:text-white hover:bg-white/[0.02] border-l-4 border-transparent'}
+              `}>
+                <Icon 
+                  size={22} 
+                  className={`transition-colors duration-200 shrink-0 ${isActive ? 'text-emerald-400' : 'group-hover:text-slate-300'}`} 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className="font-black text-[13px] tracking-[0.08em] uppercase">{item.label}</span>
+                
+                {isActive && (
+                  <div className="absolute inset-0 bg-emerald-500/[0.01] blur-2xl -z-10" />
+                )}
+              </div>
+            </Link>
+          );
+        })}
+
+        {/* ADMIN LINK (if applicable) */}
+        {isAdmin && (
+          <Link href="/admin" onClick={handleNavClick}>
+            <div className={`
+              group relative flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all duration-200 cursor-pointer active:bg-white/[0.04]
+              ${pathname === '/admin' 
+                ? 'bg-amber-500/5 border-l-4 border-amber-500 text-amber-500' 
+                : 'text-amber-500/40 hover:text-amber-400 hover:bg-amber-500/5 border-l-4 border-transparent'}
+            `}>
+              <Settings size={22} className="transition-colors duration-200 shrink-0" />
+              <span className="font-black text-[13px] tracking-[0.08em] uppercase">Admin</span>
+            </div>
+          </Link>
+        )}
+      </nav>
+
+      {/* BOTTOM: Perfil Link (highlighted) + Logout */}
+      <div className="px-3 mt-auto pt-4 border-t border-white/5 space-y-2">
+        
+        {/* Profile link — visually distinct */}
+        <Link href="/app/perfil" onClick={handleProfileClick}>
+          <div className={`
+            flex items-center gap-4 px-4 py-4 min-h-[52px] rounded-none transition-all cursor-pointer active:bg-white/[0.04]
+            ${pathname === '/app/perfil' 
+              ? 'bg-emerald-500/5 border-l-4 border-emerald-400 text-emerald-400' 
+              : 'text-zinc-400 hover:text-white bg-white/[0.01] border-l-4 border-emerald-500/20 hover:border-emerald-500/50'}
+          `}>
+            <User size={22} className="shrink-0" />
+            <span className="font-black text-[13px] tracking-[0.08em] uppercase">Meu Perfil</span>
+            <ChevronRight size={16} className="ml-auto text-zinc-600" />
+          </div>
+        </Link>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="w-full flex items-center gap-4 px-4 py-4 min-h-[52px] text-red-500/60 hover:text-red-400 hover:bg-red-500/5 border-l-4 border-transparent hover:border-red-500/30 transition-all active:bg-red-500/10 disabled:opacity-40"
+        >
+          {isLoggingOut ? (
+            <div className="w-[22px] h-[22px] border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin shrink-0" />
+          ) : (
+            <LogOut size={22} className="shrink-0" />
+          )}
+          <span className="font-black text-[13px] tracking-[0.08em] uppercase">
+            {isLoggingOut ? 'Saindo...' : 'Sair'}
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* ===================== DESKTOP SIDEBAR (≥768px) ===================== */}
       <aside className="hidden md:block fixed left-0 top-0 h-screen w-64 bg-[#050505] border-r border-white/5 z-50 transition-all duration-300">
-        {sidebarContent}
+        {desktopSidebarContent}
       </aside>
 
       {/* ===================== MOBILE DRAWER (<768px) ===================== */}
@@ -215,7 +467,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="md:hidden fixed left-0 top-0 h-screen w-[80vw] max-w-[320px] bg-[#050505] border-r border-white/5 z-[100] overflow-y-auto overscroll-contain"
             >
-              {sidebarContent}
+              {mobileSidebarContent}
             </motion.aside>
           </>
         )}
