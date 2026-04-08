@@ -156,8 +156,8 @@ export default function DicionarioPage() {
         </div>
       </div>
 
-      {/* CONTROLS (FIXED ON MOBILE, RELATIVE ON DESKTOP) */}
-      <div className="fixed md:relative top-[72px] md:top-auto left-0 md:left-auto right-0 md:right-auto z-40 bg-black/95 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none border-b border-emerald-500/20 md:border-0 px-4 py-4 md:p-0 flex flex-col md:flex-row gap-3 md:gap-4 md:mb-12 shadow-[0_10px_30px_rgba(0,0,0,0.8)] md:shadow-none">
+      {/* CONTROLS (STICKY ON MOBILE, RELATIVE ON DESKTOP) */}
+      <div className="sticky md:relative top-[64px] md:top-auto z-[40] -mx-4 md:mx-0 px-4 py-4 md:p-0 bg-black/95 md:bg-transparent backdrop-blur-2xl md:backdrop-blur-none border-b border-emerald-500/20 md:border-0 flex flex-col md:flex-row gap-3 md:gap-4 md:mb-12 shadow-[0_15px_30px_rgba(0,0,0,0.9)] md:shadow-none transition-all">
         <div className="relative flex-1 group w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={20} />
           <input 
@@ -181,8 +181,7 @@ export default function DicionarioPage() {
         </button>
       </div>
 
-      {/* COMPENSATORY PADDING FOR MOBILE FIXED CONTROLS */}
-      <div className="pt-[140px] md:pt-0">
+      <div className="pt-4 md:pt-0 relative z-0">
         {/* LIST HEADERS (DESKTOP) */}
         <div className="hidden md:grid grid-cols-[50px_1.5fr_1.5fr_120px] px-8 mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">
           <div className="flex justify-center">
