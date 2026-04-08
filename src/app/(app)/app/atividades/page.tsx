@@ -22,28 +22,34 @@ export default function ActivitiesPage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center">
       {/* BANNER CENTRALIZADO DE CONSTRUÇÃO (DESKTOP & MOBILE) */}
-      <div className="fixed top-1/2 left-0 md:left-64 w-full md:w-[calc(100%-16rem)] -translate-y-1/2 z-40 bg-[#0a0a0a]/85 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-none flex flex-col border-b border-black">
+      <div className={`fixed top-1/2 left-0 md:left-64 w-full md:w-[calc(100%-16rem)] -translate-y-1/2 z-40 flex flex-col pointer-events-none ${isMobile ? 'bg-[#121212] border-y-2 border-amber-600' : 'bg-[#0a0a0a]/85 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.8)] border-b border-black'}`}>
         {/* Faixa listrada superior */}
         <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
         
-        <div className="relative w-full py-4 md:py-8 flex flex-col items-center justify-center text-center overflow-hidden min-h-[120px] md:min-h-[160px]">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-xl" />
+        <div className="relative w-full py-4 md:py-8 flex flex-col items-center justify-center text-center overflow-hidden min-h-[100px] md:min-h-[160px]">
+          {!isMobile && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-xl" />}
           
           <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4 text-center">
-            <motion.span 
-              animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[0.8em] text-amber-500 mb-1.5 md:mb-2 block drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] text-center w-full"
-            >
-              Área em Construção
-            </motion.span>
+            {isMobile ? (
+              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-amber-500 mb-1.5 block w-full text-center">
+                Área em Construção
+              </span>
+            ) : (
+              <motion.span 
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="text-[10px] font-black uppercase tracking-[0.8em] text-amber-500 mb-2 block drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] text-center w-full"
+              >
+                Área em Construção
+              </motion.span>
+            )}
             
             <h2 className="text-2xl md:text-5xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-3 flex items-center justify-center text-center w-full">
               EM BREVE
             </h2>
             
             <p className="text-amber-200/60 text-[10px] md:text-sm font-bold tracking-widest max-w-md mx-auto flex items-center justify-center text-center w-full">
-              Novas atividades interativas estão sendo preparadas.
+              Novas atividades interativas {isMobile ? 'em breve.' : 'estão sendo preparadas.'}
             </p>
           </div>
         </div>
@@ -53,49 +59,69 @@ export default function ActivitiesPage() {
       </div>
 
       {/* CONTEÚDO BLOQUEADO PARA CLIQUES, MAS SCROLLÁVEL */}
-      <div className="w-full pointer-events-none opacity-40 filter grayscale-[0.6]">
-        <div className="max-w-6xl mx-auto py-12 px-6 pb-40 relative z-10">
-          {/* Header Estilizado - Foco na Evolução */}
-          <motion.div 
-            initial={{ opacity: isMobile ? 1 : 0, y: isMobile ? 0 : -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: isMobile ? 0 : 0.5 }}
-            className="mb-16 text-center md:text-left"
-          >
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500 mb-4 block">
-              Central de Treinamento
-            </span>
-            <h1 className="text-3xl md:text-5xl lg:text-7xl font-black font-outfit mb-6 text-white tracking-tighter">
-              Expanda seus Limites
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl font-bold leading-relaxed">
-              Domine a gramática através de uma jornada visual imersiva. Cada módulo desbloqueia 
-              novos desafios e eleva sua fluência ao próximo nível.
-            </p>
-          </motion.div>
+      <div className={`w-full pointer-events-none filter ${isMobile ? 'opacity-30 grayscale-[0.8]' : 'opacity-40 grayscale-[0.6]'}`}>
+        <div className="max-w-6xl mx-auto py-8 md:py-12 px-4 md:px-6 pb-24 md:pb-40 relative z-10">
+          
+          {/* Header Estilizado */}
+          {isMobile ? (
+            <div className="mb-12 text-center md:text-left">
+              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500 mb-3 block">
+                Central de Treinamento
+              </span>
+              <h1 className="text-3xl md:text-5xl lg:text-7xl font-black font-outfit mb-4 text-white tracking-tighter">
+                Expanda seus Limites
+              </h1>
+              <p className="text-slate-500 text-sm md:text-lg max-w-2xl font-bold leading-relaxed px-4">
+                Domine a gramática através de uma jornada visual imersiva e interativa.
+              </p>
+            </div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-16 text-center md:text-left"
+            >
+              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500 mb-4 block">
+                Central de Treinamento
+              </span>
+              <h1 className="text-5xl lg:text-7xl font-black font-outfit mb-6 text-white tracking-tighter">
+                Expanda seus Limites
+              </h1>
+              <p className="text-slate-500 text-lg max-w-2xl font-bold leading-relaxed">
+                Domine a gramática através de uma jornada visual imersiva. Cada módulo desbloqueia 
+                novos desafios e eleva sua fluência ao próximo nível.
+              </p>
+            </motion.div>
+          )}
 
-          {/* ROADMAP DE ATIVIDADES CAKTO - ESTRELA DA PÁGINA */}
-          <motion.div
-            initial={{ opacity: isMobile ? 1 : 0, scale: isMobile ? 1 : 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: isMobile ? 0 : 0.2, duration: isMobile ? 0 : 0.5 }}
-            className="mt-20"
-          >
-            {isLoaded ? (
-              <ActivitiesRoadmap />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 gap-8 opacity-40 animate-pulse">
-                <div className="w-20 h-20 bg-white/10 rounded-full" />
-                <div className="w-1/2 max-w-sm h-6 bg-white/10 rounded-md" />
-                <div className="w-64 h-4 bg-white/5 rounded-md" />
-                <div className="text-[10px] uppercase font-black tracking-[0.3em] text-emerald-500/50 mt-4">Priozirando Interface...</div>
-              </div>
-            )}
-          </motion.div>
+          {/* ROADMAP DE ATIVIDADES */}
+          {isMobile ? (
+            <div className="mt-8">
+              {isLoaded && <ActivitiesRoadmap />}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mt-20"
+            >
+              {isLoaded ? (
+                <ActivitiesRoadmap />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 gap-8 opacity-40 animate-pulse">
+                  <div className="w-20 h-20 bg-white/10 rounded-full" />
+                  <div className="w-1/2 max-w-sm h-6 bg-white/10 rounded-md" />
+                  <div className="w-64 h-4 bg-white/5 rounded-md" />
+                </div>
+              )}
+            </motion.div>
+          )}
 
-          {/* Footer / Nota Sutil no Final da Jornada */}
-          <div className="mt-24 text-center">
-            <p className="text-slate-700 font-black text-xs uppercase tracking-widest opacity-40">
+          {/* Footer Sutil */}
+          <div className="mt-16 md:mt-24 text-center">
+            <p className="text-slate-700 font-black text-[10px] md:text-xs uppercase tracking-widest opacity-40">
               Mais módulos em desenvolvimento • Continue progredindo
             </p>
           </div>
