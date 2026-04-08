@@ -159,6 +159,9 @@ export default function FlashcardsPage() {
   const [deletedCardIndex, setDeletedCardIndex] = useState<number | null>(null);
   const [showUndoToast, setShowUndoToast] = useState(false);
 
+  // INVERSÃO GLOBAL PT-EN
+  const [isInverted, setIsInverted] = useState(false);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (showUndoToast) {
@@ -212,10 +215,17 @@ export default function FlashcardsPage() {
       return;
     }
     loadData();
+    setIsInverted(localStorage.getItem('itr_invert_cards') === 'true');
     // Atualiza a fila a cada minuto para garantir que seja "viva"
     const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleInvert = () => {
+    const newVal = !isInverted;
+    setIsInverted(newVal);
+    localStorage.setItem('itr_invert_cards', String(newVal));
+  };
 
   const loadData = () => {
     const loadedCards = getCards();
@@ -442,6 +452,18 @@ export default function FlashcardsPage() {
             >
               <Plus size={16} strokeWidth={3} />
               Novo Deck
+            </button>
+            <button 
+              onClick={toggleInvert}
+              className="flex items-center justify-center gap-2 group bg-black/40 border-2 border-white/10 text-white px-3 md:px-4 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 min-h-[48px]"
+              title="Inverter Flashcards: Mostrar Português primeiro"
+            >
+              <div className={`w-8 h-4 md:w-10 md:h-5 rounded-full p-1 transition-colors flex items-center shrink-0 ${isInverted ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                <div className={`w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-white shadow-md transform transition-transform ${isInverted ? 'translate-x-3.5 md:translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">
+                <span className={`${isInverted ? 'text-emerald-500' : ''}`}>PT</span> <span className="opacity-50">→</span> EN
+              </span>
             </button>
 
           </div>

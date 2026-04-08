@@ -25,10 +25,14 @@ export default function EstudarPage() {
   
   // O modo de estudo agora pode vir via query param ou ser selecionado no modal interno (fallback)
   const [studyMode, setStudyMode] = useState<'srs' | 'manual' | null>(initialMode);
+  
+  // INVERSÃO GLOBAL PT-EN
+  const [isInverted, setIsInverted] = useState(false);
 
   useEffect(() => {
     const isFree = !!deckId;
     setIsFreeStudy(isFree);
+    setIsInverted(localStorage.getItem('itr_invert_cards') === 'true');
 
     try {
       const allCards = getCards();
@@ -172,6 +176,10 @@ export default function EstudarPage() {
     );
   }
 
+  // VALORES INVERTIDOS SE NECESSÁRIO
+  const displayFront = isInverted ? currentCard?.back : currentCard?.front;
+  const displayBack = isInverted ? currentCard?.front : currentCard?.back;
+
   // 5. INTERFACE DE ESTUDO (MAESTRIA)
   return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center p-4 md:p-8 lg:p-12 font-outfit relative overflow-hidden">
@@ -227,13 +235,15 @@ export default function EstudarPage() {
 
               <div className="w-full max-w-4xl flex flex-col items-center text-center">
                 <div className="mb-6 flex flex-col items-center">
-                  <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">Termo Original</span>
+                  <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-[0.5em] mb-4 block">
+                    {isInverted ? 'PORTUGUÊS' : 'Termo Original'}
+                  </span>
                   <div className="flex flex-row items-baseline gap-3 justify-center">
                     <h3 className="text-2xl md:text-4xl lg:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
-                      {currentCard.front}
+                      {displayFront}
                     </h3>
                     
-                    {currentCard.pronunciation && (
+                    {!isInverted && currentCard.pronunciation && (
                       <motion.span 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -248,9 +258,9 @@ export default function EstudarPage() {
                 {!isRevealed && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); setIsRevealed(true); }}
-                    className="mt-8 px-10 py-4 border-2 border-white/20 text-white font-black text-[10px] tracking-[0.4em] uppercase hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group"
+                    className="mt-8 px-10 py-4 border-2 border-white/20 text-white font-black text-[10px] tracking-[0.4em] uppercase hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group scale-100 active:scale-95"
                   >
-                    Revelar Tradução
+                    Revelar {isInverted ? 'Inglês' : 'Tradução'}
                   </button>
                 )}
 
@@ -262,10 +272,15 @@ export default function EstudarPage() {
                       className="flex flex-col items-center mt-4 gap-y-4"
                     >
                       <div className="h-[1px] w-24 bg-emerald-500/30 mb-2" />
-                      <h4 className="text-xl md:text-3xl lg:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-2">
-                        {currentCard.back}
+                      <h4 className="flex gap-2 items-center text-xl md:text-3xl lg:text-5xl font-bold text-emerald-400 uppercase tracking-tight mb-2">
+                        {displayBack}
+                        {isInverted && currentCard.pronunciation && (
+                          <span className="text-lg md:text-2xl text-emerald-500/60 lowercase italic tracking-normal ml-2">
+                            /{currentCard.pronunciation}/
+                          </span>
+                        )}
                       </h4>
-                      {currentCard.association && (
+                      {currentCard.association && !isInverted && (
                         <div className="max-w-2xl p-6 bg-white/5 border border-white/10 mt-2">
                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Associação Sugerida</span>
                            <p className="text-lg md:text-xl font-bold text-white/60 uppercase leading-relaxed italic text-center">

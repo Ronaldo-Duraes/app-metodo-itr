@@ -17,10 +17,18 @@ export default function HomePage() {
   const { executeProtectedAction, isAluno } = useRoleGuard();
   const { user, profile, isVisitor } = useAuth();
   const [allCards, setAllCards] = useState<Flashcard[]>([]);
+  const [isInverted, setIsInverted] = useState(false);
  
   useEffect(() => {
     setAllCards(getCards());
+    setIsInverted(localStorage.getItem('itr_invert_cards') === 'true');
   }, []);
+
+  const toggleInvert = () => {
+    const newVal = !isInverted;
+    setIsInverted(newVal);
+    localStorage.setItem('itr_invert_cards', String(newVal));
+  };
 
   const priorityCards = React.useMemo(() => {
     return getPriorityCards(allCards);
@@ -58,10 +66,26 @@ export default function HomePage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="lg:col-span-8 flex flex-col items-center"
         >
-          {/* CABEÇALHO SUTIL (SEM POLUIÇÃO) */}
-          <div className="text-left w-full mb-5 md:mb-12 border-l-4 border-emerald-500 pl-3 md:pl-6">
-            <span className="text-[9px] md:text-[10px] font-black text-emerald-500/50 tracking-[0.3em] md:tracking-[0.4em] uppercase block mb-1 md:mb-2">Workspace Principal</span>
-            <h2 className="text-lg md:text-2xl font-black text-white uppercase tracking-tighter">Painel de Maestria</h2>
+          {/* CABEÇALHO SUTIL */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full mb-5 md:mb-12 border-l-4 border-emerald-500 pl-3 md:pl-6 gap-3 md:gap-0">
+            <div>
+              <span className="text-[9px] md:text-[10px] font-black text-emerald-500/50 tracking-[0.3em] md:tracking-[0.4em] uppercase block mb-1 md:mb-2">Workspace Principal</span>
+              <h2 className="text-lg md:text-2xl font-black text-white uppercase tracking-tighter">Painel de Maestria</h2>
+            </div>
+            
+            {/* TOGGLE INVERSÃO */}
+            <button 
+              onClick={toggleInvert}
+              className="flex items-center gap-2 group bg-black/40 p-2 md:p-3 border border-white/5 rounded-xl md:rounded-2xl transition-all w-full md:w-auto min-h-[44px] md:min-h-0"
+              title="Inverter Flashcards: Mostrar Português primeiro"
+            >
+              <div className={`w-10 h-5 md:w-10 md:h-5 rounded-full p-1 transition-colors flex items-center shrink-0 ${isInverted ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                <div className={`w-3.5 h-3.5 md:w-3.5 md:h-3.5 rounded-full bg-white shadow-md transform transition-transform ${isInverted ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <span className="text-[9px] md:text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors text-left flex-1 md:flex-none">
+                <span className={`${isInverted ? 'text-emerald-500' : ''}`}>Inverter: PT</span> <span className="opacity-50">→</span> EN
+              </span>
+            </button>
           </div>
 
           {/* AÇÃO PRIORITÁRIA BUTTON / EMPTY STATE */}
