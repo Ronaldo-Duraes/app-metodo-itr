@@ -689,13 +689,13 @@ export default function FlashcardsPage() {
                         <div className="min-w-0 pr-1 border-l border-white/10 pl-2">
                           <p className="text-emerald-500 font-bold uppercase text-xs md:text-sm tracking-tight truncate">{card.back}</p>
                         </div>
-                        <div className="flex justify-end items-center border-l border-white/10 pl-2">
+                        <div className="flex justify-end md:justify-start items-center border-l border-white/10 pl-2">
                           {card.isMemorized ? (
                              <Check size={10} className="text-yellow-400 shrink-0 mr-1 hidden sm:block" strokeWidth={4} />
                           ) : (
                              <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot} mr-1 hidden sm:block`} />
                           )}
-                          <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-tight md:tracking-widest ${getTimeLeft(card).color} whitespace-nowrap text-right`}>
+                          <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-tight md:tracking-widest ${getTimeLeft(card).color} whitespace-nowrap text-right md:text-left`}>
                             {getTimeLeft(card).text}
                           </span>
                         </div>
