@@ -427,17 +427,17 @@ export default function FlashcardsPage() {
             </h1>
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 md:gap-4 w-full lg:w-auto mt-2 lg:mt-0">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3 md:gap-4 w-full lg:w-auto mt-4 md:mt-0">
             <button 
               onClick={() => executeProtectedAction(() => router.push('/app/vocabulary'))}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-3 md:px-6 py-3 rounded-lg font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 hover:scale-105 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-emerald-500/30 text-emerald-500 px-3 md:px-6 py-3 rounded-lg font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500/10 hover:border-emerald-500 transition-all active:scale-95 hover:scale-105 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] min-h-[48px] md:whitespace-nowrap"
             >
               <Rocket size={16} strokeWidth={3} />
               Sprint 600 palavras
             </button>
             <button 
               onClick={() => executeProtectedAction(() => setIsCardModalOpen(true))}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-white text-black px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.5),_0_0_30px_rgba(16,185,129,0.4)] active:scale-95 hover:scale-105 cursor-pointer min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-white text-black px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.5),_0_0_30px_rgba(16,185,129,0.4)] active:scale-95 hover:scale-105 cursor-pointer min-h-[48px] md:whitespace-nowrap"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Card
@@ -448,14 +448,14 @@ export default function FlashcardsPage() {
                 setShowErrors(false);
                 setIsModalOpen(true);
               })}
-              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-white/10 text-white px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 hover:scale-105 cursor-pointer min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 bg-transparent border-2 border-white/10 text-white px-3 md:px-6 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 hover:scale-105 cursor-pointer min-h-[48px] md:whitespace-nowrap"
             >
               <Plus size={16} strokeWidth={3} />
               Novo Deck
             </button>
             <button 
               onClick={toggleInvert}
-              className="flex items-center justify-center gap-2 group bg-black/40 border-2 border-white/10 text-white px-3 md:px-4 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 min-h-[48px]"
+              className="flex items-center justify-center gap-2 md:gap-3 group bg-black/40 border-2 border-white/10 text-white px-3 md:px-4 py-3 rounded-none font-black text-[10px] md:text-xs tracking-widest uppercase hover:border-emerald-500/50 hover:bg-white/5 transition-all active:scale-95 min-h-[48px] md:whitespace-nowrap"
               title="Inverter Flashcards: Mostrar Português primeiro"
             >
               <div className={`w-8 h-4 md:w-10 md:h-5 rounded-full p-1 transition-colors flex items-center shrink-0 ${isInverted ? 'bg-emerald-500' : 'bg-white/10'}`}>
