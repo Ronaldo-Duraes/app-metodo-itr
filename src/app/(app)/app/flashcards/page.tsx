@@ -400,8 +400,15 @@ export default function FlashcardsPage() {
             
             {/* STUDY ACTION CARD */}
             <motion.div 
-              whileHover={{ y: -5 }}
-              className="relative p-7 md:p-10 rounded-none border-2 border-emerald-500 bg-white/[0.02] backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] group flex flex-col justify-between"
+              whileHover={pendingCards.length > 0 ? { y: -5, scale: 1.02 } : { y: -5 }}
+              onClick={() => {
+                if (pendingCards.length > 0) {
+                  executeProtectedAction(() => router.push('/app/estudar?mode=srs'));
+                }
+              }}
+              className={`relative p-7 md:p-10 rounded-none border-2 border-emerald-500 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] group flex flex-col justify-between text-left transition-all ${
+                pendingCards.length > 0 ? 'cursor-pointer hover:bg-emerald-500/5 hover:border-emerald-400 bg-white/[0.02]' : 'bg-white/[0.02]'
+              }`}
             >
               <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                 <Zap size={64} className="text-emerald-500" />
@@ -416,7 +423,7 @@ export default function FlashcardsPage() {
                       Revisar Agora
                     </h2>
                     
-                    <div className="flex items-center">
+                    <div className="flex flex-wrap items-center gap-3">
                       <div className="px-6 py-3 bg-amber-500 text-black text-xs md:text-sm font-black tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(245,158,11,0.6)]">
                         {pendingCards.length} Pendentes
                       </div>
@@ -435,13 +442,12 @@ export default function FlashcardsPage() {
               </div>
 
               {pendingCards.length > 0 && (
-                <button 
-                  onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
-                  className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)] relative z-10"
+                <div 
+                  className="w-full h-14 bg-emerald-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 group-hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)] relative z-10"
                 >
                     <Play size={16} fill="black" stroke="black" />
                     Iniciar Sessão
-                </button>
+                </div>
               )}
             </motion.div>
           </div>

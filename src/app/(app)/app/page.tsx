@@ -68,23 +68,24 @@ export default function HomePage() {
           <div id="tour-acao-prioritaria" className="w-full">
             {pendingCount > 0 ? (
               <div className="w-full text-center">
-                <div 
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => executeProtectedAction(() => router.push('/app/estudar?mode=srs'))}
-                  className="w-full cursor-pointer"
+                  className="w-full cursor-pointer text-left"
                 >
-                  <button className="w-full group relative p-5 md:p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/10 hover:border-emerald-500 transition-all duration-500 shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+                  <div className="w-full relative p-5 md:p-10 border-2 border-emerald-500/50 bg-white/[0.02] backdrop-blur-xl hover:bg-emerald-500/5 hover:border-emerald-400 transition-all duration-300 shadow-[0_0_50px_rgba(0,0,0,0.6)] group">
                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                       <Zap size={48} className="text-emerald-500" />
                     </div>
                     
-                    <div className="flex flex-col items-start text-left">
+                    <div className="flex flex-col items-start text-left relative z-10">
                       <span className="text-[10px] font-black text-emerald-500 tracking-[0.4em] uppercase mb-4">Ação Prioritária</span>
-                      <h2 className="text-2xl md:text-5xl font-black text-white mb-3 md:mb-8 tracking-tighter uppercase leading-tight group-hover:text-emerald-500 transition-colors">
+                      <h2 className="text-2xl md:text-5xl font-black text-white mb-3 md:mb-8 tracking-tighter uppercase leading-tight group-hover:text-amber-500 transition-colors">
                         Revisar Agora
                       </h2>
                       
                       <div className="flex flex-wrap items-center gap-3 md:gap-6 mb-6 md:mb-10">
-                        <div className="px-4 md:px-5 py-2 bg-emerald-500 text-black text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.4)]">
+                        <div className="px-4 md:px-5 py-2 bg-amber-500 text-black text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(245,158,11,0.4)]">
                           {pendingCount} Pendentes
                         </div>
                         <div className="text-white/20 text-[10px] font-bold tracking-[0.4em] uppercase italic hidden md:block">
@@ -92,13 +93,13 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <div className="w-full h-12 md:h-14 bg-emerald-500 flex items-center justify-center gap-2 md:gap-3 group-hover:bg-emerald-400 transition-colors min-h-[48px]">
+                      <div className="w-full h-12 md:h-14 bg-emerald-500 flex items-center justify-center gap-2 md:gap-3 group-hover:bg-emerald-400 transition-all min-h-[48px] shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)]">
                         <Play size={16} fill="black" stroke="black" />
                         <span className="text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase">Iniciar Sessão</span>
                       </div>
                     </div>
-                  </button>
-                </div>
+                  </div>
+                </motion.div>
               </div>
             ) : (
               <div className="w-full p-6 md:p-16 border-2 border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center">
