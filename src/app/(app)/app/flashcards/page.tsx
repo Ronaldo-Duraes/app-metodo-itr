@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check, Rocket } from 'lucide-react';
-import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData, getDictionary } from '@/lib/srs';
-import { Flashcard, Deck } from '@/lib/types';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check, Rocket, RotateCcw } from 'lucide-react';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData, getDictionary, saveDictionary } from '@/lib/srs';
+import { Flashcard, Deck, DictionaryEntry } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import StudyModeModal from '@/components/study/StudyModeModal';
@@ -154,7 +154,54 @@ export default function FlashcardsPage() {
   const [skipDictionary, setSkipDictionary] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   
+  // UNDO STATE
+  const [deletedCard, setDeletedCard] = useState<Flashcard | null>(null);
+  const [deletedCardIndex, setDeletedCardIndex] = useState<number | null>(null);
+  const [showUndoToast, setShowUndoToast] = useState(false);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showUndoToast) {
+       timer = setTimeout(() => {
+          setShowUndoToast(false);
+          setDeletedCard(null);
+       }, 7000); 
+    }
+    return () => clearTimeout(timer);
+  }, [showUndoToast]);
+
+  const handleUndoDelete = () => {
+    if (!deletedCard) return;
+    const dict = getDictionary();
+    const entry: DictionaryEntry = {
+      id: deletedCard.dictionaryId || deletedCard.id,
+      word: deletedCard.front,
+      translation: deletedCard.back,
+      association: deletedCard.association || '',
+      dateAdded: new Date().toISOString(),
+      isMemorized: deletedCard.isMemorized ?? false,
+      usageFrequency: 1,
+      nextReview: deletedCard.nextReview,
+      lastReviewed: deletedCard.lastReviewed,
+      interval: deletedCard.interval,
+      reviewedCount: deletedCard.reviewedCount,
+      deck: deletedCard.deck,
+      pronunciation: deletedCard.pronunciation || '',
+      inDictionary: deletedCard.inDictionary ?? true
+    };
+    
+    if (deletedCardIndex !== null && deletedCardIndex >= 0) {
+      dict.splice(deletedCardIndex, 0, entry);
+      saveDictionary(dict);
+    } else {
+      saveDictionary([...dict, entry]);
+    }
+    
+    setDeletedCard(null);
+    setDeletedCardIndex(null);
+    setShowUndoToast(false);
+    loadData();
+  };
 
   useEffect(() => {
     // RESET NUCLEAR (FORÇA 0 CARDS E 0 BARALHOS)
@@ -288,6 +335,14 @@ export default function FlashcardsPage() {
   };
 
   const handleDeleteCard = (id: string) => {
+    const cardToRestore = cards.find(c => c.id === id);
+    if (cardToRestore) {
+      const dictObj = getDictionary();
+      const originalIndex = dictObj.findIndex(e => e.id === (cardToRestore.dictionaryId || cardToRestore.id));
+      setDeletedCardIndex(originalIndex);
+      setDeletedCard(cardToRestore);
+      setShowUndoToast(true);
+    }
     deleteCard(id);
     loadData();
   };
@@ -1106,6 +1161,40 @@ export default function FlashcardsPage() {
           setTargetStudyDeckId(null);
         }}
       />
+
+      {/* UNDO TOAST NOTIFICATION */}
+      <AnimatePresence>
+        {showUndoToast && deletedCard && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className="fixed bottom-6 left-1/2 z-[200] bg-[#1a1a1a] border border-white/10 text-slate-300 px-6 py-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-between gap-6 w-[90%] max-w-md rounded-none"
+          >
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] md:text-[11px] font-black text-white tracking-widest uppercase">Vocabulário Removido</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase mt-0.5 truncate">{deletedCard.front}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <button 
+                onClick={handleUndoDelete}
+                className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-[9px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-4 py-3 md:px-3 md:py-2 transition-colors active:scale-95 min-h-[44px] md:min-h-0 rounded-lg"
+                title="Desfazer exclusão"
+              >
+                <RotateCcw size={16} className="md:w-[14px] md:h-[14px]" /> DESFAZER
+              </button>
+              <button 
+                onClick={() => { setShowUndoToast(false); setDeletedCard(null); setDeletedCardIndex(null); }}
+                className="text-slate-500 hover:text-white transition-colors p-3 md:p-1 shrink-0 min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 flex items-center justify-center rounded-lg"
+                title="Fechar"
+              >
+                <X size={20} className="md:w-[16px] md:h-[16px]" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
