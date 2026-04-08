@@ -156,8 +156,8 @@ export default function DicionarioPage() {
         </div>
       </div>
 
-      {/* CONTROLS (STICKY ON MOBILE, RELATIVE ON DESKTOP) */}
-      <div className="sticky md:relative top-[64px] md:top-auto z-[40] -mx-4 md:mx-0 px-4 py-4 md:p-0 bg-black/95 md:bg-transparent backdrop-blur-2xl md:backdrop-blur-none border-b border-emerald-500/20 md:border-0 flex flex-col md:flex-row gap-3 md:gap-4 md:mb-12 shadow-[0_15px_30px_rgba(0,0,0,0.9)] md:shadow-none transition-all">
+      {/* CONTROLS */}
+      <div className="relative z-[40] -mx-4 md:mx-0 px-4 py-4 md:p-0 bg-black/95 md:bg-transparent backdrop-blur-2xl md:backdrop-blur-none border-b border-white/5 md:border-0 flex flex-col md:flex-row gap-3 md:gap-4 md:mb-12 shadow-none transition-all">
         <div className="relative flex-1 group w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-emerald-500 transition-colors" size={20} />
           <input 
@@ -208,35 +208,35 @@ export default function DicionarioPage() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.01 }}
-            className={`group relative flex flex-col md:grid md:grid-cols-[50px_1.5fr_1.5fr_120px] items-start md:items-center p-4 md:px-8 md:py-5 border transition-all cursor-pointer rounded-2xl md:rounded-none w-full md:w-auto mb-3 md:mb-1 ${
+            className={`group relative flex flex-col md:grid md:grid-cols-[50px_1.5fr_1.5fr_120px] items-start md:items-center p-3 md:px-8 md:py-5 border transition-all cursor-pointer rounded-xl md:rounded-none w-full md:w-auto mb-2 md:mb-1 ${
               selectedIds.includes(item.id) 
                 ? 'bg-emerald-500/5 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
                 : 'bg-zinc-900 border-white/5 hover:border-emerald-500/30 hover:bg-zinc-800/60'
             }`}
             onClick={() => handleEditClick(item)}
           >
-            {/* NO MOBILE: Topo com Checkbox e Status */}
-            <div className="flex md:hidden justify-between items-center w-full mb-4">
+            {/* NO MOBILE: Topo com Checkbox e Status Compacto */}
+            <div className="flex md:hidden justify-between items-center w-full mb-2 pb-2 border-b border-white/5">
               <div 
                 onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
-                className="flex items-center gap-3 active:scale-95 transition-transform"
+                className="flex items-center gap-2 active:scale-95 transition-transform"
               >
-                <div className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
+                <div className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${
                   selectedIds.includes(item.id) 
                     ? 'border-emerald-500 bg-emerald-500' 
                     : 'border-white/10 bg-black/50'
                 }`}>
-                  {selectedIds.includes(item.id) && <Check size={16} className="text-black" strokeWidth={4} />}
+                  {selectedIds.includes(item.id) && <Check size={12} className="text-black" strokeWidth={4} />}
                 </div>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Selecionar</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">SEL</span>
               </div>
               
               {item.isMemorized ? (
-                <div className="px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter rounded-full shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
-                  <Gem size={10} /> Memorizado
+                <div className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[8px] font-black uppercase tracking-tighter rounded-full shadow-[0_0_15px_rgba(250,204,21,0.3)] flex items-center gap-1">
+                  <Gem size={8} /> Memorizado
                 </div>
               ) : (
-                <div className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter rounded-full">
+                <div className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-tighter rounded-full">
                   Em Revisão
                 </div>
               )}
@@ -256,29 +256,45 @@ export default function DicionarioPage() {
               </div>
             </div>
             
-            {/* Conteúdo: Português e Inglês */}
-            <div className="flex flex-col w-full md:w-auto md:contents gap-2 md:gap-0">
-              {/* Português (Destaque) */}
-              <div className="w-full md:w-auto bg-black/20 md:bg-transparent p-3 md:p-0 rounded-lg md:rounded-none">
-                <div className="text-[9px] md:hidden text-emerald-500 font-black uppercase tracking-widest mb-1 opacity-70">Português</div>
-                <h3 className="text-base md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
-                  {item.translation}
-                </h3>
+            {/* CONTEÚDO (Lado a Lado no Mobile) */}
+            <div className="flex w-full md:contents items-center justify-between gap-2">
+              <div className="grid grid-cols-2 gap-2 flex-1 md:contents items-center">
+                {/* Português */}
+                <div className="min-w-0 pr-1 md:pr-0">
+                  <h3 className="text-xs md:text-base font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors truncate">
+                    {item.translation}
+                  </h3>
+                </div>
+
+                {/* Inglês */}
+                <div className="min-w-0 border-l border-white/10 pl-2 md:border-0 md:pl-0">
+                  <p className="text-xs md:text-sm text-emerald-500 md:text-slate-500 font-bold uppercase tracking-tight md:tracking-widest font-mono truncate">
+                    {item.word}
+                  </p>
+                </div>
               </div>
 
-              {/* Inglês */}
-              <div className="w-full md:w-auto bg-black/20 md:bg-transparent p-3 md:p-0 rounded-lg md:rounded-none mt-1 md:mt-0">
-                <div className="text-[9px] md:hidden text-slate-500 font-black uppercase tracking-widest mb-1 opacity-70">Inglês</div>
-                <p className="text-[13px] md:text-xs text-slate-300 md:text-slate-500 font-bold uppercase tracking-widest font-mono">
-                  {item.word}
-                </p>
+              {/* Botões de Ação Mobile (Pequenos e Discretos) */}
+              <div className="flex md:hidden justify-end items-center gap-1.5 shrink-0 bg-black/40 p-1 rounded-lg border border-white/5">
+                <div className="w-7 h-7 text-slate-400 bg-white/5 rounded flex items-center justify-center">
+                  <Edit2 size={12} />
+                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWordToDelete(item);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="w-7 h-7 text-red-500/80 hover:text-red-500 bg-red-500/10 rounded flex items-center justify-center active:scale-90 transition-transform"
+                  title="Excluir Permanentemente"
+                >
+                  <Trash2 size={12} />
+                </button>
               </div>
             </div>
             
-            {/* Status & Actions (Desktop) + Ações Mobile */}
-            <div className="w-full md:w-auto flex justify-between md:justify-end items-center gap-4 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-0 relative">
-              
-              {/* Status Desktop (Hidden on mobile as it's at the top now) */}
+            {/* Status & Actions (Apenas Desktop) */}
+            <div className="hidden w-full md:w-auto md:flex justify-end items-center gap-4 relative">
               <div className="hidden md:block">
                 {item.isMemorized ? (
                   <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
@@ -291,7 +307,6 @@ export default function DicionarioPage() {
                 )}
               </div>
               
-              {/* Botões de Ação (Mobile e Desktop) */}
               <div className="flex w-full md:w-auto justify-end items-center gap-2">
                 <button 
                   onClick={(e) => {
@@ -304,11 +319,6 @@ export default function DicionarioPage() {
                 >
                   <Trash2 size={18} />
                 </button>
-
-                {/* Edit Icon só aparente no Mobile p/ dar dica de clique */}
-                <div className="md:hidden w-12 h-12 text-slate-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center">
-                  <Edit2 size={16} className="text-emerald-500" />
-                </div>
               </div>
             </div>
           </motion.div>
