@@ -26,23 +26,23 @@ export default function ActivitiesPage() {
         {/* Faixa listrada superior */}
         <div className="w-full h-1.5 opacity-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 15px, #000 15px, #000 30px)' }} />
         
-        <div className="relative flex-1 w-full flex flex-col items-center justify-center overflow-hidden py-6">
+        <div className="relative w-full py-4 md:py-8 flex flex-col items-center justify-center text-center overflow-hidden min-h-[120px] md:min-h-[160px]">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent blur-xl" />
           
-          <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center">
+          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4 text-center">
             <motion.span 
               animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[0.8em] text-amber-500 mb-1.5 block drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+              className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] md:tracking-[0.8em] text-amber-500 mb-1.5 md:mb-2 block drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] text-center w-full"
             >
               Área em Construção
             </motion.span>
             
-            <h2 className="text-2xl md:text-4xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-1.5 flex items-center justify-center">
+            <h2 className="text-2xl md:text-5xl font-black font-outfit text-white tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-3 flex items-center justify-center text-center w-full">
               EM BREVE
             </h2>
             
-            <p className="text-amber-200/60 text-[10px] md:text-xs font-bold tracking-widest max-w-sm flex items-center justify-center">
+            <p className="text-amber-200/60 text-[10px] md:text-sm font-bold tracking-widest max-w-md mx-auto flex items-center justify-center text-center w-full">
               Novas atividades interativas estão sendo preparadas.
             </p>
           </div>
