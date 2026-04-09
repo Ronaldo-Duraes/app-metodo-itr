@@ -329,11 +329,14 @@ export async function logout() {
     // Limpa localStorage seletivamente
     const keysToRemove = [
       'itr_app_data',
+      'itr_espanhol_app_data',
       'itr_mirror_triggers',
       'itr_grammar_checklist',
       'itr-tour-completed',
       'welcomeShown',
-      'admin_authenticated'
+      'admin_authenticated',
+      'itr_espanhol_session',
+      'itr_espanhol_invert_cards'
     ];
     keysToRemove.forEach(key => localStorage.removeItem(key));
     // Limpa sessionStorage completamente

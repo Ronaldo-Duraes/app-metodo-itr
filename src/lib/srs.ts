@@ -1,6 +1,11 @@
 import { Flashcard, ReviewInterval, UserProfile, AppData, Deck, DictionaryEntry } from './types';
 
-const STORAGE_KEY = 'itr_app_data';
+export const getStorageKey = (): string => {
+  if (typeof window !== 'undefined') {
+    return window.location.pathname.startsWith('/espanhol') ? 'itr_espanhol_app_data' : 'itr_app_data';
+  }
+  return 'itr_app_data';
+};
 
 // ===================================================================
 // CLOUD SYNC BRIDGE — Conecta localStorage ao Firestore
@@ -39,7 +44,7 @@ export const getAppData = (): AppData => {
   if (typeof window === 'undefined') return defaultData;
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(getStorageKey());
     if (!stored) {
       saveAppData(defaultData);
       return defaultData;
@@ -91,7 +96,7 @@ export const getAppData = (): AppData => {
         }
       });
       data.cards = []; // Clear migrated data
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(getStorageKey(), JSON.stringify(data));
     }
 
     return data;
@@ -104,7 +109,7 @@ export const getAppData = (): AppData => {
 export const saveAppData = (data: AppData) => {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
     
     // ☁️ CLOUD SYNC: Dispara sync debounced com Firestore
     if (_cloudSyncCallback) {
@@ -560,7 +565,8 @@ export const resetDictionarySRS = () => {
 export const clearAllData = () => {
   if (typeof window === 'undefined') return;
   const profile = getUserProfile();
-  localStorage.clear();
+  const key = getStorageKey();
+  localStorage.removeItem(key);
   const newData: AppData = {
     cards: [],
     profile: { ...profile, totalWordsAdded: profile.totalWordsAdded, unlockedMilestones: profile.unlockedMilestones },

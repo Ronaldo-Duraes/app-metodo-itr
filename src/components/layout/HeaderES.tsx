@@ -24,8 +24,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   const handleStartTour = () => {
     // Redireciona para a home antes de iniciar para garantir elementos visíveis
-    if (typeof window !== 'undefined' && window.location.pathname !== '/app') {
-       router.push('/app');
+    if (typeof window !== 'undefined' && window.location.pathname !== '/espanhol') {
+       router.push('/espanhol');
        setTimeout(() => startTour(), 800);
     } else {
        startTour();
@@ -103,7 +103,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                   </div>
                   
                   <button 
-                    onClick={() => { setIsOpen(false); router.push('/app/perfil'); }}
+                    onClick={() => { setIsOpen(false); router.push('/espanhol/perfil'); }}
                     className="w-full flex items-center gap-3 p-3 min-h-[44px] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-left"
                   >
                     <User size={14} /> Meu Perfil
