@@ -567,22 +567,39 @@ export async function loadUserProgress(uid: string): Promise<UserProgress | null
 // SINCRONIZAÇÃO TOTAL — AppData (Vocabulário, SRS, Decks) na Nuvem
 // ===================================================================
 
+const getDbPrefix = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.pathname.startsWith('/espanhol') ? 'es' : 'en';
+  }
+  return 'en';
+};
+
 /**
  * Salva TODO o AppData (dicionário, decks, profile local, sprints) no Firestore.
- * Armazenado em: users/{uid}/appData/main
- * Usa merge para não sobrescrever campos que possam existir.
+ * Armazenado em coleções separadas no namespace atual (es_ ou en_).
  */
 export async function saveAppDataToCloud(uid: string, data: any): Promise<boolean> {
   if (!isFirebaseReady || !db || !uid) return false;
   try {
-    const docRef = doc(db, getUsersCollectionName(), uid, 'appData', 'main');
-    // Remove campos undefined/function que o Firestore não aceita
+    const prefix = getDbPrefix();
     const cleanData = JSON.parse(JSON.stringify(data));
-    await setDoc(docRef, { 
-      ...cleanData, 
-      _lastSyncedAt: serverTimestamp() 
-    });
-    console.log('☁️ AppData sincronizado com a nuvem');
+    
+    const vocabRef = doc(db, `${prefix}_vocabulario`, uid);
+    const decksRef = doc(db, `${prefix}_decks`, uid);
+    const perfilRef = doc(db, `${prefix}_perfil`, uid);
+
+    await Promise.all([
+      setDoc(vocabRef, { items: cleanData.dictionary || [], _lastSyncedAt: serverTimestamp() }),
+      setDoc(decksRef, { items: cleanData.decks || [], _lastSyncedAt: serverTimestamp() }),
+      setDoc(perfilRef, { 
+        profile: cleanData.profile || {}, 
+        vocabularyProgress: cleanData.vocabularyProgress || [],
+        currentSprint: cleanData.currentSprint || 1,
+        _lastSyncedAt: serverTimestamp() 
+      })
+    ]);
+    
+    console.log(`☁️ AppData sincronizado com a nuvem (${prefix})`);
     return true;
   } catch (error) {
     console.error("❌ Erro ao salvar AppData na nuvem:", error);
@@ -592,29 +609,40 @@ export async function saveAppDataToCloud(uid: string, data: any): Promise<boolea
 
 /**
  * Carrega o AppData completo do Firestore para restaurar no localStorage.
- * Retorna null se não houver dados na nuvem (primeiro acesso).
  */
 export async function loadAppDataFromCloud(uid: string): Promise<any | null> {
   if (!isFirebaseReady || !db || !uid) return null;
   try {
-
-    const docRef = doc(db, getUsersCollectionName(), uid, 'appData', 'main');
-    const snap = await Promise.race([
-      getDoc(docRef),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_CLOUD_LOAD')), 8000))
+    const prefix = getDbPrefix();
+    
+    const [vocabSnap, decksSnap, perfilSnap] = await Promise.all([
+      getDoc(doc(db, `${prefix}_vocabulario`, uid)),
+      getDoc(doc(db, `${prefix}_decks`, uid)),
+      getDoc(doc(db, `${prefix}_perfil`, uid))
     ]);
-    if (snap.exists()) {
-      const data = snap.data();
-      // Remove metadados do Firestore antes de retornar
-      delete data._lastSyncedAt;
-      console.log('☁️ AppData restaurado da nuvem:', {
+
+    if (vocabSnap.exists() || decksSnap.exists() || perfilSnap.exists()) {
+      const vocabData = vocabSnap.exists() ? vocabSnap.data().items : [];
+      const decksData = decksSnap.exists() ? decksSnap.data().items : [];
+      const perfilData = perfilSnap.exists() ? perfilSnap.data() : {};
+
+      const data = {
+        dictionary: vocabData,
+        decks: decksData,
+        profile: perfilData.profile || {},
+        vocabularyProgress: perfilData.vocabularyProgress || [],
+        currentSprint: perfilData.currentSprint || 1,
+      };
+
+      console.log(`☁️ AppData restaurado da nuvem (${prefix}):`, {
         dictionary: data.dictionary?.length || 0,
         decks: data.decks?.length || 0,
         totalWords: data.profile?.totalWordsAdded || 0
       });
       return data;
     }
-    console.log('☁️ Nenhum AppData encontrado na nuvem (primeiro acesso)');
+    
+    console.log(`☁️ Nenhum AppData encontrado na nuvem para (${prefix})`);
     return null;
   } catch (error: any) {
     console.warn("⚠️ Falha ao carregar AppData da nuvem:", error.message);
