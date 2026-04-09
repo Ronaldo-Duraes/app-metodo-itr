@@ -96,7 +96,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Força rede ativa antes de qualquer leitura
 
 
-        const userRef = doc(db, 'users', firebaseUser.uid);
+        const { getUsersCollectionName } = await import('@/lib/firebase');
+        const userRef = doc(db, getUsersCollectionName(), firebaseUser.uid);
 
         // ── PASSO 1: getDoc one-shot para perfil IMEDIATO ──
         let initialProfile: UserStats | null = null;

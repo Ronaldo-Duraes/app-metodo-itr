@@ -1,0 +1,1222 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, BookOpen, Search, Filter, MoreVertical, Zap, Layers, Play, X, Edit2, Trash2, ArrowRight, ChevronDown, Check, Rocket, RotateCcw } from 'lucide-react';
+import { getCards, getDecks, addDeck, getTodayPendingCards, renameDeck, deleteDeck, addFullCard, deleteCard, updateCard, clearAllData, getDictionary, saveDictionary } from '@/lib/srs';
+import { Flashcard, Deck, DictionaryEntry } from '@/lib/types';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import StudyModeModal from '@/components/study/StudyModeModal';
+import { useRoleGuard } from '@/hooks/useRoleGuard';
+
+// --- COMPONENTE: DECK SELECTOR CUSTOM (INDUSTRIAL) ---
+interface DeckSelectorProps {
+  decks: Deck[];
+  selectedDeckName: string;
+  onSelect: (name: string) => void;
+  disabled?: boolean;
+  error?: boolean;
+}
+
+const DeckSelector = ({ decks, selectedDeckName, onSelect, disabled = false, error = false }: DeckSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative w-full font-outfit">
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full p-4 flex items-center justify-between border-2 transition-all cursor-pointer ${
+          disabled ? 'bg-white/5 border-white/5 opacity-50' : 
+          error ? 'bg-red-500/5 border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)]' :
+          isOpen ? 'bg-black border-orange-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/[0.03] border-white/10 hover:border-white/20'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Layers size={16} className={disabled ? 'text-slate-600' : 'text-orange-500'} />
+          <span className={`text-[11px] font-bold uppercase tracking-widest ${selectedDeckName ? 'text-white' : 'text-slate-500'}`}>
+            {selectedDeckName || 'Selecione um Baralho'}
+          </span>
+        </div>
+        {!disabled && (
+          <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
+            <ChevronDown size={16} className="text-slate-500" />
+          </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop para fechar ao clicar fora */}
+            <div className="fixed inset-0 z-[90]" onClick={() => setIsOpen(false)} />
+            
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-full left-0 right-0 mt-2 bg-black border border-orange-500/30 shadow-2xl z-[100] max-h-60 overflow-y-auto custom-scrollbar"
+            >
+              {decks.map((deck) => (
+                <div 
+                  key={deck.id}
+                  onClick={() => {
+                    onSelect(deck.name);
+                    setIsOpen(false);
+                  }}
+                  className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-orange-500 hover:text-black transition-all cursor-pointer border-b border-white/5 last:border-0"
+                >
+                  {deck.name}
+                </div>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #10b981;
+          border-radius: 10px;
+        }
+        * {
+          -webkit-tap-highlight-color: transparent;
+        }
+        .select-none {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        label {
+          cursor: pointer;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default function FlashcardsPage() {
+  const router = useRouter();
+  const { executeProtectedAction } = useRoleGuard();
+  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // --- EFEITO: CLIQUE FORA E ESC PARA FECHAR MENU ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Se clicar fora do menu, fecha
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveMenuId(null);
+      }
+    };
+
+    if (activeMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [activeMenuId]);
+  const [newDeckName, setNewDeckName] = useState('');
+  const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
+  const [newCardData, setNewCardData] = useState({ front: '', back: '', association: '', deckName: '', pronunciation: '' });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [targetStudyDeckId, setTargetStudyDeckId] = useState<string | null>(null);
+  
+  // DECK EDITOR STATE
+  const [viewingDeck, setViewingDeck] = useState<Deck | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isEditCardModalOpen, setIsEditCardModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [originalVocab, setOriginalVocab] = useState({ front: '', back: '' });
+  const [skipDictionary, setSkipDictionary] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+  
+  // UNDO STATE
+  const [deletedCard, setDeletedCard] = useState<Flashcard | null>(null);
+  const [deletedCardIndex, setDeletedCardIndex] = useState<number | null>(null);
+  const [showUndoToast, setShowUndoToast] = useState(false);
+
+  // INVERSÃO GLOBAL PT-EN
+  const [isInverted, setIsInverted] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showUndoToast) {
+       timer = setTimeout(() => {
+          setShowUndoToast(false);
+          setDeletedCard(null);
+       }, 7000); 
+    }
+    return () => clearTimeout(timer);
+  }, [showUndoToast]);
+
+  const handleUndoDelete = () => {
+    if (!deletedCard) return;
+    const dict = getDictionary();
+    const entry: DictionaryEntry = {
+      id: deletedCard.dictionaryId || deletedCard.id,
+      word: deletedCard.front,
+      translation: deletedCard.back,
+      association: deletedCard.association || '',
+      dateAdded: new Date().toISOString(),
+      isMemorized: deletedCard.isMemorized ?? false,
+      usageFrequency: 1,
+      nextReview: deletedCard.nextReview,
+      lastReviewed: deletedCard.lastReviewed,
+      interval: deletedCard.interval,
+      reviewedCount: deletedCard.reviewedCount,
+      deck: deletedCard.deck,
+      pronunciation: deletedCard.pronunciation || '',
+      inDictionary: deletedCard.inDictionary ?? true
+    };
+    
+    if (deletedCardIndex !== null && deletedCardIndex >= 0) {
+      dict.splice(deletedCardIndex, 0, entry);
+      saveDictionary(dict);
+    } else {
+      saveDictionary([...dict, entry]);
+    }
+    
+    setDeletedCard(null);
+    setDeletedCardIndex(null);
+    setShowUndoToast(false);
+    loadData();
+  };
+
+  useEffect(() => {
+    // RESET NUCLEAR (FORÇA 0 CARDS E 0 BARALHOS)
+    if (typeof window !== 'undefined' && !localStorage.getItem('nuclear_reset_v4')) {
+      localStorage.clear();
+      localStorage.setItem('nuclear_reset_v4', 'true');
+      window.location.reload();
+      return;
+    }
+    loadData();
+    setIsInverted(localStorage.getItem('itr_invert_cards') === 'true');
+    // Atualiza a fila a cada minuto para garantir que seja "viva"
+    const interval = setInterval(loadData, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleInvert = () => {
+    const newVal = !isInverted;
+    setIsInverted(newVal);
+    localStorage.setItem('itr_invert_cards', String(newVal));
+  };
+
+  const loadData = () => {
+    const loadedCards = getCards();
+    const loadedDecks = getDecks();
+    setCards(loadedCards);
+    setDecks(loadedDecks);
+    setIsLoading(false);
+  };
+
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const isVocabDuplicate = (front: string, back: string, originalFront?: string, originalBack?: string) => {
+    const dict = getDictionary();
+    const nf = normalizeText(front);
+    const nb = normalizeText(back);
+    
+    if (!nf && !nb) return false;
+
+    return dict.some(e => {
+      // Se estamos editando e os valores não mudaram, não é duplicidade "nova"
+      if (originalFront && originalBack) {
+        if (normalizeText(e.word) === normalizeText(originalFront) && 
+            normalizeText(e.translation) === normalizeText(originalBack)) {
+          return false;
+        }
+      }
+
+      const dw = normalizeText(e.word);
+      const dt = normalizeText(e.translation);
+
+      return (nf && (nf === dw || nf === dt)) || (nb && (nb === dw || nb === dt));
+    });
+  };
+
+  const isNewCardDuplicate = isVocabDuplicate(newCardData.front, newCardData.back);
+  const isEditingCardDuplicate = editingCard ? isVocabDuplicate(editingCard.front, editingCard.back, originalVocab.front, originalVocab.back) : false; 
+  // Nota: Para edição, precisamos passar o valor ORIGINAL da entrada que está sendo editada para ignorá-la.
+  // Como `editingCard` é o estado que muda no input, o valor original deve ser capturado quando o modal abre.
+
+  const isDuplicateDeck = newDeckName.trim() !== '' && decks.some(d => {
+    // Se estivermos renomeando, ignora o deck atual para não acusar duplicidade com ele mesmo
+    if (isRenameModalOpen && activeDeck && d.id === activeDeck.id) return false;
+    return d.name.toLowerCase().trim() === newDeckName.toLowerCase().trim();
+  });
+
+  const handleCreateDeck = (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedNew = newDeckName.toLowerCase().trim();
+    const exists = decks.some(d => d.name.toLowerCase().trim() === normalizedNew);
+    
+    if (!newDeckName.trim() || exists) {
+      setShowErrors(true);
+      return;
+    }
+    
+    addDeck(newDeckName);
+    setNewDeckName('');
+    setShowErrors(false);
+    setIsModalOpen(false);
+    loadData();
+  };
+
+  const handleRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeDeck || !newDeckName.trim() || isDuplicateDeck) {
+      setShowErrors(true);
+      return;
+    }
+    renameDeck(activeDeck.id, newDeckName);
+    setNewDeckName('');
+    setActiveDeck(null);
+    setShowErrors(false);
+    setIsRenameModalOpen(false);
+    loadData();
+  };
+
+  const handleDelete = () => {
+    if (!activeDeck) return;
+    deleteDeck(activeDeck.id);
+    setActiveDeck(null);
+    setIsDeleteModalOpen(false);
+    loadData();
+  };
+
+  const handleCreateCard = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { front, back, association, deckName, pronunciation } = newCardData;
+    
+    // Lógica de Segurança
+    if (!deckName && decks.length === 0) {
+      if (!newDeckName.trim()) {
+        setShowErrors(true);
+        return;
+      }
+      const d = addDeck(newDeckName);
+      addFullCard(front, back, association, d.name, pronunciation);
+    } else {
+      if (!front || !back || !deckName) {
+        setShowErrors(true);
+        return;
+      }
+      addFullCard(front, back, association, deckName, pronunciation);
+    }
+
+    setNewCardData({ front: '', back: '', association: '', deckName: '', pronunciation: '' });
+    setNewDeckName('');
+    setSkipDictionary(false);
+    setShowErrors(false);
+    setIsCardModalOpen(false);
+    loadData();
+  };
+
+  const handleDeleteCard = (id: string) => {
+    const cardToRestore = cards.find(c => c.id === id);
+    if (cardToRestore) {
+      const dictObj = getDictionary();
+      const originalIndex = dictObj.findIndex(e => e.id === (cardToRestore.dictionaryId || cardToRestore.id));
+      setDeletedCardIndex(originalIndex);
+      setDeletedCard(cardToRestore);
+      setShowUndoToast(true);
+    }
+    deleteCard(id);
+    loadData();
+  };
+
+  const getTimeLeft = (card: Flashcard): { text: string, color: string, dot: string, bg: string, border: string, width: string } => {
+    if (card.isMemorized) return { 
+      text: 'Memorizado', 
+      color: 'text-yellow-400 [text-shadow:0_0_8px_rgba(250,204,21,0.5)]', 
+      dot: '', 
+      bg: 'bg-zinc-950', 
+      border: 'border-yellow-500/60', 
+      width: 'min-w-[120px]' 
+    };
+
+    // NOVO: Se nunca foi revisado ou revisado 0 vezes
+    if (!card.lastReviewed || card.reviewedCount === 0) {
+      return { 
+        text: 'NOVO', 
+        color: 'text-yellow-500', 
+        dot: 'bg-yellow-500', 
+        bg: 'bg-zinc-900', 
+        border: 'border-yellow-500/50', 
+        width: 'min-w-[100px]' 
+      };
+    }
+    
+    const diffMs = new Date(card.nextReview).getTime() - Date.now();
+    const diffMin = diffMs / (1000 * 60);
+
+    if (diffMin <= 0) return { text: 'Revisar Agora', color: 'text-red-500', dot: 'bg-red-500', bg: 'bg-zinc-900', border: 'border-red-500/50', width: 'min-w-[140px]' };
+    
+    if (diffMin < 10) return { text: '< 10 MIN', color: 'text-red-500', dot: 'bg-red-500', bg: 'bg-zinc-900', border: 'border-red-500/30', width: 'min-w-[120px]' };
+    if (diffMin < 1440) return { text: '< 1 DIA', color: 'text-orange-500', dot: 'bg-orange-500', bg: 'bg-zinc-900', border: 'border-orange-500/30', width: 'min-w-[120px]' };
+    if (diffMin < 10080) return { text: '< 7 DIAS', color: 'text-blue-500', dot: 'bg-blue-500', bg: 'bg-zinc-900', border: 'border-blue-500/30', width: 'min-w-[120px]' };
+    return { text: '< 30 DIAS', color: 'text-yellow-500', dot: 'bg-yellow-500', bg: 'bg-zinc-900', border: 'border-yellow-500/30', width: 'min-w-[120px]' };
+  };
+
+  const handleUpdateCard = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCard) return;
+    if (!editingCard.front || !editingCard.back) {
+       setShowErrors(true);
+       return;
+    }
+    updateCard(editingCard.id, {
+      front: editingCard.front,
+      back: editingCard.back,
+      association: editingCard.association,
+      pronunciation: editingCard.pronunciation
+    });
+    setIsEditCardModalOpen(false);
+    setEditingCard(null);
+    setSkipDictionary(false);
+    setShowErrors(false);
+    loadData();
+  };
+
+  const pendingCards = getTodayPendingCards(cards);
+
+
+
+  return (
+    <div className="min-h-screen bg-[#050505] p-3 md:px-12 md:pb-12 md:pt-0 font-outfit">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* HEADER AREA */}
+        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 md:mb-16 px-1 md:px-6">
+          <div>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-orange-500 mb-3 md:mb-4 block">Módulo de Retenção</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+              Flashcards
+            </h1>
+          </div>
+
+          <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center justify-end gap-2 md:gap-3 w-full lg:w-auto mt-4 md:mt-0">
+            <button 
+              onClick={() => executeProtectedAction(() => router.push('/espanhol/vocabulary'))}
+              className="flex items-center justify-center gap-2 bg-transparent border-2 border-orange-500/30 text-orange-500 px-3 md:px-4 py-3 rounded-lg font-black text-[10px] tracking-widest uppercase hover:bg-orange-500/10 hover:border-orange-500 transition-all active:scale-95 hover:scale-105 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] min-h-[48px] md:whitespace-nowrap"
+            >
+              <Rocket size={14} strokeWidth={3} />
+              Sprint 600 palavras
+            </button>
+            <button 
+              onClick={() => executeProtectedAction(() => setIsCardModalOpen(true))}
+              className="flex items-center justify-center gap-2 bg-white text-black px-3 md:px-4 py-3 rounded-none font-black text-[10px] tracking-widest uppercase hover:bg-orange-500 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.5),_0_0_30px_rgba(16,185,129,0.4)] active:scale-95 hover:scale-105 cursor-pointer min-h-[48px] md:whitespace-nowrap"
+            >
+              <Plus size={14} strokeWidth={3} />
+              Novo Card
+            </button>
+            <button 
+              onClick={() => executeProtectedAction(() => {
+                setNewDeckName('');
+                setShowErrors(false);
+                setIsModalOpen(true);
+              })}
+              className="flex items-center justify-center gap-2 bg-transparent border-2 border-white/10 text-white px-3 md:px-4 py-3 rounded-none font-black text-[10px] tracking-widest uppercase hover:border-orange-500/50 hover:bg-white/5 transition-all active:scale-95 hover:scale-105 cursor-pointer min-h-[48px] md:whitespace-nowrap"
+            >
+              <Plus size={14} strokeWidth={3} />
+              Novo Deck
+            </button>
+            <button 
+              onClick={toggleInvert}
+              className="flex items-center justify-center gap-2 group bg-black/40 border-2 border-white/10 text-white px-3 md:px-4 py-3 rounded-none font-black text-[10px] tracking-widest uppercase hover:border-orange-500/50 hover:bg-white/5 transition-all active:scale-95 min-h-[48px] md:whitespace-nowrap"
+              title="Inverter Flashcards: Mostrar Português primeiro"
+            >
+              <div className={`w-8 h-4 md:w-8 md:h-4 rounded-full p-1 transition-colors flex items-center shrink-0 ${isInverted ? 'bg-orange-500' : 'bg-white/10'}`}>
+                <div className={`w-2 h-2 md:w-2 md:h-2 rounded-full bg-white shadow-md transform transition-transform ${isInverted ? 'translate-x-4 md:translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">
+                <span className={`${isInverted ? 'text-orange-500' : ''}`}>PT</span> <span className="opacity-50">→</span> EN
+              </span>
+            </button>
+
+          </div>
+        </header>
+
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
+          
+          {/* LEFT COLUMN: ACTION BOARDS */}
+          <div className="lg:col-span-4">
+            
+            {/* STUDY ACTION CARD */}
+            <motion.div 
+              whileHover={pendingCards.length > 0 ? { y: -5, scale: 1.02 } : { y: -5 }}
+              onClick={() => {
+                if (pendingCards.length > 0) {
+                  executeProtectedAction(() => router.push('/espanhol/estudar?mode=srs'));
+                }
+              }}
+              className={`relative p-7 md:p-10 rounded-none border-2 border-orange-500 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] group flex flex-col justify-between text-left transition-all ${
+                pendingCards.length > 0 ? 'cursor-pointer hover:bg-orange-500/5 hover:border-orange-400 bg-white/[0.02]' : 'bg-white/[0.02]'
+              }`}
+            >
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
+                <Zap size={64} className="text-orange-500" />
+              </div>
+              
+              <div className="flex flex-col relative z-10 w-full mb-10">
+                <span className="text-[10px] font-black text-orange-500 tracking-[0.4em] uppercase mb-4 block">Ação Prioritária</span>
+                
+                {pendingCards.length > 0 ? (
+                  <>
+                    <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tighter uppercase whitespace-pre-line group-hover:text-amber-500 transition-colors">
+                      Revisar Agora
+                    </h2>
+                    
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="px-6 py-3 bg-amber-500 text-black text-xs md:text-sm font-black tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(245,158,11,0.6)]">
+                        {pendingCards.length} Pendentes
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                      <Check className="text-orange-500" size={40} strokeWidth={3} />
+                    </div>
+                    <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 max-w-[250px] leading-relaxed mx-auto">
+                      Tudo em dia! <br/> Nenhum vocabulário precisa de revisão.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {pendingCards.length > 0 && (
+                <div 
+                  className="w-full h-14 bg-orange-500 text-black font-black text-[11px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase flex items-center justify-center gap-3 group-hover:bg-orange-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:shadow-[inset_0_0_20px_rgba(255,255,255,0.4),_0_0_40px_rgba(16,185,129,0.8)] relative z-10"
+                >
+                    <Play size={16} fill="black" stroke="black" />
+                    Iniciar Sessão
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          {/* RIGHT COLUMN: DECK EXPLORER */}
+          <div className="lg:col-span-8">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em]">Meus Decks</h3>
+              <div className="flex items-center gap-2">
+                <button className="p-2 text-slate-500 hover:text-white transition-colors"><Search size={18} /></button>
+                <button className="p-2 text-slate-500 hover:text-white transition-colors"><Filter size={18} /></button>
+              </div>
+            </div>
+
+            {/* --- ANCORA: MEUS DECKS --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pb-20">
+              {decks.map((deck) => {
+                const deckCards = cards.filter(c => c.deck === deck.name || c.deck === deck.id);
+                return (
+                  <motion.div 
+                    key={deck.id}
+                    whileHover={{ scale: 1.01 }}
+                    onClick={() => {
+                      setViewingDeck(deck);
+                      setSearchTerm('');
+                    }}
+                    className={`p-6 border border-white/10 bg-white/[0.02] hover:border-orange-500/30 transition-all flex flex-col gap-6 group cursor-pointer relative ${
+                      activeMenuId === deck.id ? 'z-[60] border-orange-500/20' : 'z-auto'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between w-full">
+                      <div className="flex items-center gap-4">
+                        <div className="relative group/play">
+                          <div className="w-12 h-12 flex items-center justify-center border border-white/5 bg-slate-900 group-hover:border-orange-500/50 transition-colors">
+                            <Layers size={20} className="text-slate-500 group-hover:text-orange-500 transition-colors" />
+                          </div>
+                          {/* BOTÃO PLAY SOBREPOSTO (HOVER) */}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              executeProtectedAction(() => {
+                                if (deckCards.length > 0) {
+                                  setTargetStudyDeckId(deck.id);
+                                  setIsModeModalOpen(true);
+                                }
+                              });
+                            }}
+                            className={`absolute inset-0 w-full h-full bg-orange-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center opacity-0 group-hover/play:opacity-100 transition-all scale-75 group-hover/play:scale-100 cursor-pointer ${deckCards.length === 0 ? 'cursor-not-allowed opacity-0 group-hover/play:opacity-40 grayscale' : ''}`}
+                            title={deckCards.length > 0 ? "Iniciar Estudo" : "Adicione cards primeiro"}
+                          >
+                            <Play size={18} fill="black" className="text-black ml-1" />
+                          </button>
+                        </div>
+                        <div>
+                          <h4 
+                            className="font-black text-white text-sm tracking-normal whitespace-pre-wrap"
+                            style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                          >
+                            {deck.name}
+                          </h4>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{deckCards.length} CARDS</span>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === deck.id ? null : deck.id);
+                          }}
+                          className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-white transition-colors cursor-pointer rounded-full hover:bg-white/5"
+                          title="Opções do Baralho"
+                        >
+                          <MoreVertical size={20} />
+                        </button>
+
+                        {activeMenuId === deck.id && (
+                          <div 
+                            ref={menuRef}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-2 w-48 bg-[#0a0a0a] border border-zinc-800 shadow-2xl z-[110] py-2 overflow-hidden"
+                          >
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingDeck(deck);
+                                setSearchTerm('');
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <ArrowRight size={12} /> Editar Cards
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                executeProtectedAction(() => {
+                                  setActiveDeck(deck);
+                                  setNewDeckName(deck.name);
+                                  setIsRenameModalOpen(true);
+                                  setActiveMenuId(null);
+                                });
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-900 transition-all border-b border-zinc-800/50"
+                            >
+                              <Edit2 size={12} /> Renomear
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                executeProtectedAction(() => {
+                                  setActiveDeck(deck);
+                                  setIsDeleteModalOpen(true);
+                                  setActiveMenuId(null);
+                                });
+                              }}
+                              className="w-full text-left px-4 py-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-zinc-900 transition-all"
+                            >
+                              <Trash2 size={12} /> Excluir
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </motion.div>
+                );
+              })}
+              
+              <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => executeProtectedAction(() => setIsModalOpen(true))}
+                className="p-6 border border-dashed border-white/10 bg-transparent hover:border-orange-500/50 transition-all flex items-center justify-center group cursor-pointer h-[88px]"
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <Plus size={20} className="text-slate-700 group-hover:text-orange-500" />
+                  <span className="text-[9px] font-black text-slate-500 group-hover:text-white uppercase tracking-widest">Novo Baralho</span>
+                </div>
+              </motion.div>
+            </div>
+            {/* --- FIM ANCORA: MEUS DECKS --- */}
+
+            {decks.length === 0 && !isLoading && (
+              <div className="mt-12 p-12 border-2 border-dashed border-white/5 flex flex-col items-center text-center opacity-40">
+                <BookOpen size={40} className="mb-6 text-slate-700" />
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest max-w-xs">
+                  Ainda sem conteúdo. Comece criando seu primeiro baralho de estudos.
+                </p>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* --- ANCORA: LISTA_CARDS_DECK --- */}
+      <AnimatePresence>
+        {viewingDeck && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed inset-0 z-[60] bg-[#050505] p-4 md:p-12 overflow-y-auto"
+          >
+            <div className="max-w-5xl mx-auto">
+              <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-12 mb-8 md:mb-16 px-2 md:px-4">
+                <div className="flex items-center gap-6">
+                  <button 
+                    onClick={() => {
+                      setViewingDeck(null);
+                      setSearchTerm('');
+                      setIsCardModalOpen(false);
+                      setIsEditCardModalOpen(false);
+                    }}
+                    className="p-3 border border-white/10 text-white hover:bg-white/5 transition-all"
+                  >
+                    <ArrowRight size={20} className="rotate-180" />
+                  </button>
+                  <div 
+                    onClick={() => {
+                      setActiveDeck(viewingDeck);
+                      setNewDeckName(viewingDeck.name);
+                      setIsRenameModalOpen(true);
+                    }}
+                    className="group cursor-pointer hover:opacity-80 transition-all"
+                  >
+                    <span className="text-[10px] font-black text-orange-500 tracking-[0.4em] uppercase mb-1 block">Gerenciamento de Baralho</span>
+                    <h2 
+                      className="text-2xl md:text-4xl lg:text-6xl font-black text-white tracking-normal whitespace-pre-wrap leading-tight"
+                      style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                    >
+                      {viewingDeck.name}
+                    </h2>
+                  </div>
+                </div>
+                
+                    <div className="flex flex-row items-center gap-2 md:gap-4 w-full md:w-auto md:flex-1 md:max-w-2xl md:justify-end mt-4 md:mt-0">
+                      {cards.filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id).length > 0 && (
+                        <button 
+                          onClick={() => {
+                            executeProtectedAction(() => {
+                              setTargetStudyDeckId(viewingDeck.id);
+                              setIsModeModalOpen(true);
+                            });
+                          }}
+                          className="flex-1 md:flex-none h-10 md:h-14 px-4 md:px-8 flex items-center justify-center gap-2 bg-orange-500 text-black font-black text-[9px] md:text-[10px] tracking-widest uppercase hover:bg-orange-400 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[inset_0_0_15px_rgba(255,255,255,0.4),_0_0_25px_rgba(16,185,129,0.6)]"
+                        >
+                          <Play size={12} fill="currentColor" />
+                          INICIAR ESTUDO
+                        </button>
+                      )}
+                  <button 
+                    onClick={() => {
+                      executeProtectedAction(() => {
+                        setNewCardData({ ...newCardData, deckName: viewingDeck.name });
+                        setShowErrors(false);
+                        setIsCardModalOpen(true);
+                      });
+                    }}
+                    className="flex-1 md:flex-none h-10 md:h-14 px-4 md:px-8 flex items-center justify-center gap-2 bg-white text-black font-black text-[9px] md:text-[10px] tracking-widest uppercase hover:bg-orange-500 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                  >
+                    <Plus size={12} strokeWidth={3} />
+                    ADICIONAR CARD
+                  </button>
+                </div>
+              </header>
+
+              <div className="space-y-4">
+                {cards
+                  .filter(c => c.deck === viewingDeck.name || c.deck === viewingDeck.id)
+                  .map(card => (
+                    <div key={card.id} className="px-3 md:px-6 py-3 border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-6 group">
+                      
+                      {/* DADOS LADO A LADO NO MOBILE */}
+                      <div className="grid grid-cols-3 items-center gap-2 w-full md:w-auto md:flex-1">
+                        <div className="min-w-0 pr-1">
+                          <p className="text-white font-black uppercase text-xs md:text-sm tracking-tight truncate">{card.front}</p>
+                        </div>
+                        <div className="min-w-0 pr-1 border-l border-white/10 pl-2">
+                          <p className="text-orange-500 font-bold uppercase text-xs md:text-sm tracking-tight truncate">{card.back}</p>
+                        </div>
+                        <div className="flex justify-end md:justify-start items-center border-l border-white/10 pl-2">
+                          {card.isMemorized ? (
+                             <Check size={10} className="text-yellow-400 shrink-0 mr-1 hidden sm:block" strokeWidth={4} />
+                          ) : (
+                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${getTimeLeft(card).dot} mr-1 hidden sm:block`} />
+                          )}
+                          <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-tight md:tracking-widest ${getTimeLeft(card).color} whitespace-nowrap text-right md:text-left`}>
+                            {getTimeLeft(card).text}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* AÇÕES MINIMALISTAS EMBAIXO */}
+                      <div className="flex items-center justify-end gap-3 w-full md:w-auto border-t border-white/5 pt-2 mt-1 md:border-transparent md:pt-0 md:mt-0">
+                        <button 
+                          onClick={() => {
+                            executeProtectedAction(() => {
+                              setEditingCard(card);
+                              setOriginalVocab({ front: card.front, back: card.back });
+                              setIsEditCardModalOpen(true);
+                            });
+                          }}
+                          className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition-colors p-1"
+                          title="Editar Card"
+                        >
+                          <Edit2 size={10} /> EDITAR
+                        </button>
+                        <button 
+                          onClick={() => {
+                            executeProtectedAction(() => handleDeleteCard(card.id));
+                          }}
+                          className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-slate-600 hover:text-red-500 uppercase tracking-widest transition-colors p-1"
+                          title="Excluir Card"
+                        >
+                          <Trash2 size={10} /> EXCLUIR
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                
+                {cards.filter(c => (c.deck === viewingDeck.name || c.deck === viewingDeck.id)).length === 0 && (
+                  <div className="py-20 text-center border-2 border-dashed border-white/5 opacity-20">
+                     <Layers size={48} className="mx-auto mb-4 text-slate-500" />
+                     <p className="text-xs font-black uppercase tracking-widest text-slate-500">Este baralho está vazio.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* --- FIM ANCORA: LISTA_CARDS_DECK --- */}
+
+      {/* --- MODAIS --- */}
+      <AnimatePresence>
+        
+        {/* MODAL: NOVO DECK */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm px-6">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-orange-500/20 p-8 rounded-none shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Criar Baralho</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleCreateDeck} className="space-y-6">
+                <div>
+                  <label className="block text-[8px] font-black text-orange-500 uppercase tracking-[0.4em] mb-3">Nome da Coleção</label>
+                  <input 
+                    autoFocus 
+                    type="text" 
+                    value={newDeckName} 
+                    onChange={(e) => {
+                      setNewDeckName(e.target.value);
+                      if (showErrors) setShowErrors(false);
+                    }} 
+                    placeholder="EX: Phrasal Verbs..." 
+                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${(showErrors && !newDeckName.trim()) || isDuplicateDeck ? 'border-red-500' : 'border-white/10 focus:border-orange-500/50'}`} 
+                  />
+                  {isDuplicateDeck && (
+                    <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      ESTE NOME JÁ EXISTE. ESCOLHA UM NOME EXCLUSIVO PARA O SEU DECK.
+                    </p>
+                  )}
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isDuplicateDeck || !newDeckName.trim()}
+                  className={`w-full py-4 text-black font-black text-xs tracking-[0.2em] uppercase transition-all ${isDuplicateDeck || !newDeckName.trim() ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-400'}`}
+                >
+                  Salvar Baralho
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: RENOMEAR DECK */}
+        {isRenameModalOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-orange-500/20 p-8 rounded-none shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Renomear</h2>
+                <button onClick={() => setIsRenameModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleRename} className="space-y-6">
+                <div>
+                  <label className="block text-[8px] font-black text-orange-500 uppercase tracking-[0.4em] mb-3">Novo Nome</label>
+                  <input 
+                    autoFocus 
+                    type="text" 
+                    value={newDeckName} 
+                    onChange={(e) => {
+                      setNewDeckName(e.target.value);
+                      if (showErrors) setShowErrors(false);
+                    }} 
+                    className={`w-full bg-white/5 border p-4 text-white font-bold tracking-widest outline-none transition-colors ${(showErrors && !newDeckName.trim()) || isDuplicateDeck ? 'border-red-500' : 'border-white/10 focus:border-orange-500/50'}`} 
+                    style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                  />
+                  {isDuplicateDeck && (
+                    <p className="mt-3 text-[9px] font-black text-orange-500 uppercase tracking-widest leading-relaxed">
+                      ESTE NOME JÁ EXISTE em outro baralho. ESCOLHA UM NOME EXCLUSIVO.
+                    </p>
+                  )}
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isDuplicateDeck || !newDeckName.trim()}
+                  className={`w-full py-4 text-black font-black text-xs tracking-[0.2em] uppercase transition-all ${isDuplicateDeck || !newDeckName.trim() ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-400'}`}
+                >
+                  Atualizar
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: EXCLUIR DECK (CONFIRMAÇÃO) */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-red-500/30 p-10 rounded-none shadow-2xl text-center"
+            >
+              <div className="p-4 bg-red-500/10 border border-red-500/20 w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="text-red-500" size={32} />
+              </div>
+              <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">Excluir "{activeDeck?.name}"?</h2>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-8 leading-relaxed">
+                Esta ação é irreversível. Todos os cards deste baralho serão permanentemente apagados.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button onClick={handleDelete} className="w-full py-4 bg-red-600 text-white font-black text-xs tracking-[0.2em] uppercase hover:bg-red-500 transition-all">Confirmar Exclusão</button>
+                <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-white/5 text-white/40 font-black text-xs tracking-[0.2em] uppercase hover:text-white transition-all">Manter Baralho</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: NOVO CARD */}
+        {isCardModalOpen && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-lg bg-[#0a0a0a] border border-orange-500/20 p-10 rounded-none shadow-2xl overflow-y-auto max-h-[90vh] select-none"
+            >
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/5">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Adicionar Flashcard</h2>
+                <button onClick={() => setIsCardModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleCreateCard} className="space-y-8">
+                {decks.length === 0 ? (
+                  <div className="p-6 bg-orange-500/5 border border-orange-500/20">
+                    <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-4 block">Primeiro Passo Necessário</span>
+                    <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Dê um nome ao seu primeiro Baralho</label>
+                    <input 
+                      autoFocus 
+                      type="text" 
+                      value={newDeckName} 
+                      onChange={(e) => {
+                        setNewDeckName(e.target.value);
+                        if (showErrors && e.target.value.trim()) setShowErrors(false);
+                      }} 
+                      placeholder="EX: FRASES DO DIA..." 
+                      className={`w-full bg-white/5 border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newDeckName.trim() ? 'border-red-600' : 'border-white/10 focus:border-orange-500/50'}`} 
+                      style={{ wordSpacing: '2px', letterSpacing: 'normal' }}
+                    />
+                    {showErrors && !newDeckName.trim() && (
+                      <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">Selecione o Baralho</label>
+                    <DeckSelector 
+                      decks={decks}
+                      selectedDeckName={viewingDeck ? viewingDeck.name : newCardData.deckName}
+                      onSelect={(name) => {
+                        setNewCardData({...newCardData, deckName: name});
+                        if (showErrors) setShowErrors(false);
+                      }}
+                      disabled={!!viewingDeck}
+                      error={showErrors && !newCardData.deckName && !viewingDeck}
+                    />
+                    {showErrors && !newCardData.deckName && !viewingDeck && (
+                      <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
+                      <input 
+                        autoFocus 
+                        type="text" 
+                        value={newCardData.front} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, front: e.target.value});
+                          if (showErrors) setShowErrors(false);
+                        }} 
+                        placeholder="INGLÊS" 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.front ? 'border-red-600' : 'border-white/10 focus:border-orange-500/40'}`} 
+                      />
+                      {showErrors && !newCardData.front && (
+                        <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-black text-amber-500/60 uppercase tracking-[0.3em] mb-3">PRONÚNCIA</label>
+                      <input 
+                        type="text" 
+                        value={newCardData.pronunciation} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, pronunciation: e.target.value});
+                        }} 
+                        placeholder="EX: DÂ" 
+                        className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-amber-500/40 transition-colors" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
+                      <input 
+                        type="text" 
+                        value={newCardData.back} 
+                        onChange={(e) => {
+                          setNewCardData({...newCardData, back: e.target.value});
+                          if (showErrors) setShowErrors(false);
+                        }} 
+                        placeholder="PORTUGUÊS" 
+                        className={`w-full bg-white/[0.03] border p-4 text-white font-bold uppercase tracking-widest outline-none transition-colors ${showErrors && !newCardData.back ? 'border-red-600' : 'border-white/10 focus:border-orange-500/40'}`} 
+                      />
+                      {showErrors && !newCardData.back && (
+                        <p className="text-red-600 text-[9px] font-black uppercase mt-2 tracking-widest">Campo Obrigatório</p>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-orange-500 uppercase tracking-[0.3em] mb-3">TÉCNICA DE MEMORIZAÇÃO</label>
+                    <textarea rows={3} value={newCardData.association} onChange={(e) => setNewCardData({...newCardData, association: e.target.value})} placeholder="Dica mental para não esquecer..." className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-orange-500/40 resize-none h-24" />
+                  </div>
+                </div>
+
+                {isNewCardDuplicate && (
+                  <div className="space-y-4 py-2 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-500 text-[10px]">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500/80 uppercase tracking-widest">
+                        Este vocabulário já existe no seu Dicionário.
+                      </p>
+                    </div>
+                    
+                    <div 
+                      onClick={() => setSkipDictionary(!skipDictionary)}
+                      className="flex items-center gap-3 cursor-pointer group py-1"
+                    >
+                      <div 
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-orange-500 border-orange-500' : 'border-white/10 group-hover:border-white/30'}`}
+                      >
+                        {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Não enviar para o dicionário</span>
+                    </div>
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  className="w-full py-5 bg-white text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-orange-500 transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98]"
+                >
+                  Salvar Flashcard <ArrowRight size={16} />
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* MODAL: EDITAR CARD INDIVIDUAL */}
+        {isEditCardModalOpen && editingCard && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-[#0a0a0a] border border-orange-500/20 p-10 rounded-none shadow-2xl select-none"
+            >
+              <div className="flex justify-between items-center mb-10 pb-4 border-b border-white/5">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Editar Flashcard</h2>
+                <button onClick={() => setIsEditCardModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+
+              <form onSubmit={handleUpdateCard} className="space-y-8">
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">INGLÊS</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.front} 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, front: e.target.value});
+                        if (showErrors) setShowErrors(false);
+                      }} 
+                      className={`w-full bg-white/[0.03] border p-4 text-white font-black uppercase tracking-widest outline-none transition-colors ${showErrors && !editingCard.front ? 'border-red-500' : 'border-white/10 focus:border-orange-500/40'}`} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-amber-500/60 uppercase tracking-[0.3em] mb-3">PRONÚNCIA</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.pronunciation || ''} 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, pronunciation: e.target.value});
+                      }} 
+                      placeholder="EX: DÂ"
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-black uppercase tracking-widest outline-none focus:border-amber-500/40 transition-colors" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3">PORTUGUÊS</label>
+                    <input 
+                      type="text" 
+                      value={editingCard.back} 
+                      onChange={(e) => {
+                        setEditingCard({...editingCard, back: e.target.value});
+                        if (showErrors) setShowErrors(false);
+                      }} 
+                      className={`w-full bg-white/[0.03] border p-4 text-white font-black uppercase tracking-widest outline-none transition-colors ${showErrors && !editingCard.back ? 'border-red-500' : 'border-white/10 focus:border-orange-500/40'}`} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-black text-orange-500 uppercase tracking-[0.3em] mb-3">Técnica de Memorização</label>
+                    <textarea 
+                      rows={3} 
+                      value={editingCard.association || ''} 
+                      onChange={(e) => setEditingCard({...editingCard, association: e.target.value})} 
+                      className="w-full bg-white/[0.03] border border-white/10 p-4 text-white font-bold uppercase tracking-widest outline-none focus:border-orange-500/40 resize-none h-24" 
+                    />
+                  </div>
+                </div>
+
+                {isEditingCardDuplicate && (
+                  <div className="space-y-4 py-2 border-t border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-500 text-[10px]">⚠️</span>
+                      <p className="text-[9px] font-black text-orange-500/80 uppercase tracking-widest">
+                        Este vocabulário já existe no seu Dicionário.
+                      </p>
+                    </div>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div 
+                        onClick={() => setSkipDictionary(!skipDictionary)}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${skipDictionary ? 'bg-orange-500 border-orange-500' : 'border-white/10 group-hover:border-white/30'}`}
+                      >
+                        {skipDictionary && <Check size={12} className="text-black" strokeWidth={4} />}
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Não sincronizar com Dicionário</span>
+                    </label>
+                  </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  className="w-full py-5 bg-orange-500 text-black font-black text-xs tracking-[0.3em] uppercase hover:bg-orange-400 transition-all shadow-xl active:scale-[0.98]"
+                >
+                  ATUALIZAR CARD
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+
+
+      </AnimatePresence>
+      
+      {/* MODAL: SELEÇÃO DE MODO (UNIFICADO) */}
+      <StudyModeModal 
+        isOpen={isModeModalOpen}
+        onClose={() => {
+          setIsModeModalOpen(false);
+          setTargetStudyDeckId(null);
+        }}
+        onSelect={(mode) => {
+          const url = targetStudyDeckId 
+            ? `/app/estudar?deck=${targetStudyDeckId}&mode=${mode}`
+            : `/app/estudar?mode=${mode}`;
+          router.push(url);
+          setIsModeModalOpen(false);
+          setTargetStudyDeckId(null);
+        }}
+      />
+
+      {/* UNDO TOAST NOTIFICATION */}
+      <AnimatePresence>
+        {showUndoToast && deletedCard && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className="fixed bottom-6 left-1/2 z-[200] bg-[#1a1a1a] border border-white/10 text-slate-300 px-6 py-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-between gap-6 w-[90%] max-w-md rounded-none"
+          >
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] md:text-[11px] font-black text-white tracking-widest uppercase">Vocabulário Removido</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase mt-0.5 truncate">{deletedCard.front}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <button 
+                onClick={handleUndoDelete}
+                className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-[9px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 px-4 py-3 md:px-3 md:py-2 transition-colors active:scale-95 min-h-[44px] md:min-h-0 rounded-lg"
+                title="Desfazer exclusão"
+              >
+                <RotateCcw size={16} className="md:w-[14px] md:h-[14px]" /> DESFAZER
+              </button>
+              <button 
+                onClick={() => { setShowUndoToast(false); setDeletedCard(null); setDeletedCardIndex(null); }}
+                className="text-slate-500 hover:text-white transition-colors p-3 md:p-1 shrink-0 min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 flex items-center justify-center rounded-lg"
+                title="Fechar"
+              >
+                <X size={20} className="md:w-[16px] md:h-[16px]" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

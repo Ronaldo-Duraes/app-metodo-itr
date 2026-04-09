@@ -65,6 +65,13 @@ export const ADMIN_EMAIL = 'ronaldo.duraes@gmail.com';
 
 export { db, auth, googleProvider };
 
+export const getUsersCollectionName = (): string => {
+  if (typeof window !== 'undefined') {
+    return window.location.pathname.startsWith('/espanhol') ? 'users_es' : 'users';
+  }
+  return 'users';
+};
+
 /**
  * Força o Firestore para modo online — útil como botão de emergência
  */
@@ -99,7 +106,7 @@ export async function signUpWithEmail(email: string, pass: string, name: string)
     // PASSO 2: Criar documento no Firestore IMEDIATAMENTE
     // 🛡️ TRAVA DE SEGURANÇA: Nunca sobrescrever role existente!
     try {
-      const userRef = doc(db, 'users', user.uid);
+      const userRef = doc(db, getUsersCollectionName(), user.uid);
       
       // Verifica se o doc já existe (race condition / re-signup)
       let existingDoc;
@@ -243,7 +250,7 @@ export async function signInWithGoogle() {
     // Força rede ativa
 
     
-    const userRef = doc(db, 'users', user.uid);
+    const userRef = doc(db, getUsersCollectionName(), user.uid);
     
     let userSnap;
     try {
@@ -353,7 +360,7 @@ export interface UserStats {
  */
 export async function fetchUserProfile(uid: string): Promise<UserStats | null> {
   if (!isFirebaseReady || !db) return null;
-  const docRef = doc(db, 'users', uid);
+  const docRef = doc(db, getUsersCollectionName(), uid);
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
@@ -367,7 +374,7 @@ export async function fetchUserProfile(uid: string): Promise<UserStats | null> {
  */
 export async function redeemReward(uid: string, rewardKey: string) {
   if (!isFirebaseReady || !db) return false;
-  const docRef = doc(db, 'users', uid);
+  const docRef = doc(db, getUsersCollectionName(), uid);
   const stats = await fetchUserProfile(uid);
   
   if (stats) {
@@ -390,7 +397,7 @@ export async function getAllUsers(): Promise<UserStats[]> {
     // Força rede ativa antes de buscar
 
     
-    const usersRef = collection(db, 'users');
+    const usersRef = collection(db, getUsersCollectionName());
     
     const querySnapshot = await Promise.race([
       getDocs(query(usersRef)),
@@ -419,7 +426,7 @@ export async function getAllUsers(): Promise<UserStats[]> {
 export function subscribeToUsers(callback: (users: UserStats[]) => void): Unsubscribe | null {
   if (!isFirebaseReady || !db) return null;
   
-  const usersRef = collection(db, 'users');
+  const usersRef = collection(db, getUsersCollectionName());
   
   return onSnapshot(usersRef, (snapshot) => {
     const users = snapshot.docs.map(d => d.data() as UserStats);
@@ -440,7 +447,7 @@ export function subscribeToUsers(callback: (users: UserStats[]) => void): Unsubs
 export async function updateUserRole(uid: string, newRole: UserStats['role']) {
   if (!isFirebaseReady || !db) return false;
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, getUsersCollectionName(), uid);
     await updateDoc(userRef, { role: newRole });
     return true;
   } catch (error) {
@@ -458,7 +465,7 @@ export async function deleteUserDoc(uid: string): Promise<boolean> {
   if (!isFirebaseReady || !db || !uid) return false;
   try {
     const { deleteDoc: deleteDocument } = await import('firebase/firestore');
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, getUsersCollectionName(), uid);
     await deleteDocument(userRef);
     console.log('🗑️ Documento do usuário removido:', uid);
     return true;
@@ -474,7 +481,7 @@ export async function deleteUserDoc(uid: string): Promise<boolean> {
 export async function updateUserProfile(uid: string, data: Partial<UserStats>) {
   if (!isFirebaseReady || !db) return false;
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, getUsersCollectionName(), uid);
     await updateDoc(userRef, data);
     
     if (auth.currentUser && auth.currentUser.uid === uid) {
@@ -509,7 +516,7 @@ export interface UserProgress {
 export async function saveUserProgress(uid: string, progressKey: keyof UserProgress, data: any): Promise<boolean> {
   if (!isFirebaseReady || !db || !uid) return false;
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, getUsersCollectionName(), uid);
     await updateDoc(userRef, {
       [`progress.${progressKey}`]: data,
       [`progress.lastSyncedAt`]: serverTimestamp()
@@ -519,7 +526,7 @@ export async function saveUserProgress(uid: string, progressKey: keyof UserProgr
     console.error(`Erro ao salvar progresso (${progressKey}):`, error);
     // Fallback: tenta setDoc com merge se o doc não existir
     try {
-      const userRef = doc(db, 'users', uid);
+      const userRef = doc(db, getUsersCollectionName(), uid);
       await setDoc(userRef, {
         progress: {
           [progressKey]: data,
@@ -540,7 +547,7 @@ export async function saveUserProgress(uid: string, progressKey: keyof UserProgr
 export async function loadUserProgress(uid: string): Promise<UserProgress | null> {
   if (!isFirebaseReady || !db || !uid) return null;
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, getUsersCollectionName(), uid);
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -565,7 +572,7 @@ export async function loadUserProgress(uid: string): Promise<UserProgress | null
 export async function saveAppDataToCloud(uid: string, data: any): Promise<boolean> {
   if (!isFirebaseReady || !db || !uid) return false;
   try {
-    const docRef = doc(db, 'users', uid, 'appData', 'main');
+    const docRef = doc(db, getUsersCollectionName(), uid, 'appData', 'main');
     // Remove campos undefined/function que o Firestore não aceita
     const cleanData = JSON.parse(JSON.stringify(data));
     await setDoc(docRef, { 
@@ -588,7 +595,7 @@ export async function loadAppDataFromCloud(uid: string): Promise<any | null> {
   if (!isFirebaseReady || !db || !uid) return null;
   try {
 
-    const docRef = doc(db, 'users', uid, 'appData', 'main');
+    const docRef = doc(db, getUsersCollectionName(), uid, 'appData', 'main');
     const snap = await Promise.race([
       getDoc(docRef),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_CLOUD_LOAD')), 8000))
