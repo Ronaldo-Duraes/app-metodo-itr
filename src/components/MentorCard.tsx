@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Instagram, MessageCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 interface MentorCardProps {
   isModal?: boolean;
@@ -14,20 +15,33 @@ interface MentorCardProps {
  * 
  * A premium, glassmorphism-styled card showcasing the mentor behind the Method.
  * Features a responsive layout (Desktop: Horizontal, Mobile: Vertical) with a 
- * "Black & Green Premium" aesthetic.
+ * "Black & Green Premium" aesthetic (or Orange for Spanish).
  * 
  * Supports an 'isModal' mode for compact display in overlays.
  */
 export default function MentorCard({ isModal = false, onClose }: MentorCardProps) {
   const WHATSAPP_LINK = 'https://wa.me/5511999999999'; // TODO: Update with actual mentor number
   const INSTAGRAM_LINK = 'https://instagram.com/im.ronaldod';
+  const pathname = usePathname();
+  const isEspanhol = pathname?.includes('/espanhol');
+
+  const themeColor = {
+    border: isEspanhol ? 'border-orange-500/20' : 'border-emerald-500/20',
+    borderHover: isEspanhol ? 'group-hover:border-orange-500/40' : 'group-hover:border-emerald-500/40',
+    shadow: isEspanhol ? 'shadow-orange-950/20' : 'shadow-emerald-950/20',
+    textMain: isEspanhol ? 'text-orange-500' : 'text-emerald-500',
+    bgBadge: isEspanhol ? 'bg-orange-500/40' : 'bg-emerald-500/40',
+    textQuote: isEspanhol ? 'text-orange-400' : 'text-emerald-400',
+    borderQuote: isEspanhol ? 'border-orange-500' : 'border-emerald-500',
+    hoverBorderBtn: isEspanhol ? 'hover:border-orange-500/40' : 'hover:border-emerald-500/40'
+  };
 
   return (
     <motion.div 
       initial={{ opacity: 0, scale: isModal ? 0.9 : 1, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`w-full ${isModal ? 'max-w-none' : 'max-w-4xl mx-auto'} overflow-hidden bg-[#0a0a0a] border border-emerald-500/20 rounded-[2rem] shadow-2xl shadow-emerald-950/20 group hover:border-emerald-500/40 transition-all duration-500 relative`}
+      className={`w-full ${isModal ? 'max-w-none' : 'max-w-4xl mx-auto'} overflow-hidden bg-[#0a0a0a] border ${themeColor.border} rounded-[2rem] shadow-2xl ${themeColor.shadow} group ${themeColor.borderHover} transition-all duration-500 relative`}
     >
       {isModal && onClose && (
         <button 
@@ -43,7 +57,7 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
         <div className={`relative ${isModal ? 'w-[40%] aspect-[4/5]' : 'w-full md:w-1/3 h-72 md:h-auto aspect-square md:aspect-auto'} overflow-hidden`}>
           <Image
             src="/assets/ronaldo.jpeg"
-            alt="Ronaldo - Mentor do Método ITR"
+            alt={isEspanhol ? "Ronaldo - Mentor del Método ETR" : "Ronaldo - Mentor do Método ITR"}
             fill
             priority
             className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
@@ -62,13 +76,13 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
         <div className={`flex-1 ${isModal ? 'p-8' : 'p-8 md:p-12'} flex flex-col justify-center gap-6 bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#0a0a0a]`}>
           <div className="space-y-4">
             <h2 className={`${isModal ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl'} font-bold text-white tracking-tight leading-tight`}>
-              Quem está por trás do <span className="text-emerald-500">Método?</span>
+              Quem está por trás do <span className={themeColor.textMain}>Método?</span>
             </h2>
-            <div className="w-12 h-1 bg-emerald-500/40 rounded-full" />
+            <div className={`w-12 h-1 ${themeColor.bgBadge} rounded-full`} />
             <p className={`text-slate-400 ${isModal ? 'text-sm' : 'text-lg'} leading-relaxed max-w-lg`}>
-              Estudante de medicina e criador do método ITR. Preparando-se para o USMLE nos EUA. 
+              Estudante de medicina e criador do método {isEspanhol ? 'ETR' : 'ITR'}. Preparando-se para o USMLE nos EUA. 
               <br className={isModal ? 'block' : 'hidden md:block'} />
-              <span className={`inline-block mt-4 text-emerald-400 font-medium italic border-l-4 border-emerald-500 pl-4 py-1`}>
+              <span className={`inline-block mt-4 ${themeColor.textQuote} font-medium italic border-l-4 ${themeColor.borderQuote} pl-4 py-1`}>
                 "A alta performance exige reflexos, não traduções."
               </span>
             </p>
@@ -82,9 +96,9 @@ export default function MentorCard({ isModal = false, onClose }: MentorCardProps
               href={INSTAGRAM_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className={`group/btn flex items-center justify-center gap-2 ${isModal ? 'px-6 py-3 text-xs' : 'px-8 py-4'} bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-white hover:bg-white/10 hover:border-emerald-500/40 transition-all duration-300 shadow-xl`}
+              className={`group/btn flex items-center justify-center gap-2 ${isModal ? 'px-6 py-3 text-xs' : 'px-8 py-4'} bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-white hover:bg-white/10 ${themeColor.hoverBorderBtn} transition-all duration-300 shadow-xl`}
             >
-              <Instagram size={isModal ? 16 : 20} className="text-emerald-500 group-hover/btn:scale-110 transition-transform" />
+              <Instagram size={isModal ? 16 : 20} className={`${themeColor.textMain} group-hover/btn:scale-110 transition-transform`} />
               <span className="font-semibold tracking-wide">Instagram</span>
             </motion.a>
 

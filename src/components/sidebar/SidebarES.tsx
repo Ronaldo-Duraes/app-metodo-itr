@@ -186,7 +186,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
-            className='object-contain hover:scale-105 transition-transform' 
+            className='object-contain hover:scale-105 transition-transform filter hue-rotate-[-110deg] saturate-200 brightness-110' 
           />
         </Link>
       </div>
@@ -289,7 +289,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             fill
             sizes="100vw"
             priority
-            className='object-contain hover:scale-105 transition-transform' 
+            className='object-contain hover:scale-105 transition-transform filter hue-rotate-[-110deg] saturate-200 brightness-110' 
           />
         </Link>
         <button 
